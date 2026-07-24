@@ -12,9 +12,9 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 # Admin credentials & authentication configurations
-ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'admin')
-ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'admin123')
-JWT_SECRET = os.environ.get('JWT_SECRET', 'healthrisk-ai-secret-default-2026')
+ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', '')
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', '')
+JWT_SECRET = os.environ.get('JWT_SECRET', '')
 
 def generate_token(username):
     timestamp = str(int(time.time()))
