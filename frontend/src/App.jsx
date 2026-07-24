@@ -147,7 +147,7 @@ const MOCK_PROFILES = [
 export default function App() {
   // Application states
   const [currentTab, setCurrentTab] = useState('dashboard');
-  const [theme, setTheme] = useState('dark');
+  const [theme, setTheme] = useState(() => localStorage.getItem('healthrisk_theme') || 'dark');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [assessments, setAssessments] = useState([]);
   const [activeUser, setActiveUser] = useState('');
@@ -263,6 +263,7 @@ export default function App() {
   // Sync Class Theme with Body
   useEffect(() => {
     const root = window.document.documentElement;
+    localStorage.setItem('healthrisk_theme', theme);
     if (theme === 'dark') {
       root.classList.add('dark');
       document.body.className = "bg-slate-950 text-slate-100 min-h-screen transition-colors duration-500 selection:bg-indigo-500/30";
@@ -1468,10 +1469,10 @@ export default function App() {
       </div>
       
       {/* Sidebar Navigation */}
-      <aside className="w-[280px] bg-slate-950 border-r border-slate-900 p-6 flex flex-col fixed top-0 bottom-0 left-0 z-50 transition-transform lg:translate-x-0 no-print" style={{ transform: sidebarOpen ? 'translateX(0)' : undefined }}>
+      <aside className="w-[280px] bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-900 p-6 flex flex-col fixed top-0 bottom-0 left-0 z-50 transition-transform lg:translate-x-0 no-print" style={{ transform: sidebarOpen ? 'translateX(0)' : undefined }}>
         
         {/* Brand Header */}
-        <div className="flex items-center gap-3 font-black text-2xl tracking-tight text-white mb-10 select-none group px-2">
+        <div className="flex items-center gap-3 font-black text-2xl tracking-tight text-slate-900 dark:text-white mb-10 select-none group px-2">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/35 group-hover:scale-105 transition-transform duration-300">
             <Activity className="w-4.5 h-4.5 text-white filter drop-shadow-[0_0_4px_rgba(255,255,255,0.4)]" />
           </div>
@@ -1479,7 +1480,7 @@ export default function App() {
         </div>
 
         {/* Logged In User Profile */}
-        <div className="bg-slate-900/55 hover:bg-slate-900/80 border border-slate-900/60 hover:border-slate-800 rounded-2xl p-4 mb-6 flex items-center gap-3.5 transition-all duration-300 group shadow-md cursor-pointer relative overflow-hidden">
+        <div className="bg-slate-100/80 dark:bg-slate-900/55 hover:bg-slate-200/80 dark:hover:bg-slate-900/80 border border-slate-200 dark:border-slate-900/60 rounded-2xl p-4 mb-6 flex items-center gap-3.5 transition-all duration-300 group shadow-md cursor-pointer relative overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 rounded-full blur-2xl group-hover:bg-indigo-500/10 transition-all duration-300" />
           <div className="relative">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500/20 to-violet-500/20 border border-indigo-500/30 text-indigo-300 flex items-center justify-center font-bold text-sm select-none shrink-0 group-hover:scale-105 transition-transform duration-300">
@@ -1489,7 +1490,7 @@ export default function App() {
             <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-slate-950 ring-0" />
           </div>
           <div className="flex-1 min-w-0 z-10">
-            <div className="font-extrabold text-sm text-slate-100 truncate group-hover:text-white transition-colors">{userProfile?.name || 'Loading user...'}</div>
+            <div className="font-extrabold text-sm text-slate-800 dark:text-slate-100 truncate group-hover:text-indigo-600 dark:group-hover:text-white transition-colors">{userProfile?.name || 'Loading user...'}</div>
             <div className="text-[10px] font-bold text-indigo-400/85 uppercase tracking-wider truncate mt-0.5">@{userProfile?.username || 'user'}</div>
           </div>
         </div>
@@ -1554,17 +1555,17 @@ export default function App() {
         </nav>
 
         {/* Footer controls */}
-        <div className="mt-auto pt-6 border-t border-slate-900 flex flex-col gap-3">
+        <div className="mt-auto pt-6 border-t border-slate-200 dark:border-slate-900 flex flex-col gap-3">
           <button 
             onClick={() => setTheme(prev => prev === 'dark' ? 'light' : 'dark')}
-            className="w-full flex items-center justify-between px-4 py-3 bg-slate-900/40 hover:bg-slate-900/80 border border-slate-900/60 rounded-xl text-slate-400 hover:text-slate-200 text-sm font-semibold cursor-pointer transition-all duration-300"
+            className="w-full flex items-center justify-between px-4 py-3 bg-slate-100 dark:bg-slate-900/40 hover:bg-slate-200 dark:hover:bg-slate-900/80 border border-slate-200 dark:border-slate-900/60 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 text-sm font-semibold cursor-pointer transition-all duration-300"
           >
             <span className="flex items-center gap-2">
               {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400 animate-spin-slow" /> : <Moon className="w-4 h-4 text-indigo-400" />}
               Appearance
             </span>
             <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-950/80 text-slate-400 border border-slate-800/50">
-              {theme === 'dark' ? 'Light' : 'Dark'}
+              {theme === 'dark' ? 'Dark Mode' : 'Light Mode'}
             </span>
           </button>
           
