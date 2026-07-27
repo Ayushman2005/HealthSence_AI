@@ -109,7 +109,7 @@ Project 2026/
 
 3. Install required Python packages:
    ```bash
-   pip install flask flask-cors pymysql numpy pandas scikit-learn xgboost
+   pip install -r requirements.txt
    ```
 
 4. Configure environment variables (Optional):
