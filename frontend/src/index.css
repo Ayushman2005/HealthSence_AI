@@ -30,7 +30,10 @@ html {
 @media print {
   body {
     background: #ffffff !important;
-    color: #000000 !important;
+    color: #0f172a !important;
+    font-size: 11pt !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
   .no-print {
     display: none !important;
@@ -39,7 +42,24 @@ html {
     border: 1px solid #cbd5e1 !important;
     background: #ffffff !important;
     box-shadow: none !important;
-    page-break-inside: avoid;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+  .print-force-show {
+    max-height: none !important;
+    opacity: 1 !important;
+    display: block !important;
+    margin-top: 0.75rem !important;
+    border: 1px solid #e2e8f0 !important;
+    background-color: #f8fafc !important;
+    padding: 1rem !important;
+    border-radius: 0.75rem !important;
+  }
+  .glass-panel, .glass-header {
+    background: #ffffff !important;
+    backdrop-filter: none !important;
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: none !important;
   }
 }
 
