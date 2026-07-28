@@ -147,7 +147,7 @@ const MOCK_PROFILES = [
 export default function App() {
   // Application states
   const [currentTab, setCurrentTab] = useState('dashboard');
-  const [theme, setTheme] = useState(() => localStorage.getItem('healthrisk_theme') || 'dark');
+  const [theme] = useState('light');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [assessments, setAssessments] = useState([]);
   const [activeUser, setActiveUser] = useState('');
@@ -260,18 +260,13 @@ export default function App() {
     }, 4000);
   };
 
-  // Sync Class Theme with Body
+  // Sync Class Theme with Body (Always Light Mode)
   useEffect(() => {
     const root = window.document.documentElement;
-    localStorage.setItem('healthrisk_theme', theme);
-    if (theme === 'dark') {
-      root.classList.add('dark');
-      document.body.className = "bg-slate-950 text-slate-100 min-h-screen transition-colors duration-500 selection:bg-indigo-500/30";
-    } else {
-      root.classList.remove('dark');
-      document.body.className = "bg-slate-50 text-slate-900 min-h-screen transition-colors duration-500 selection:bg-indigo-500/20";
-    }
-  }, [theme]);
+    localStorage.setItem('healthrisk_theme', 'light');
+    root.classList.remove('dark');
+    document.body.className = "bg-slate-50 text-slate-900 min-h-screen transition-colors duration-500 selection:bg-indigo-500/20";
+  }, []);
 
   // Authentication Handlers
   const handleLogin = async (e) => {
@@ -1271,19 +1266,19 @@ export default function App() {
 
   if (!authToken) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-slate-950 p-6 relative overflow-hidden text-slate-100">
-        {/* Decorative ambient background spots */}
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="min-h-screen w-full flex items-center justify-center p-6 relative overflow-hidden text-slate-100">
+        {/* Animated Ambient background glow blobs */}
+        <div className="absolute top-[-15%] left-[-15%] w-[45%] h-[45%] bg-indigo-500/20 rounded-full blur-[140px] pointer-events-none animate-float-blob" />
+        <div className="absolute bottom-[-15%] right-[-15%] w-[45%] h-[45%] bg-emerald-500/20 rounded-full blur-[140px] pointer-events-none animate-float-blob-reverse" />
         
-        <div className="w-full max-w-[460px] bg-slate-900/60 border border-slate-800 rounded-3xl p-8 md:p-10 shadow-2xl backdrop-blur-md relative z-10 animate-fade-in">
+        <div className="w-full max-w-[460px] glass-modal-container rounded-3xl p-8 md:p-10 shadow-2xl relative z-10 animate-modal-spring">
           {/* Header */}
           <div className="flex flex-col items-center text-center mb-8">
-            <div className="w-16 h-16 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-2xl flex items-center justify-center mb-4 filter drop-shadow-[0_0_12px_rgba(99,102,241,0.25)]">
+            <div className="w-16 h-16 bg-gradient-to-tr from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 text-indigo-400 rounded-2xl flex items-center justify-center mb-4 filter drop-shadow-[0_0_12px_rgba(99,102,241,0.35)] animate-pulse-slow">
               <Activity className="w-8 h-8" />
             </div>
-            <h2 className="font-extrabold text-3xl text-white tracking-tight">HealthSenceAI</h2>
-            <p className="text-sm text-slate-400 mt-2 max-w-sm">
+            <h2 className="font-extrabold text-3xl text-gradient-indigo tracking-tight">HealthSenceAI</h2>
+            <p className="text-sm text-slate-400 mt-2 max-w-sm font-medium">
               {authMode === 'login' 
                 ? 'Sign in to access your clinical dashboard and models' 
                 : 'Create an account to begin clinical assessments'}
@@ -1294,7 +1289,7 @@ export default function App() {
             /* Login Form */
             <form onSubmit={handleLogin} className="space-y-5">
               {loginError && (
-                <div className="bg-rose-500/10 border border-rose-500/25 text-rose-400 rounded-xl p-3 text-xs font-semibold flex items-center gap-2">
+                <div className="bg-rose-500/10 border border-rose-500/25 text-rose-400 rounded-xl p-3 text-xs font-semibold flex items-center gap-2 animate-shake">
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <span>{loginError}</span>
                 </div>
@@ -1308,7 +1303,7 @@ export default function App() {
                   onChange={e => setLoginUsername(e.target.value)}
                   placeholder="Enter your username"
                   required
-                  className="w-full px-4 py-3 bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25 rounded-xl outline-none text-sm font-semibold text-slate-100 placeholder-slate-600 transition"
+                  className="w-full px-4 py-3 glass-input rounded-xl text-sm font-semibold text-slate-100 placeholder-slate-500"
                 />
               </div>
 
@@ -1320,14 +1315,14 @@ export default function App() {
                   onChange={e => setLoginPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="w-full px-4 py-3 bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25 rounded-xl outline-none text-sm font-semibold text-slate-100 placeholder-slate-600 transition"
+                  className="w-full px-4 py-3 glass-input rounded-xl text-sm font-semibold text-slate-100 placeholder-slate-500"
                 />
               </div>
 
               <button 
                 type="submit" 
                 disabled={loginLoading}
-                className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-indigo-600/35 hover:shadow-indigo-600/50 cursor-pointer flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-50"
+                className="btn-magnetic w-full py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-indigo-600/35 cursor-pointer flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-50"
               >
                 {loginLoading ? 'Signing in...' : 'Sign In'}
                 <ArrowRight className="w-4 h-4" />
@@ -1339,7 +1334,7 @@ export default function App() {
                   <button 
                     type="button"
                     onClick={() => { setAuthMode('register'); setLoginError(''); }}
-                    className="text-indigo-400 hover:text-indigo-300 hover:underline cursor-pointer"
+                    className="text-indigo-400 hover:text-indigo-300 hover:underline cursor-pointer font-bold"
                   >
                     Register
                   </button>
@@ -1364,7 +1359,7 @@ export default function App() {
                   onChange={e => setRegisterName(e.target.value)}
                   placeholder="e.g. Ayushman Kar"
                   required
-                  className="w-full px-4 py-3 bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25 rounded-xl outline-none text-sm font-semibold text-slate-100 placeholder-slate-600 transition"
+                  className="w-full px-4 py-3 glass-input rounded-xl text-sm font-semibold text-slate-100 placeholder-slate-500"
                 />
               </div>
 
@@ -1376,7 +1371,7 @@ export default function App() {
                   onChange={e => setRegisterUsername(e.target.value)}
                   placeholder="Choose a username"
                   required
-                  className="w-full px-4 py-3 bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25 rounded-xl outline-none text-sm font-semibold text-slate-100 placeholder-slate-600 transition"
+                  className="w-full px-4 py-3 glass-input rounded-xl text-sm font-semibold text-slate-100 placeholder-slate-500"
                 />
               </div>
 
@@ -1388,7 +1383,7 @@ export default function App() {
                   onChange={e => setRegisterPassword(e.target.value)}
                   placeholder="Min 6 characters"
                   required
-                  className="w-full px-4 py-3 bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25 rounded-xl outline-none text-sm font-semibold text-slate-100 placeholder-slate-600 transition"
+                  className="w-full px-4 py-3 glass-input rounded-xl text-sm font-semibold text-slate-100 placeholder-slate-500"
                 />
               </div>
 
@@ -1400,14 +1395,14 @@ export default function App() {
                   onChange={e => setRegisterConfirmPassword(e.target.value)}
                   placeholder="Re-enter your password"
                   required
-                  className="w-full px-4 py-3 bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25 rounded-xl outline-none text-sm font-semibold text-slate-100 placeholder-slate-600 transition"
+                  className="w-full px-4 py-3 glass-input rounded-xl text-sm font-semibold text-slate-100 placeholder-slate-500"
                 />
               </div>
 
               <button 
                 type="submit" 
                 disabled={registerLoading}
-                className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-emerald-600/35 hover:shadow-emerald-600/50 cursor-pointer flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-50"
+                className="btn-magnetic w-full py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-emerald-600/35 cursor-pointer flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-50"
               >
                 {registerLoading ? 'Creating account...' : 'Create Account'}
                 <PlusCircle className="w-4 h-4" />
@@ -1419,7 +1414,7 @@ export default function App() {
                   <button 
                     type="button"
                     onClick={() => { setAuthMode('login'); setRegisterError(''); }}
-                    className="text-emerald-400 hover:text-emerald-300 hover:underline cursor-pointer"
+                    className="text-emerald-400 hover:text-emerald-300 hover:underline cursor-pointer font-bold"
                   >
                     Sign In
                   </button>
@@ -1461,56 +1456,56 @@ export default function App() {
   return (
     <div className="flex min-h-screen relative overflow-hidden">
       
-      {/* Ambient background glow points */}
+      {/* Ambient background glow mesh for glassmorphism reflections */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none">
-        <div className="absolute top-[10%] left-[5%] w-[45vw] h-[45vw] rounded-full bg-indigo-500/5 dark:bg-indigo-500/8 blur-[120px] animate-float" />
-        <div className="absolute bottom-[10%] right-[5%] w-[50vw] h-[50vw] rounded-full bg-violet-500/5 dark:bg-violet-500/8 blur-[130px] animate-float-reverse" />
-        <div className="absolute top-[40%] right-[30%] w-[35vw] h-[35vw] rounded-full bg-cyan-500/3 dark:bg-cyan-500/5 blur-[100px] animate-float" />
+        <div className="absolute -top-20 -left-20 w-[42rem] h-[42rem] rounded-full bg-gradient-to-tr from-indigo-500/15 via-purple-500/12 to-pink-500/10 dark:from-indigo-500/22 dark:via-purple-500/18 dark:to-pink-500/12 blur-[120px] animate-float-blob" />
+        <div className="absolute top-[35%] -right-20 w-[45rem] h-[45rem] rounded-full bg-gradient-to-tr from-violet-600/15 via-indigo-500/12 to-cyan-500/10 dark:from-violet-600/22 dark:via-indigo-500/18 dark:to-cyan-500/12 blur-[130px] animate-float-blob-reverse" />
+        <div className="absolute -bottom-20 left-[20%] w-[40rem] h-[40rem] rounded-full bg-gradient-to-tr from-emerald-500/12 via-teal-500/10 to-indigo-500/10 dark:from-emerald-500/18 dark:via-teal-500/14 dark:to-indigo-500/12 blur-[110px] animate-float-blob-slow" />
       </div>
       
-      {/* Sidebar Navigation */}
-      <aside className="w-[280px] bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-900 p-6 flex flex-col fixed top-0 bottom-0 left-0 z-50 transition-transform lg:translate-x-0 no-print" style={{ transform: sidebarOpen ? 'translateX(0)' : undefined }}>
+      {/* Glassmorphic Sidebar Navigation */}
+      <aside className="w-[280px] glass-header p-6 flex flex-col fixed top-0 bottom-0 left-0 z-50 transition-transform lg:translate-x-0 no-print" style={{ transform: sidebarOpen ? 'translateX(0)' : undefined }}>
         
         {/* Brand Header */}
-        <div className="flex items-center gap-3 font-black text-2xl tracking-tight text-slate-900 dark:text-white mb-10 select-none group px-2">
+        <div className="flex items-center gap-3 font-black text-2xl tracking-tight text-slate-900 mb-10 select-none group px-2">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/35 group-hover:scale-105 transition-transform duration-300">
             <Activity className="w-4.5 h-4.5 text-white filter drop-shadow-[0_0_4px_rgba(255,255,255,0.4)]" />
           </div>
-          <span className="bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">HealthSence <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">AI</span></span>
+          <span className="text-slate-900 font-extrabold">HealthSence <span className="text-gradient-indigo font-black">AI</span></span>
         </div>
 
-        {/* Logged In User Profile */}
-        <div className="bg-slate-100/80 dark:bg-slate-900/55 hover:bg-slate-200/80 dark:hover:bg-slate-900/80 border border-slate-200 dark:border-slate-900/60 rounded-2xl p-4 mb-6 flex items-center gap-3.5 transition-all duration-300 group shadow-md cursor-pointer relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 rounded-full blur-2xl group-hover:bg-indigo-500/10 transition-all duration-300" />
+        {/* Logged In User Profile (Glass Card) */}
+        <div className="glass-panel glass-panel-hover rounded-2xl p-4 mb-6 flex items-center gap-3.5 transition-all duration-300 group shadow-md cursor-pointer relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 rounded-full blur-2xl group-hover:bg-indigo-500/15 transition-all duration-300" />
           <div className="relative">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500/20 to-violet-500/20 border border-indigo-500/30 text-indigo-300 flex items-center justify-center font-bold text-sm select-none shrink-0 group-hover:scale-105 transition-transform duration-300">
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-500/30 text-indigo-600 flex items-center justify-center font-bold text-sm select-none shrink-0 group-hover:scale-105 transition-transform duration-300">
               {userProfile?.name ? userProfile.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : 'U'}
             </div>
             {/* Status dot */}
-            <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-slate-950 ring-0" />
+            <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-white ring-0" />
           </div>
           <div className="flex-1 min-w-0 z-10">
-            <div className="font-extrabold text-sm text-slate-800 dark:text-slate-100 truncate group-hover:text-indigo-600 dark:group-hover:text-white transition-colors">{userProfile?.name || 'Loading user...'}</div>
-            <div className="text-[10px] font-bold text-indigo-400/85 uppercase tracking-wider truncate mt-0.5">@{userProfile?.username || 'user'}</div>
+            <div className="font-extrabold text-sm text-slate-900 truncate group-hover:text-indigo-600 transition-colors">{userProfile?.name || 'Loading user...'}</div>
+            <div className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider truncate mt-0.5">@{userProfile?.username || 'user'}</div>
           </div>
         </div>
 
         {/* Selected Patient (Active Assessment Profile) */}
         {activeUser && (
-          <div className="bg-indigo-950/30 border border-indigo-500/20 rounded-xl p-3 mb-6 flex items-center justify-between gap-2 animate-fade-in mx-1">
+          <div className="glass-panel rounded-xl p-3 mb-6 flex items-center justify-between gap-2 animate-fade-in mx-1 border-indigo-500/30">
             <div className="flex items-center gap-2 min-w-0">
               <span className="relative flex h-2 w-2 shrink-0">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
               <div className="min-w-0">
-                <p className="text-[9px] font-bold text-indigo-400/80 uppercase tracking-wider">Viewing Patient</p>
-                <p className="text-xs font-semibold text-slate-200 truncate">{activeUser}</p>
+                <p className="text-[9px] font-bold text-indigo-600 uppercase tracking-wider">Viewing Patient</p>
+                <p className="text-xs font-semibold text-slate-900 truncate">{activeUser}</p>
               </div>
             </div>
             <button 
               onClick={() => setActiveUser('')} 
-              className="text-slate-400 hover:text-slate-200 text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 cursor-pointer transition"
+              className="text-slate-600 hover:text-slate-900 text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-slate-200/80 hover:bg-slate-300 cursor-pointer transition"
               title="Clear Active Patient Filter"
             >
               Clear
@@ -1539,15 +1534,15 @@ export default function App() {
                 }}
                 className={`w-full flex items-center gap-3.5 px-4 py-3 text-sm font-semibold rounded-xl transition-all cursor-pointer relative group overflow-hidden ${
                   isActive 
-                    ? 'text-white bg-indigo-600 shadow-md shadow-indigo-600/20 border border-indigo-500/60' 
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/40'
+                    ? 'glass-tab-active animate-glow-ring font-extrabold' 
+                    : 'text-slate-600 hover:text-indigo-600 hover:bg-indigo-500/10'
                 }`}
               >
                 {/* Active Indicator Line */}
                 {isActive && (
                   <span className="absolute left-0 top-1/4 bottom-1/4 w-1 bg-white rounded-r-md" />
                 )}
-                <Icon className={`w-5 h-5 shrink-0 transition-transform duration-300 ${isActive ? 'scale-100' : 'group-hover:scale-110'}`} />
+                <Icon className={`w-5 h-5 shrink-0 transition-transform duration-300 ${isActive ? 'scale-105' : 'group-hover:scale-110'}`} />
                 <span className="relative z-10">{item.label}</span>
               </button>
             );
@@ -1555,35 +1550,22 @@ export default function App() {
         </nav>
 
         {/* Footer controls */}
-        <div className="mt-auto pt-6 border-t border-slate-200 dark:border-slate-900 flex flex-col gap-3">
-          <button 
-            onClick={() => setTheme(prev => prev === 'dark' ? 'light' : 'dark')}
-            className="w-full flex items-center justify-between px-4 py-3 bg-slate-100 dark:bg-slate-900/40 hover:bg-slate-200 dark:hover:bg-slate-900/80 border border-slate-200 dark:border-slate-900/60 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 text-sm font-semibold cursor-pointer transition-all duration-300"
-          >
-            <span className="flex items-center gap-2">
-              {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400 animate-spin-slow" /> : <Moon className="w-4 h-4 text-indigo-400" />}
-              Appearance
-            </span>
-            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-950/80 text-slate-400 border border-slate-800/50">
-              {theme === 'dark' ? 'Dark Mode' : 'Light Mode'}
-            </span>
-          </button>
-          
-          {authToken && (
+        {authToken && (
+          <div className="mt-auto pt-6 border-t border-slate-200/60 flex flex-col gap-3">
             <button 
               onClick={handleLogout}
-              className="w-full flex items-center justify-between px-4 py-3 bg-rose-950/15 hover:bg-rose-900/35 border border-rose-900/25 rounded-xl text-rose-400 hover:text-rose-200 text-sm font-semibold cursor-pointer transition-all duration-300 group"
+              className="w-full flex items-center justify-between px-4 py-3 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 rounded-xl text-rose-500 hover:text-rose-600 text-sm font-semibold cursor-pointer transition-all duration-300 group"
             >
               <span className="flex items-center gap-2">
-                <LogOut className="w-4 h-4 text-rose-400 group-hover:translate-x-0.5 transition-transform" />
+                <LogOut className="w-4 h-4 text-rose-500 group-hover:translate-x-0.5 transition-transform" />
                 Sign Out
               </span>
-              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-rose-950/30 text-rose-400 border border-rose-900/10">
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-rose-500/15 text-rose-600 border border-rose-500/20">
                 Log Out
               </span>
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </aside>
 
       {/* Main Container */}
@@ -1606,7 +1588,7 @@ export default function App() {
         {/* Top Header section (General) */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 no-print">
           <div>
-            <h1 className="text-3xl font-extrabold tracking-tight dark:text-white text-slate-900">
+            <h1 className="text-3xl font-black tracking-tight text-slate-900">
               {currentTab === 'dashboard' && 'AI Health Risk Dashboard'}
               {currentTab === 'wizard' && 'Clinical Diagnostics Wizard'}
               {currentTab === 'results' && 'Diagnostic Risk Evaluation'}
@@ -1614,7 +1596,7 @@ export default function App() {
               {currentTab === 'insights' && 'Chronological Health Insights'}
               {currentTab === 'account' && 'Account Settings & Management'}
             </h1>
-            <p className="text-sm font-medium dark:text-slate-400 text-slate-500 mt-1">
+            <p className="text-sm font-semibold text-slate-600 mt-1">
               {currentTab === 'dashboard' && 'Precision predictive metrics and diagnostic profiles.'}
               {currentTab === 'wizard' && 'Record biomarkers to trigger machine learning predictions.'}
               {currentTab === 'results' && 'Patient diagnostic probability report.'}
@@ -1631,16 +1613,18 @@ export default function App() {
         {currentTab === 'dashboard' && (
           <div className="space-y-8 animate-fade-in no-print">
             {assessments.length === 0 ? (
-              <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center flex flex-col items-center gap-4">
-                <Inbox className="w-16 h-16 text-slate-400" />
-                <h3 className="font-bold text-lg dark:text-slate-100 text-slate-800">No assessments found</h3>
-                <p className="text-sm text-slate-500 max-w-sm">Connect a MySQL database or fill the form wizard to display clinical statistics.</p>
-                <div className="flex flex-col sm:flex-row gap-4 mt-2">
-                  <button onClick={() => setCurrentTab('wizard')} className="btn bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 px-5 rounded-xl inline-flex items-center gap-2 cursor-pointer transition shadow-lg shadow-indigo-600/20">
+              <div className="glass-panel rounded-2xl p-12 text-center flex flex-col items-center gap-4 border border-slate-200/90 shadow-xl">
+                <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 flex items-center justify-center">
+                  <Inbox className="w-8 h-8" />
+                </div>
+                <h3 className="font-extrabold text-2xl text-slate-900">No assessments found</h3>
+                <p className="text-sm text-slate-600 font-medium max-w-sm">Connect a MySQL database or fill the form wizard to display clinical statistics.</p>
+                <div className="flex flex-col sm:flex-row gap-4 mt-3">
+                  <button onClick={() => setCurrentTab('wizard')} className="btn-magnetic bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3 px-6 rounded-xl inline-flex items-center gap-2 cursor-pointer transition shadow-lg shadow-indigo-600/25">
                     <HeartPulse className="w-5 h-5" /> Start Assessment
                   </button>
-                  <button onClick={seedDemoData} className="btn bg-slate-800 hover:bg-slate-700 text-indigo-300 hover:text-indigo-200 border border-slate-700/60 font-semibold py-2.5 px-5 rounded-xl inline-flex items-center gap-2 cursor-pointer transition">
-                    <Sparkles className="w-5 h-5" /> Seed Demo Patient Data
+                  <button onClick={seedDemoData} className="btn-magnetic bg-white hover:bg-slate-50 text-indigo-600 border border-indigo-200/80 font-bold py-3 px-6 rounded-xl inline-flex items-center gap-2 cursor-pointer transition shadow-md">
+                    <Sparkles className="w-5 h-5 text-indigo-500" /> Seed Demo Patient Data
                   </button>
                 </div>
               </div>
@@ -1648,40 +1632,40 @@ export default function App() {
               <>
                 {/* Overview Summary Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 flex items-center gap-4">
-                    <div className="w-14 h-14 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-xl flex items-center justify-center">
+                  <div className="glass-panel glass-panel-hover rounded-2xl p-6 flex items-center gap-4">
+                    <div className="w-14 h-14 bg-indigo-500/10 text-indigo-600 border border-indigo-500/20 rounded-2xl flex items-center justify-center filter drop-shadow-[0_0_8px_rgba(99,102,241,0.2)]">
                       <ClipboardList className="w-7 h-7" />
                     </div>
                     <div>
-                      <h4 className="text-xs uppercase tracking-wider text-slate-400 font-bold mb-1">Evaluations Run</h4>
-                      <div className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">
+                      <h4 className="text-xs uppercase tracking-wider text-slate-500 font-bold mb-1">Evaluations Run</h4>
+                      <div className="text-2xl font-extrabold text-slate-900">
                         {assessments.filter(a => a.name === activeUser).length}
                       </div>
                     </div>
                   </div>
                   
-                  <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 flex items-center gap-4">
-                    <div className="w-14 h-14 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-xl flex items-center justify-center">
+                  <div className="glass-panel glass-panel-hover rounded-2xl p-6 flex items-center gap-4">
+                    <div className="w-14 h-14 bg-rose-500/10 text-rose-600 border border-rose-500/20 rounded-2xl flex items-center justify-center filter drop-shadow-[0_0_8px_rgba(244,63,94,0.2)]">
                       <AlertOctagon className="w-7 h-7" />
                     </div>
                     <div>
-                      <h4 className="text-xs uppercase tracking-wider text-slate-400 font-bold mb-1">Critical Risk Flags</h4>
-                      <div className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">
+                      <h4 className="text-xs uppercase tracking-wider text-slate-500 font-bold mb-1">Critical Risk Flags</h4>
+                      <div className="text-2xl font-extrabold text-slate-900">
                         {latestAssessment ? Object.values(latestAssessment.results.risks).filter(r => r >= 70).length : 0}
                       </div>
                     </div>
                   </div>
 
-                  <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 flex items-center gap-4">
-                    <div className="w-14 h-14 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-xl flex items-center justify-center">
+                  <div className="glass-panel glass-panel-hover rounded-2xl p-6 flex items-center gap-4">
+                    <div className="w-14 h-14 bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 rounded-2xl flex items-center justify-center filter drop-shadow-[0_0_8px_rgba(16,185,129,0.2)]">
                       <Stethoscope className="w-7 h-7" />
                     </div>
                     <div>
-                      <h4 className="text-xs uppercase tracking-wider text-slate-400 font-bold mb-1">Risk Status</h4>
+                      <h4 className="text-xs uppercase tracking-wider text-slate-500 font-bold mb-1">Risk Status</h4>
                       <div className={`text-sm font-bold mt-1 px-3 py-1 rounded-full border text-center ${
                         latestAssessment && Object.values(latestAssessment.results.risks).some(r => r >= 70)
-                          ? 'text-rose-400 bg-rose-500/10 border-rose-500/20'
-                          : 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
+                          ? 'text-rose-600 bg-rose-500/10 border-rose-500/20'
+                          : 'text-emerald-600 bg-emerald-500/10 border-emerald-500/20'
                       }`}>
                         {latestAssessment && Object.values(latestAssessment.results.risks).some(r => r >= 70) ? 'Critical Alert' : 'Standard Range'}
                       </div>
@@ -1693,10 +1677,10 @@ export default function App() {
                 <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
                   
                   {/* Left Column: Radial score wheel */}
-                  <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-8 xl:col-span-4 flex flex-col justify-between">
+                  <div className="glass-panel rounded-2xl p-8 xl:col-span-4 flex flex-col justify-between">
                     <div>
                       <div className="flex items-center justify-between mb-8">
-                        <h2 className="font-bold text-lg text-slate-900 dark:text-slate-100">Overall Health Score</h2>
+                        <h2 className="font-extrabold text-lg text-slate-900">Overall Health Score</h2>
                         {latestAssessment && (
                           <span className={`text-xs font-bold uppercase tracking-wider border rounded-full px-3 py-1 ${getScoreBadgeStyles(latestAssessment.results.overallScore).style}`}>
                             {getScoreBadgeStyles(latestAssessment.results.overallScore).label}
@@ -1708,7 +1692,7 @@ export default function App() {
                         <div className="flex justify-center py-4">
                           <div className="circle-progress-container relative w-44 h-44 flex items-center justify-center cursor-pointer">
                             <svg className="w-full h-full transform -rotate-90" viewBox="0 0 160 160">
-                              <circle className="stroke-slate-200 dark:stroke-slate-800 fill-none" cx="80" cy="80" r="72" strokeWidth="10"></circle>
+                              <circle className="stroke-slate-200 fill-none" cx="80" cy="80" r="72" strokeWidth="10"></circle>
                               <circle 
                                 className="transition-all duration-1000 ease-out fill-none"
                                 cx="80" 
@@ -1722,19 +1706,19 @@ export default function App() {
                               ></circle>
                             </svg>
                             <div className="absolute text-center">
-                              <div className="text-4xl font-extrabold text-slate-900 dark:text-slate-100">{latestAssessment.results.overallScore}</div>
-                              <div className="text-xs uppercase tracking-widest text-slate-400 font-bold mt-1">Score / 100</div>
+                              <div className="text-4xl font-extrabold text-slate-900">{latestAssessment.results.overallScore}</div>
+                              <div className="text-xs uppercase tracking-widest text-slate-500 font-bold mt-1">Score / 100</div>
                             </div>
                           </div>
                         </div>
                       )}
                     </div>
 
-                    <div className="mt-8 bg-slate-950/40 border border-slate-800 rounded-xl p-4 flex gap-3">
-                      <Sparkles className="w-5 h-5 text-indigo-400 shrink-0 mt-0.5" />
+                    <div className="mt-8 glass-pill rounded-xl p-4 flex gap-3 border-indigo-500/20">
+                      <Sparkles className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" />
                       <div>
-                        <div className="font-semibold text-xs text-slate-200">Clinical Recommendation Excerpt</div>
-                        <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                        <div className="font-bold text-xs text-slate-900">Clinical Recommendation Excerpt</div>
+                        <p className="text-xs text-slate-600 mt-1 leading-relaxed font-medium">
                           {latestAssessment?.results.recommendations.immediate[0] || latestAssessment?.results.recommendations.lifestyle[0] || 'No critical warnings. Maintain healthy nutrition and exercise levels.'}
                         </p>
                       </div>
@@ -1745,8 +1729,8 @@ export default function App() {
                   <div className="xl:col-span-8 space-y-8">
                     
                     {/* Radar Chart */}
-                    <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 h-[320px]">
-                      <h2 className="font-bold text-lg text-slate-900 dark:text-slate-100 mb-4">Patient Risk Profile</h2>
+                    <div className="glass-panel rounded-2xl p-6 h-[320px]">
+                      <h2 className="font-extrabold text-lg text-slate-900 mb-4">Patient Risk Profile</h2>
                       <div className="h-full max-h-[230px] flex justify-center">
                         {overviewRadarData && (
                           <Radar 
@@ -1757,10 +1741,10 @@ export default function App() {
                               plugins: { legend: { display: false } },
                               scales: {
                                 r: {
-                                  grid: { color: theme === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' },
-                                  angleLines: { color: theme === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' },
+                                  grid: { color: 'rgba(203, 213, 225, 0.6)' },
+                                  angleLines: { color: 'rgba(203, 213, 225, 0.6)' },
                                   ticks: { display: false },
-                                  pointLabels: { color: theme === 'dark' ? '#94a3b8' : '#475569', font: { family: 'Plus Jakarta Sans', size: 10, weight: '600' } }
+                                  pointLabels: { color: '#334155', font: { family: 'Plus Jakarta Sans', size: 10, weight: '600' } }
                                 }
                               }
                             }} 
@@ -1770,8 +1754,8 @@ export default function App() {
                     </div>
 
                     {/* Timeline Line Chart */}
-                    <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 h-[320px]">
-                      <h2 className="font-bold text-lg text-slate-900 dark:text-slate-100 mb-4">Health Score Trend</h2>
+                    <div className="glass-panel rounded-2xl p-6 h-[320px]">
+                      <h2 className="font-extrabold text-lg text-slate-900 mb-4">Health Score Trend</h2>
                       <div className="h-full max-h-[230px]">
                         {overviewTrendData && (
                           <Line 
@@ -1781,8 +1765,8 @@ export default function App() {
                               maintainAspectRatio: false,
                               plugins: { legend: { display: false } },
                               scales: {
-                                x: { grid: { display: false }, ticks: { color: theme === 'dark' ? '#94a3b8' : '#475569', font: { family: 'Plus Jakarta Sans', size: 10 } } },
-                                y: { min: 0, max: 100, grid: { color: theme === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }, ticks: { color: theme === 'dark' ? '#94a3b8' : '#475569', font: { family: 'Plus Jakarta Sans', size: 10 } } }
+                                x: { grid: { display: false }, ticks: { color: '#475569', font: { family: 'Plus Jakarta Sans', size: 10 } } },
+                                y: { min: 0, max: 100, grid: { color: 'rgba(203, 213, 225, 0.6)' }, ticks: { color: '#475569', font: { family: 'Plus Jakarta Sans', size: 10 } } }
                               }
                             }} 
                           />
@@ -1797,34 +1781,34 @@ export default function App() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <button 
                     onClick={() => setCurrentTab('wizard')}
-                    className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 hover:bg-slate-100/50 dark:hover:bg-slate-800/60 rounded-2xl p-6 text-left flex items-center justify-between cursor-pointer transition-all hover:-translate-y-1"
+                    className="glass-panel glass-panel-hover rounded-2xl p-6 text-left flex items-center justify-between cursor-pointer transition-all"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-xl flex items-center justify-center">
+                      <div className="w-12 h-12 bg-indigo-500/10 text-indigo-600 border border-indigo-500/20 rounded-xl flex items-center justify-center">
                         <HeartPulse className="w-6 h-6" />
                       </div>
                       <div>
-                        <h4 className="font-bold text-slate-900 dark:text-slate-100">Perform Health Assessment</h4>
-                        <p className="text-xs text-slate-400 mt-0.5">Input clinical markers to compute patient health risk forecasts.</p>
+                        <h4 className="font-extrabold text-slate-900">Perform Health Assessment</h4>
+                        <p className="text-xs text-slate-600 mt-0.5 font-medium">Input clinical markers to compute patient health risk forecasts.</p>
                       </div>
                     </div>
-                    <ArrowRight className="w-5 h-5 text-slate-400" />
+                    <ArrowRight className="w-5 h-5 text-indigo-600" />
                   </button>
 
                   <button 
                     onClick={() => setCurrentTab('history')}
-                    className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 hover:bg-slate-100/50 dark:hover:bg-slate-800/60 rounded-2xl p-6 text-left flex items-center justify-between cursor-pointer transition-all hover:-translate-y-1"
+                    className="glass-panel glass-panel-hover rounded-2xl p-6 text-left flex items-center justify-between cursor-pointer transition-all"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-xl flex items-center justify-center">
+                      <div className="w-12 h-12 bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 rounded-xl flex items-center justify-center">
                         <ClipboardList className="w-6 h-6" />
                       </div>
                       <div>
-                        <h4 className="font-bold text-slate-900 dark:text-slate-100">Browse Audit History</h4>
-                        <p className="text-xs text-slate-400 mt-0.5">Browse past evaluations, delete logs, or select profile datasets.</p>
+                        <h4 className="font-extrabold text-slate-900">Browse Audit History</h4>
+                        <p className="text-xs text-slate-600 mt-0.5 font-medium">Browse past evaluations, delete logs, or select profile datasets.</p>
                       </div>
                     </div>
-                    <ArrowRight className="w-5 h-5 text-slate-400" />
+                    <ArrowRight className="w-5 h-5 text-emerald-600" />
                   </button>
                 </div>
               </>
@@ -1857,60 +1841,60 @@ export default function App() {
                       ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-600/35 ring-4 ring-indigo-500/20'
                       : wizardStep > item.step
                         ? 'bg-emerald-600 text-white border-emerald-600'
-                        : 'bg-white dark:bg-slate-950 text-slate-400 border-slate-200 dark:border-slate-800'
+                        : 'bg-white text-slate-400 border-slate-200'
                   }`}>
                     {item.step}
                   </div>
                   <span className={`text-xs font-bold transition-all ${
-                    wizardStep === item.step ? 'dark:text-slate-100 text-slate-900 font-extrabold' : 'text-slate-400 font-medium'
+                    wizardStep === item.step ? 'text-slate-900 font-extrabold' : 'text-slate-500 font-medium'
                   }`}>{item.label}</span>
                 </div>
               ))}
             </div>
 
             {/* Wizards Form Card */}
-            <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-8 shadow-2xl">
+            <div className="glass-panel rounded-2xl p-8 shadow-2xl">
               <form onSubmit={e => e.preventDefault()} className="space-y-6">
                 
                 {/* STEP 1: Personal profile information */}
                 {wizardStep === 1 && (
                   <div className="space-y-6 animate-fade-in">
-                    <div className="border-b border-slate-200 dark:border-slate-800 pb-4">
-                      <h3 className="font-extrabold text-xl text-slate-900 dark:text-slate-100">Personal Information</h3>
-                      <p className="text-xs text-slate-400 mt-1">Provide baseline identity metrics for reference in clinical risk records.</p>
+                    <div className="border-b border-slate-200/60 pb-4">
+                      <h3 className="font-extrabold text-xl text-slate-900">Personal Information</h3>
+                      <p className="text-xs text-slate-600 mt-1 font-medium">Provide baseline identity metrics for reference in clinical risk records.</p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="flex flex-col gap-2">
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Patient Full Name</label>
+                        <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Patient Full Name</label>
                         <input 
                           type="text" 
                           placeholder="e.g. Sarah Connor"
                           value={formData.name}
                           onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                          className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border rounded-xl outline-none transition text-sm font-semibold ${
-                            errors.name ? 'border-rose-500 focus:ring-2 focus:ring-rose-500/20' : 'border-slate-200 dark:border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25'
+                          className={`w-full px-4 py-3 glass-input rounded-xl text-sm font-semibold text-slate-900 ${
+                            errors.name ? 'border-rose-500 focus:ring-2 focus:ring-rose-500/20' : ''
                           }`}
                         />
-                        {errors.name && <span className="text-[10px] font-bold text-rose-400">{errors.name}</span>}
+                        {errors.name && <span className="text-[10px] font-bold text-rose-600">{errors.name}</span>}
                       </div>
 
                       <div className="flex flex-col gap-2">
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Patient Age</label>
+                        <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Patient Age</label>
                         <input 
                           type="number" 
                           placeholder="e.g. 40"
                           value={formData.age}
                           onChange={e => setFormData(prev => ({ ...prev, age: e.target.value }))}
-                          className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border rounded-xl outline-none transition text-sm font-semibold ${
-                            errors.age ? 'border-rose-500 focus:ring-2 focus:ring-rose-500/20' : 'border-slate-200 dark:border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25'
+                          className={`w-full px-4 py-3 glass-input rounded-xl text-sm font-semibold text-slate-900 ${
+                            errors.age ? 'border-rose-500 focus:ring-2 focus:ring-rose-500/20' : ''
                           }`}
                         />
-                        {errors.age && <span className="text-[10px] font-bold text-rose-400">{errors.age}</span>}
+                        {errors.age && <span className="text-[10px] font-bold text-rose-600">{errors.age}</span>}
                       </div>
 
                       <div className="flex flex-col gap-2">
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Gender (At Birth)</label>
+                        <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Gender (At Birth)</label>
                         <div className="flex gap-4">
                           {['male', 'female', 'other'].map(g => (
                             <label key={g} className="flex-1 relative cursor-pointer">
@@ -1921,7 +1905,7 @@ export default function App() {
                                 onChange={() => setFormData(prev => ({ ...prev, gender: g }))}
                                 className="sr-only peer"
                               />
-                              <div className="w-full text-center py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 peer-checked:border-indigo-500 peer-checked:bg-indigo-500/10 peer-checked:text-indigo-400 text-sm font-bold text-slate-400 rounded-xl transition">
+                              <div className="w-full text-center py-3 bg-white border border-slate-200 peer-checked:border-indigo-600 peer-checked:bg-indigo-50 peer-checked:text-indigo-600 text-sm font-bold text-slate-600 rounded-xl transition shadow-sm">
                                 {g.toUpperCase()}
                               </div>
                             </label>
@@ -1931,27 +1915,27 @@ export default function App() {
 
                       <div className="grid grid-cols-2 gap-4">
                         <div className="flex flex-col gap-2">
-                          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Height (cm)</label>
+                          <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Height (cm)</label>
                           <input 
                             type="number" 
                             placeholder="e.g. 170"
                             value={formData.height}
                             onChange={e => setFormData(prev => ({ ...prev, height: e.target.value }))}
-                            className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border rounded-xl outline-none transition text-sm font-semibold ${
-                              errors.height ? 'border-rose-500 focus:ring-2 focus:ring-rose-500/20' : 'border-slate-200 dark:border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25'
+                            className={`w-full px-4 py-3 glass-input rounded-xl text-sm font-semibold text-slate-900 ${
+                              errors.height ? 'border-rose-500 focus:ring-2 focus:ring-rose-500/20' : ''
                             }`}
                           />
-                          {errors.height && <span className="text-[10px] font-bold text-rose-400">{errors.height}</span>}
+                          {errors.height && <span className="text-[10px] font-bold text-rose-600">{errors.height}</span>}
                         </div>
                         <div className="flex flex-col gap-2">
-                          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Weight (kg)</label>
+                          <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Weight (kg)</label>
                           <input 
                             type="number" 
                             placeholder="e.g. 68"
                             value={formData.weight}
                             onChange={e => setFormData(prev => ({ ...prev, weight: e.target.value }))}
-                            className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border rounded-xl outline-none transition text-sm font-semibold ${
-                              errors.weight ? 'border-rose-500 focus:ring-2 focus:ring-rose-500/20' : 'border-slate-200 dark:border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25'
+                            className={`w-full px-4 py-3 glass-input rounded-xl text-sm font-semibold text-slate-900 ${
+                              errors.weight ? 'border-rose-500 focus:ring-2 focus:ring-rose-500/20' : ''
                             }`}
                           />
                           {errors.weight && <span className="text-[10px] font-bold text-rose-400">{errors.weight}</span>}
@@ -1959,11 +1943,11 @@ export default function App() {
                       </div>
 
                       {/* BMI indicator card */}
-                      <div className="md:col-span-2 bg-indigo-500/10 border border-indigo-500/25 rounded-2xl p-6 flex justify-between items-center">
+                      <div className="md:col-span-2 bg-indigo-50/80 border border-indigo-500/30 rounded-2xl p-6 flex justify-between items-center shadow-sm">
                         <div>
-                          <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Estimated Patient BMI</h4>
-                          <div className="text-3xl font-extrabold text-indigo-400 flex items-baseline gap-1">
-                            {calculatedBMI || '--'} <span className="text-xs font-medium text-slate-400">kg/m²</span>
+                          <h4 className="text-xs font-bold text-indigo-700 uppercase tracking-wider mb-1">Estimated Patient BMI</h4>
+                          <div className="text-3xl font-black text-indigo-600 flex items-baseline gap-1">
+                            {calculatedBMI || '--'} <span className="text-xs font-semibold text-slate-600">kg/m²</span>
                           </div>
                         </div>
                         <span className={`text-xs font-bold px-3.5 py-1.5 border rounded-full ${bmiDetails.color}`}>
@@ -1977,15 +1961,15 @@ export default function App() {
                 {/* STEP 2: Lifestyle Habits */}
                 {wizardStep === 2 && (
                   <div className="space-y-6 animate-fade-in">
-                    <div className="border-b border-slate-200 dark:border-slate-800 pb-4">
-                      <h3 className="font-extrabold text-xl text-slate-900 dark:text-slate-100">Lifestyle Habits</h3>
-                      <p className="text-xs text-slate-400 mt-1">Provide social and routine metrics that influence baseline metabolic strain values.</p>
+                    <div className="border-b border-slate-200/60 pb-4">
+                      <h3 className="font-extrabold text-xl text-slate-900">Lifestyle Habits</h3>
+                      <p className="text-xs text-slate-600 mt-1 font-medium">Provide social and routine metrics that influence baseline metabolic strain values.</p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       
                       <div className="flex flex-col gap-2">
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tobacco Smoking</label>
+                        <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Tobacco Smoking</label>
                         <div className="flex gap-4">
                           {['no', 'yes'].map(opt => (
                             <label key={opt} className="flex-1 relative cursor-pointer">
@@ -1996,7 +1980,7 @@ export default function App() {
                                 onChange={() => setFormData(prev => ({ ...prev, smoking: opt }))}
                                 className="sr-only peer"
                               />
-                              <div className="w-full text-center py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 peer-checked:border-indigo-500 peer-checked:bg-indigo-500/10 peer-checked:text-indigo-400 text-sm font-bold text-slate-400 rounded-xl transition">
+                              <div className="w-full text-center py-3 bg-white border border-slate-200 peer-checked:border-indigo-600 peer-checked:bg-indigo-50 peer-checked:text-indigo-600 text-sm font-bold text-slate-600 rounded-xl transition shadow-sm">
                                 {opt === 'no' ? 'NON-SMOKER' : 'ACTIVE SMOKER'}
                               </div>
                             </label>
@@ -2005,7 +1989,7 @@ export default function App() {
                       </div>
 
                       <div className="flex flex-col gap-2">
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Alcohol Consumption</label>
+                        <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Alcohol Consumption</label>
                         <div className="flex gap-3">
                           {['low', 'moderate', 'high'].map(opt => (
                             <label key={opt} className="flex-1 relative cursor-pointer">
@@ -2016,7 +2000,7 @@ export default function App() {
                                 onChange={() => setFormData(prev => ({ ...prev, alcohol: opt }))}
                                 className="sr-only peer"
                               />
-                              <div className="w-full text-center py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 peer-checked:border-indigo-500 peer-checked:bg-indigo-500/10 peer-checked:text-indigo-400 text-sm font-bold text-slate-400 rounded-xl transition">
+                              <div className="w-full text-center py-3 bg-white border border-slate-200 peer-checked:border-indigo-600 peer-checked:bg-indigo-50 peer-checked:text-indigo-600 text-sm font-bold text-slate-600 rounded-xl transition shadow-sm">
                                 {opt.toUpperCase()}
                               </div>
                             </label>
@@ -2025,7 +2009,7 @@ export default function App() {
                       </div>
 
                       <div className="flex flex-col gap-2">
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Physical Activity Level</label>
+                        <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Physical Activity Level</label>
                         <div className="flex gap-3">
                           {['sedentary', 'moderate', 'active'].map(opt => (
                             <label key={opt} className="flex-1 relative cursor-pointer">
@@ -2036,7 +2020,7 @@ export default function App() {
                                 onChange={() => setFormData(prev => ({ ...prev, physicalActivity: opt }))}
                                 className="sr-only peer"
                               />
-                              <div className="w-full text-center py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 peer-checked:border-indigo-500 peer-checked:bg-indigo-500/10 peer-checked:text-indigo-400 text-sm font-bold text-slate-400 rounded-xl transition font-semibold">
+                              <div className="w-full text-center py-3 bg-white border border-slate-200 peer-checked:border-indigo-600 peer-checked:bg-indigo-50 peer-checked:text-indigo-600 text-sm font-bold text-slate-600 rounded-xl transition shadow-sm font-semibold">
                                 {opt.toUpperCase()}
                               </div>
                             </label>
@@ -2045,9 +2029,9 @@ export default function App() {
                       </div>
 
                       <div className="flex flex-col gap-2">
-                        <div className="flex justify-between items-center text-xs font-bold text-slate-400 uppercase tracking-wider">
+                        <div className="flex justify-between items-center text-xs font-bold text-slate-600 uppercase tracking-wider">
                           <span>Sleep Duration (Hours)</span>
-                          <span className="text-indigo-400 font-extrabold text-sm">{formData.sleepDuration} hrs</span>
+                          <span className="text-indigo-600 font-extrabold text-sm">{formData.sleepDuration} hrs</span>
                         </div>
                         <input 
                           type="range" 
@@ -2056,7 +2040,7 @@ export default function App() {
                           step="0.5"
                           value={formData.sleepDuration}
                           onChange={e => setFormData(prev => ({ ...prev, sleepDuration: parseFloat(e.target.value) }))}
-                          className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-600 mt-3"
+                          className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600 mt-3"
                         />
                       </div>
 
@@ -2067,9 +2051,9 @@ export default function App() {
                 {/* STEP 3: Biomarkers & algorithm */}
                 {wizardStep === 3 && (
                   <div className="space-y-6 animate-fade-in">
-                    <div className="border-b border-slate-200 dark:border-slate-800 pb-4">
-                      <h3 className="font-extrabold text-xl text-slate-900 dark:text-slate-100">Clinical & Medical Biomarkers</h3>
-                      <p className="text-xs text-slate-400 mt-1">Specify clinical vital ranges to feed the ML predictive classification runs.</p>
+                    <div className="border-b border-slate-200/60 pb-4">
+                      <h3 className="font-extrabold text-xl text-slate-900">Clinical & Medical Biomarkers</h3>
+                      <p className="text-xs text-slate-600 mt-1 font-medium">Specify clinical vital ranges to feed the ML predictive classification runs.</p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2083,14 +2067,14 @@ export default function App() {
                       ].map(item => {
                         const statusInfo = getBiomarkerStatus(item.key, formData[item.key]);
                         return (
-                          <div key={item.key} className="flex flex-col gap-2.5 bg-slate-900/30 hover:bg-slate-900/55 border border-slate-900/60 hover:border-slate-800/80 rounded-2xl p-5 transition-all duration-300">
-                            <div className="flex justify-between items-center text-xs font-bold text-slate-400 uppercase tracking-wider">
+                          <div key={item.key} className="flex flex-col gap-2.5 bg-white border border-slate-200/80 hover:border-indigo-500/40 rounded-2xl p-5 transition-all duration-300 shadow-sm">
+                            <div className="flex justify-between items-center text-xs font-bold text-slate-600 uppercase tracking-wider">
                               <span>{item.label}</span>
                               <div className="flex items-center gap-2 select-none">
                                 <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded border transition-colors ${statusInfo.color}`}>
                                   {statusInfo.label}
                                 </span>
-                                <span className="text-indigo-400 font-extrabold text-sm">{formData[item.key]}</span>
+                                <span className="text-indigo-600 font-extrabold text-sm">{formData[item.key]}</span>
                               </div>
                             </div>
                             <input 
@@ -2099,28 +2083,24 @@ export default function App() {
                               max={item.max}
                               value={formData[item.key]}
                               onChange={e => setFormData(prev => ({ ...prev, [item.key]: parseInt(e.target.value) }))}
-                              className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-600 mt-2"
+                              className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600 mt-2"
                             />
                           </div>
                         );
                       })}
-
-
-
                     </div>
                   </div>
                 )}
-
                 {/* Wizards controls */}
-                <div className="flex justify-between items-center pt-6 border-t border-slate-200 dark:border-slate-800">
+                <div className="flex justify-between items-center pt-6 border-t border-slate-200/60">
                   <button 
                     type="button"
                     onClick={() => setWizardStep(prev => prev - 1)}
                     disabled={wizardStep === 1 || predicting}
-                    className={`btn py-2.5 px-5 rounded-xl border font-bold text-sm inline-flex items-center gap-2 cursor-pointer transition ${
+                    className={`py-2.5 px-5 rounded-xl border font-bold text-sm inline-flex items-center gap-2 cursor-pointer transition ${
                       wizardStep === 1 
                         ? 'opacity-0 pointer-events-none' 
-                        : 'border-slate-200 dark:border-slate-800 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+                        : 'border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                     }`}
                   >
                     <ArrowLeft className="w-4 h-4" /> Previous Step
@@ -2130,7 +2110,7 @@ export default function App() {
                     type="button"
                     onClick={handleNextStep}
                     disabled={predicting}
-                    className="btn bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 text-white py-2.5 px-6 rounded-xl font-bold text-sm inline-flex items-center gap-2 cursor-pointer transition shadow-lg shadow-indigo-600/20"
+                    className="btn-magnetic bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-50 text-white py-2.5 px-6 rounded-xl font-bold text-sm inline-flex items-center gap-2 cursor-pointer transition shadow-lg shadow-indigo-600/25"
                   >
                     {predicting ? (
                       <>
@@ -2157,7 +2137,7 @@ export default function App() {
         )}
 
         {/* ======================================================== */}
-        {/* VIEW: RESULTS DIAGE REPORT */}
+        {/* VIEW: RESULTS DIAGNOSTIC REPORT */}
         {/* ======================================================== */}
         {currentTab === 'results' && resultsAssessment && (
           <div className="max-w-[1000px] mx-auto space-y-8 animate-fade-in">
@@ -2166,25 +2146,25 @@ export default function App() {
             <div className="flex gap-4 justify-end no-print">
               <button 
                 onClick={() => setCurrentTab('dashboard')} 
-                className="btn py-2.5 px-5 border border-slate-200 dark:border-slate-800 rounded-xl font-bold text-sm text-slate-400 hover:bg-slate-800 hover:text-slate-200 inline-flex items-center gap-2 cursor-pointer transition"
+                className="py-2.5 px-5 border border-slate-200 bg-white hover:bg-slate-50 rounded-xl font-bold text-sm text-slate-700 inline-flex items-center gap-2 cursor-pointer transition shadow-sm"
               >
-                <LayoutDashboard className="w-4 h-4" /> Back to Dashboard
+                <LayoutDashboard className="w-4 h-4 text-indigo-600" /> Back to Dashboard
               </button>
               
               <button 
                 onClick={() => window.print()}
-                className="btn bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 px-5 rounded-xl font-bold text-sm inline-flex items-center gap-2 cursor-pointer transition shadow-lg shadow-indigo-600/20"
+                className="btn-magnetic bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white py-2.5 px-5 rounded-xl font-bold text-sm inline-flex items-center gap-2 cursor-pointer transition shadow-lg shadow-indigo-600/25"
               >
                 <Printer className="w-4 h-4" /> Print Assessment Report
               </button>
             </div>
 
             {/* Health Score Overview card */}
-            <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-8 flex flex-col md:flex-row items-center gap-8 print-card">
+            <div className="glass-panel rounded-2xl p-8 flex flex-col md:flex-row items-center gap-8 print-card">
               <div className="flex flex-col items-center">
                 <div className="circle-progress-container relative w-40 h-40 flex items-center justify-center cursor-pointer">
                   <svg className="w-full h-full transform -rotate-90" viewBox="0 0 160 160">
-                    <circle className="stroke-slate-200 dark:stroke-slate-800 fill-none" cx="80" cy="80" r="72" strokeWidth="10"></circle>
+                    <circle className="stroke-slate-200 fill-none" cx="80" cy="80" r="72" strokeWidth="10"></circle>
                     <circle 
                       className="transition-all duration-1000 ease-out fill-none"
                       cx="80" 
@@ -2198,8 +2178,8 @@ export default function App() {
                     ></circle>
                   </svg>
                   <div className="absolute text-center">
-                    <div className="text-4xl font-extrabold text-slate-900 dark:text-slate-100">{resultsAssessment.results.overallScore}</div>
-                    <div className="text-xs uppercase tracking-widest text-slate-400 font-bold mt-1">Overall Health</div>
+                    <div className="text-4xl font-black text-slate-900">{resultsAssessment.results.overallScore}</div>
+                    <div className="text-xs uppercase tracking-widest text-slate-500 font-bold mt-1">Overall Health</div>
                   </div>
                 </div>
                 <span className={`text-xs font-bold uppercase tracking-wider border rounded-full px-3 py-1 mt-4 ${getScoreBadgeStyles(resultsAssessment.results.overallScore).style}`}>
@@ -2208,11 +2188,11 @@ export default function App() {
               </div>
 
               <div className="flex-1">
-                <h3 className="font-extrabold text-2xl text-slate-900 dark:text-slate-100">Cardiovascular & Metabolic Risk Report</h3>
-                <p className="text-xs font-semibold text-slate-400 dark:text-slate-400 mt-1">
-                  Patient: <strong className="text-slate-200">{resultsAssessment.name}</strong> &bull; Age: {resultsAssessment.personal.age} &bull; BMI: {resultsAssessment.personal.bmi} &bull; Computed on: {new Date(resultsAssessment.timestamp).toLocaleDateString()}
+                <h3 className="font-extrabold text-2xl text-slate-900">Cardiovascular & Metabolic Risk Report</h3>
+                <p className="text-xs font-semibold text-slate-600 mt-1">
+                  Patient: <strong className="text-slate-900 font-bold">{resultsAssessment.name}</strong> &bull; Age: {resultsAssessment.personal.age} &bull; BMI: {resultsAssessment.personal.bmi} &bull; Computed on: {new Date(resultsAssessment.timestamp).toLocaleDateString()}
                 </p>
-                <p className="text-sm text-slate-500 mt-4 leading-relaxed dark:text-slate-400">
+                <p className="text-sm text-slate-600 mt-4 leading-relaxed font-medium">
                   The calculated indicators represent risk probability ranges based on physiological inputs mapped to machine learning classification guidelines. High risk percentages signify areas of clinical concern. Review the personalized recommendations blocks below.
                 </p>
               </div>
@@ -2231,13 +2211,13 @@ export default function App() {
                 const isExpanded = expandedRisks[item.key];
                 
                 return (
-                  <div key={item.key} className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 flex flex-col gap-4 print-card">
+                  <div key={item.key} className="glass-panel glass-panel-hover rounded-2xl p-6 flex flex-col gap-4 print-card">
                     <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-3 font-bold text-slate-900 dark:text-slate-100">
+                      <div className="flex items-center gap-3 font-bold text-slate-900">
                         <Icon className={`w-6 h-6 ${
-                          item.key === 'diabetes' ? 'text-indigo-400' :
-                          item.key === 'heart' ? 'text-rose-400' :
-                          item.key === 'kidney' ? 'text-purple-400' : 'text-amber-400'
+                          item.key === 'diabetes' ? 'text-indigo-600' :
+                          item.key === 'heart' ? 'text-rose-600' :
+                          item.key === 'kidney' ? 'text-purple-600' : 'text-amber-600'
                         }`} />
                         <span>{item.title}</span>
                       </div>
@@ -2247,11 +2227,11 @@ export default function App() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <div className="flex justify-between text-xs font-bold text-slate-400">
+                      <div className="flex justify-between text-xs font-bold text-slate-600">
                         <span>Risk Probability</span>
-                        <span className="dark:text-slate-200">{item.val}%</span>
+                        <span className="text-slate-900 font-extrabold">{item.val}%</span>
                       </div>
-                      <div className="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                      <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
                         <div 
                           className={`h-full rounded-full animate-grow-width ${rDetails.bar}`} 
                           style={{ '--target-width': `${item.val}%`, width: `${item.val}%` }}
@@ -2259,11 +2239,11 @@ export default function App() {
                       </div>
                     </div>
 
-                    <div className="border-t border-slate-200 dark:border-slate-800 pt-3 flex justify-between items-center text-xs font-medium text-slate-400">
-                      <span>Model Confidence: <strong className="dark:text-slate-200">{resultsAssessment.results.confidence}%</strong></span>
+                    <div className="border-t border-slate-200/80 pt-3 flex justify-between items-center text-xs font-medium text-slate-500">
+                      <span>Model Confidence: <strong className="text-slate-900 font-bold">{resultsAssessment.results.confidence}%</strong></span>
                       <button 
                         onClick={() => setExpandedRisks(prev => ({ ...prev, [item.key]: !prev[item.key] }))}
-                        className="text-indigo-400 font-bold hover:underline flex items-center gap-0.5 cursor-pointer no-print"
+                        className="text-indigo-600 font-bold hover:underline flex items-center gap-0.5 cursor-pointer no-print"
                       >
                         {isExpanded ? 'Hide details' : 'Why this prediction?'}
                         {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -2274,11 +2254,11 @@ export default function App() {
                     <div 
                       className={`overflow-hidden transition-all duration-300 ease-in-out ${
                         (isExpanded || window.matchMedia('print').matches)
-                          ? 'max-h-[300px] opacity-100 mt-3 border border-slate-800 bg-slate-950/40 p-4 rounded-xl' 
+                          ? 'max-h-[300px] opacity-100 mt-3 border border-slate-200 bg-slate-50/90 p-4 rounded-xl' 
                           : 'max-h-0 opacity-0 mt-0 border-transparent p-0'
                       }`}
                     >
-                      <ul className="list-disc pl-4 space-y-1.5 text-xs text-slate-300">
+                      <ul className="list-disc pl-4 space-y-1.5 text-xs text-slate-700 font-medium">
                         {item.explanations?.map((exp, idx) => (
                           <li key={idx} className="leading-relaxed">{exp}</li>
                         ))}
@@ -2294,12 +2274,12 @@ export default function App() {
               
               {/* URGENT IMMEDIATE MEDICAL ATTS */}
               {resultsAssessment.results.recommendations.immediate?.length > 0 && (
-                <div className="bg-rose-500/10 border border-rose-500/25 rounded-2xl p-6 print-card">
-                  <div className="flex items-center gap-3 font-bold text-rose-400 mb-4">
-                    <AlertOctagon className="w-6 h-6" />
+                <div className="bg-rose-50 border border-rose-200 rounded-2xl p-6 print-card shadow-sm">
+                  <div className="flex items-center gap-3 font-extrabold text-rose-700 mb-4">
+                    <AlertOctagon className="w-6 h-6 text-rose-600" />
                     <span>Immediate Medical Consultations Recommended</span>
                   </div>
-                  <ul className="list-disc pl-6 space-y-2 text-sm text-rose-300/95 font-medium">
+                  <ul className="list-disc pl-6 space-y-2 text-sm text-rose-900 font-semibold">
                     {resultsAssessment.results.recommendations.immediate.map((item, idx) => (
                       <li key={idx}>{item}</li>
                     ))}
@@ -2309,12 +2289,12 @@ export default function App() {
 
               {/* LIFESTYLE DIET RECOMMENDATIONS */}
               {resultsAssessment.results.recommendations.lifestyle?.length > 0 && (
-                <div className="bg-indigo-500/10 border border-indigo-500/25 rounded-2xl p-6 print-card">
-                  <div className="flex items-center gap-3 font-bold text-indigo-400 mb-4">
-                    <Sparkles className="w-6 h-6" />
+                <div className="bg-indigo-50 border border-indigo-200 rounded-2xl p-6 print-card shadow-sm">
+                  <div className="flex items-center gap-3 font-extrabold text-indigo-700 mb-4">
+                    <Sparkles className="w-6 h-6 text-indigo-600" />
                     <span>Lifestyle & Dietary Adjustments</span>
                   </div>
-                  <ul className="list-disc pl-6 space-y-2 text-sm text-slate-300 dark:text-slate-300">
+                  <ul className="list-disc pl-6 space-y-2 text-sm text-indigo-950 font-medium">
                     {resultsAssessment.results.recommendations.lifestyle.map((item, idx) => (
                       <li key={idx}>{item}</li>
                     ))}
@@ -2324,12 +2304,12 @@ export default function App() {
 
               {/* CLINICAL MONITORING PLAN */}
               {resultsAssessment.results.recommendations.medical?.length > 0 && (
-                <div className="bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 print-card">
-                  <div className="flex items-center gap-3 font-bold text-slate-900 dark:text-slate-100 mb-4">
-                    <Stethoscope className="w-6 h-6" />
+                <div className="glass-panel border border-slate-200 rounded-2xl p-6 print-card">
+                  <div className="flex items-center gap-3 font-extrabold text-slate-900 mb-4">
+                    <Stethoscope className="w-6 h-6 text-indigo-600" />
                     <span>Physiological Monitoring & Testing</span>
                   </div>
-                  <ul className="list-disc pl-6 space-y-2 text-sm text-slate-500 dark:text-slate-300">
+                  <ul className="list-disc pl-6 space-y-2 text-sm text-slate-700 font-medium">
                     {resultsAssessment.results.recommendations.medical.map((item, idx) => (
                       <li key={idx}>{item}</li>
                     ))}
@@ -2354,7 +2334,7 @@ export default function App() {
                   placeholder="Search patient name..."
                   value={historySearch}
                   onChange={e => setHistorySearch(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25 rounded-xl outline-none text-sm font-semibold transition"
+                  className="w-full pl-12 pr-4 py-3 glass-input rounded-xl text-sm font-semibold text-slate-900 transition"
                 />
               </div>
               
@@ -2362,7 +2342,7 @@ export default function App() {
                 <select 
                   value={historyFilter}
                   onChange={e => setHistoryFilter(e.target.value)}
-                  className="w-full px-4 py-3 bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl outline-none text-sm font-semibold transition cursor-pointer"
+                  className="w-full px-4 py-3 glass-input rounded-xl text-sm font-semibold text-slate-900 transition cursor-pointer"
                 >
                   <option value="all">All Risk Classes</option>
                   <option value="high">High Risk Alerts</option>
@@ -2374,16 +2354,16 @@ export default function App() {
 
             {/* History grid table */}
             {filteredAssessments.length === 0 ? (
-              <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center flex flex-col items-center gap-4">
-                <Inbox className="w-16 h-16 text-slate-400" />
-                <h3 className="font-bold text-lg dark:text-slate-100 text-slate-800">No logs found</h3>
-                <p className="text-sm text-slate-500">No diagnostic assessments fit the selected query parameters.</p>
+              <div className="glass-panel rounded-2xl p-12 text-center flex flex-col items-center gap-4">
+                <Inbox className="w-16 h-16 text-indigo-500" />
+                <h3 className="font-extrabold text-xl text-slate-900">No logs found</h3>
+                <p className="text-sm text-slate-600 font-medium">No diagnostic assessments fit the selected query parameters.</p>
               </div>
             ) : (
-              <div className="overflow-x-auto border border-slate-200 dark:border-slate-800/80 rounded-2xl bg-white dark:bg-slate-900/60">
+              <div className="overflow-x-auto border border-slate-200/90 rounded-2xl glass-panel shadow-sm">
                 <table className="w-full text-left border-collapse text-sm">
                   <thead>
-                    <tr className="bg-slate-50 dark:bg-slate-950/60 border-b border-slate-200 dark:border-slate-800/80 text-slate-400 font-bold">
+                    <tr className="bg-slate-100/80 border-b border-slate-200 text-slate-700 font-extrabold">
                       <th className="p-4 px-6">Patient Profile</th>
                       <th className="p-4">Calculated Date</th>
                       <th className="p-4">Health Score</th>
@@ -2395,7 +2375,7 @@ export default function App() {
                       <th className="p-4 px-6 text-center">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-200 dark:divide-slate-800/80">
+                  <tbody className="divide-y divide-slate-200/80">
                     {filteredAssessments.map(item => {
                       const maxVal = Math.max(item.results.risks.diabetes, item.results.risks.heartDisease, item.results.risks.kidneyDisease, item.results.risks.liverDisease);
                       const rDetails = getRiskLevelDetails(maxVal);
@@ -2403,19 +2383,19 @@ export default function App() {
                       const dateFormatted = `${dateObj.toLocaleDateString()} ${dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
                       
                       return (
-                        <tr key={item.id} className="hover:bg-slate-100/50 dark:hover:bg-slate-800/40 transition">
+                        <tr key={item.id} className="hover:bg-indigo-50/40 transition">
                           <td className="p-4 px-6">
                             <div className="flex flex-col">
-                              <span className="font-bold text-slate-900 dark:text-slate-100">{item.name}</span>
-                              <span className="text-xs text-slate-400 font-medium">{item.personal.gender.toUpperCase()}, {item.personal.age} yrs</span>
+                              <span className="font-bold text-slate-900">{item.name}</span>
+                              <span className="text-xs text-slate-500 font-semibold">{item.personal.gender.toUpperCase()}, {item.personal.age} yrs</span>
                             </div>
                           </td>
-                          <td className="p-4 font-semibold text-slate-500 dark:text-slate-300">{dateFormatted}</td>
-                          <td className="p-4 font-extrabold text-slate-900 dark:text-slate-100">{item.results.overallScore}/100</td>
-                          <td className="p-4 font-bold text-slate-500 dark:text-slate-300">{item.results.risks.diabetes}%</td>
-                          <td className="p-4 font-bold text-slate-500 dark:text-slate-300">{item.results.risks.heartDisease}%</td>
-                          <td className="p-4 font-bold text-slate-500 dark:text-slate-300">{item.results.risks.kidneyDisease}%</td>
-                          <td className="p-4 font-bold text-slate-500 dark:text-slate-300">{item.results.risks.liverDisease}%</td>
+                          <td className="p-4 font-semibold text-slate-600">{dateFormatted}</td>
+                          <td className="p-4 font-extrabold text-slate-900">{item.results.overallScore}/100</td>
+                          <td className="p-4 font-bold text-slate-700">{item.results.risks.diabetes}%</td>
+                          <td className="p-4 font-bold text-slate-700">{item.results.risks.heartDisease}%</td>
+                          <td className="p-4 font-bold text-slate-700">{item.results.risks.kidneyDisease}%</td>
+                          <td className="p-4 font-bold text-slate-700">{item.results.risks.liverDisease}%</td>
                           <td className="p-4">
                             <span className={`text-[10px] font-bold uppercase tracking-wider border rounded-full px-2.5 py-0.5 ${rDetails.badge}`}>
                               {rDetails.label.split(' ')[0]}
@@ -2428,7 +2408,7 @@ export default function App() {
                                   setResultsAssessment(item);
                                   setCurrentTab('results');
                                 }}
-                                className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-indigo-400 hover:border-indigo-500/40 hover:bg-indigo-500/10 flex items-center justify-center cursor-pointer transition"
+                                className="w-8 h-8 rounded-lg border border-slate-200 text-slate-600 hover:text-indigo-600 hover:border-indigo-500/40 hover:bg-indigo-50 flex items-center justify-center cursor-pointer transition"
                                 title="View Diagnostic Report"
                               >
                                 <Eye className="w-4 h-4" />
@@ -2436,7 +2416,7 @@ export default function App() {
                               
                               <button 
                                 onClick={() => handleDeleteAssessment(item.id)}
-                                className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-rose-400 hover:border-rose-500/40 hover:bg-rose-500/10 flex items-center justify-center cursor-pointer transition"
+                                className="w-8 h-8 rounded-lg border border-slate-200 text-slate-600 hover:text-rose-600 hover:border-rose-500/40 hover:bg-rose-50 flex items-center justify-center cursor-pointer transition"
                                 title="Delete Log Record"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -2460,13 +2440,13 @@ export default function App() {
           <div className="space-y-6 animate-fade-in no-print">
             
             {/* Header select patient */}
-            <div className="flex justify-between items-center flex-wrap gap-4 bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-6">
+            <div className="flex justify-between items-center flex-wrap gap-4 glass-panel rounded-2xl p-6 border border-slate-200/90 shadow-sm">
               <div className="flex items-center gap-3">
-                <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Select Patient dataset:</label>
+                <label className="text-xs font-extrabold text-slate-600 uppercase tracking-wider">Select Patient dataset:</label>
                 <select 
                   value={insightsUser}
                   onChange={e => setInsightsUser(e.target.value)}
-                  className="px-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none text-sm font-semibold transition cursor-pointer"
+                  className="px-4 py-2.5 glass-input rounded-xl outline-none text-sm font-bold transition cursor-pointer text-slate-900 shadow-sm"
                 >
                   {uniquePatients.length === 0 ? (
                     <option value="">No patients available</option>
@@ -2483,24 +2463,32 @@ export default function App() {
                   resetWizard();
                   setCurrentTab('wizard');
                 }}
-                className="btn bg-indigo-600 hover:bg-indigo-500 text-white py-2 px-4 rounded-xl font-bold text-xs inline-flex items-center gap-1.5 cursor-pointer transition shadow-lg shadow-indigo-600/20"
+                className="btn-magnetic bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white py-2.5 px-5 rounded-xl font-bold text-xs inline-flex items-center gap-1.5 cursor-pointer transition shadow-md"
               >
                 <PlusCircle className="w-4 h-4" /> Assess Patient Again
               </button>
             </div>
 
             {uniquePatients.length === 0 ? (
-              <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center flex flex-col items-center gap-4">
-                <Inbox className="w-16 h-16 text-slate-400" />
-                <h3 className="font-bold text-lg dark:text-slate-100 text-slate-800">No patient history found</h3>
-                <p className="text-sm text-slate-500">Run a clinical assessment first to enable timeline graphing insights.</p>
+              <div className="glass-panel rounded-2xl p-12 text-center flex flex-col items-center gap-4 border border-slate-200/90 shadow-xl">
+                <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 flex items-center justify-center">
+                  <Inbox className="w-8 h-8" />
+                </div>
+                <h3 className="font-extrabold text-2xl text-slate-900">No patient history found</h3>
+                <p className="text-sm text-slate-600 font-medium max-w-sm">Run a clinical assessment or click "Seed Demo Patient Data" on the dashboard to enable timeline graphing insights.</p>
+                <button 
+                  onClick={() => setCurrentTab('wizard')}
+                  className="btn-magnetic mt-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold py-3 px-6 rounded-xl inline-flex items-center gap-2 cursor-pointer transition shadow-lg shadow-indigo-600/25 text-xs"
+                >
+                  <PlusCircle className="w-4 h-4" /> Perform First Assessment
+                </button>
               </div>
             ) : (
               <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
                 
                 {/* Score Trend Line Chart */}
-                <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 xl:col-span-8 h-[340px]">
-                  <h2 className="font-bold text-lg text-slate-900 dark:text-slate-100 mb-4">Overall Health Score Progression</h2>
+                <div className="glass-panel rounded-2xl p-6 xl:col-span-8 h-[340px]">
+                  <h2 className="font-extrabold text-lg text-slate-900 mb-4">Overall Health Score Progression</h2>
                   <div className="h-full max-h-[250px]">
                     <Line 
                       data={insightsScoreTrendData}
@@ -2509,8 +2497,8 @@ export default function App() {
                         maintainAspectRatio: false,
                         plugins: { legend: { display: false } },
                         scales: {
-                          x: { grid: { display: false }, ticks: { color: theme === 'dark' ? '#94a3b8' : '#475569', font: { family: 'Plus Jakarta Sans', size: 10 } } },
-                          y: { min: 0, max: 100, grid: { color: theme === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }, ticks: { color: theme === 'dark' ? '#94a3b8' : '#475569', font: { family: 'Plus Jakarta Sans', size: 10 } } }
+                          x: { grid: { display: false }, ticks: { color: '#475569', font: { family: 'Plus Jakarta Sans', size: 10, weight: '600' } } },
+                          y: { min: 0, max: 100, grid: { color: 'rgba(203, 213, 225, 0.6)' }, ticks: { color: '#475569', font: { family: 'Plus Jakarta Sans', size: 10, weight: '600' } } }
                         }
                       }}
                     />
@@ -2519,22 +2507,22 @@ export default function App() {
 
                 {/* Score Trend Stats aggregates */}
                 <div className="xl:col-span-4 flex flex-col gap-6">
-                  <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 flex-1 flex flex-col justify-center">
-                    <h4 className="text-xs uppercase tracking-wider text-slate-400 font-bold mb-1">Average Health rating</h4>
-                    <div className="text-3xl font-extrabold text-slate-900 dark:text-slate-100">{insightsAggregates.avg}/100</div>
-                    <p className="text-xs text-slate-400 font-medium mt-1">Average rating over patient timeline evaluations.</p>
+                  <div className="glass-panel glass-panel-hover rounded-2xl p-6 flex-1 flex flex-col justify-center">
+                    <h4 className="text-xs uppercase tracking-wider text-slate-500 font-bold mb-1">Average Health rating</h4>
+                    <div className="text-3xl font-black text-slate-900">{insightsAggregates.avg}/100</div>
+                    <p className="text-xs text-slate-500 font-medium mt-1">Average rating over patient timeline evaluations.</p>
                   </div>
                   
-                  <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 flex-1 flex flex-col justify-center">
-                    <h4 className="text-xs uppercase tracking-wider text-slate-400 font-bold mb-1">Peak Disease Risk</h4>
-                    <div className="text-3xl font-extrabold text-slate-900 dark:text-slate-100">{insightsAggregates.maxRisk}%</div>
-                    <p className="text-xs text-indigo-400 font-bold mt-1 uppercase tracking-wider">{insightsAggregates.advice}</p>
+                  <div className="glass-panel glass-panel-hover rounded-2xl p-6 flex-1 flex flex-col justify-center">
+                    <h4 className="text-xs uppercase tracking-wider text-slate-500 font-bold mb-1">Peak Disease Risk</h4>
+                    <div className="text-3xl font-black text-slate-900">{insightsAggregates.maxRisk}%</div>
+                    <p className="text-xs text-indigo-600 font-extrabold mt-1 uppercase tracking-wider">{insightsAggregates.advice}</p>
                   </div>
                 </div>
 
                 {/* Biomarker charts timeline */}
-                <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-6 xl:col-span-12 h-[360px]">
-                  <h2 className="font-bold text-lg text-slate-900 dark:text-slate-100 mb-4">Critical Biomarkers Timeline</h2>
+                <div className="glass-panel rounded-2xl p-6 xl:col-span-12 h-[360px]">
+                  <h2 className="font-extrabold text-lg text-slate-900 mb-4">Critical Biomarkers Timeline</h2>
                   <div className="h-full max-h-[270px]">
                     <Line 
                       data={insightsVitalsData}
@@ -2544,12 +2532,12 @@ export default function App() {
                         plugins: {
                           legend: {
                             position: 'top',
-                            labels: { color: theme === 'dark' ? '#94a3b8' : '#475569', font: { family: 'Plus Jakarta Sans', size: 9 }, boxWidth: 12 }
+                            labels: { color: '#334155', font: { family: 'Plus Jakarta Sans', size: 10, weight: '700' }, boxWidth: 12 }
                           }
                         },
                         scales: {
-                          x: { grid: { display: false }, ticks: { color: theme === 'dark' ? '#94a3b8' : '#475569', font: { family: 'Plus Jakarta Sans', size: 10 } } },
-                          y: { grid: { color: theme === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }, ticks: { color: theme === 'dark' ? '#94a3b8' : '#475569', font: { family: 'Plus Jakarta Sans', size: 10 } } }
+                          x: { grid: { display: false }, ticks: { color: '#475569', font: { family: 'Plus Jakarta Sans', size: 10, weight: '600' } } },
+                          y: { grid: { color: 'rgba(203, 213, 225, 0.6)' }, ticks: { color: '#475569', font: { family: 'Plus Jakarta Sans', size: 10, weight: '600' } } }
                         }
                       }}
                     />
@@ -2565,18 +2553,18 @@ export default function App() {
         {/* VIEW: ACCOUNT MANAGEMENT */}
         {/* ======================================================== */}
         {currentTab === 'account' && renderProtectedTab(
-          <div className="space-y-8 animate-fade-in no-print text-slate-900 dark:text-slate-100">
+          <div className="space-y-8 animate-fade-in no-print text-slate-900">
             
             {/* Upper Profile Overview Info Card */}
-            <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 backdrop-blur-md">
+            <div className="glass-panel rounded-3xl p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 dark:text-indigo-400 flex items-center justify-center font-bold text-2xl filter drop-shadow-[0_0_10px_rgba(99,102,241,0.15)]">
+                <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 flex items-center justify-center font-bold text-2xl filter drop-shadow-[0_0_10px_rgba(99,102,241,0.15)]">
                   {userProfile?.name ? userProfile.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : 'A'}
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-xl">{userProfile?.name || 'Anonymous User'}</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2">
-                    <span className="font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-[10px]">
+                  <h3 className="font-extrabold text-xl text-slate-900">{userProfile?.name || 'Anonymous User'}</h3>
+                  <p className="text-xs text-slate-500 mt-1 flex items-center gap-2">
+                    <span className="font-bold uppercase tracking-wider bg-slate-100 px-2 py-0.5 rounded text-[10px] text-indigo-600 border border-indigo-500/20">
                       @{userProfile?.username || 'user'}
                     </span>
                     {userProfile?.created_at && userProfile.created_at !== 'System Default' ? (
@@ -2603,43 +2591,43 @@ export default function App() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               
               {/* Form: Update Profile Name */}
-              <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 backdrop-blur-md flex flex-col justify-between">
+              <div className="glass-panel rounded-3xl p-6 md:p-8 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center gap-2.5 mb-6">
-                    <User className="w-5 h-5 text-indigo-500" />
-                    <h3 className="font-extrabold text-lg">Update Profile Information</h3>
+                    <User className="w-5 h-5 text-indigo-600" />
+                    <h3 className="font-extrabold text-lg text-slate-900">Update Profile Information</h3>
                   </div>
                   
                   <form onSubmit={handleUpdateProfileName} className="space-y-5">
                     {profileMessage && (
-                      <div className="bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 rounded-xl p-3 text-xs font-semibold flex items-center gap-2">
+                      <div className="bg-emerald-500/10 border border-emerald-500/25 text-emerald-600 rounded-xl p-3 text-xs font-semibold flex items-center gap-2">
                         <CheckCircle className="w-4 h-4 shrink-0" />
                         <span>{profileMessage}</span>
                       </div>
                     )}
                     {profileError && (
-                      <div className="bg-rose-500/10 border border-rose-500/25 text-rose-400 rounded-xl p-3 text-xs font-semibold flex items-center gap-2">
+                      <div className="bg-rose-500/10 border border-rose-500/25 text-rose-600 rounded-xl p-3 text-xs font-semibold flex items-center gap-2">
                         <AlertCircle className="w-4 h-4 shrink-0" />
                         <span>{profileError}</span>
                       </div>
                     )}
                     
                     <div className="flex flex-col gap-2">
-                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Full Name</label>
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Full Name</label>
                       <input 
                         type="text" 
                         value={profileName}
                         onChange={e => setProfileName(e.target.value)}
                         placeholder="Enter your full name"
                         required
-                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25 rounded-xl outline-none text-sm font-semibold text-slate-800 dark:text-slate-100 transition"
+                        className="w-full px-4 py-3 glass-input rounded-xl text-sm font-semibold text-slate-900 transition"
                       />
                     </div>
 
                     <button 
                       type="submit" 
                       disabled={profileLoading}
-                      className="py-2.5 px-5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs shadow-lg shadow-indigo-600/35 hover:shadow-indigo-600/50 cursor-pointer flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-50"
+                      className="btn-magnetic py-2.5 px-5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-bold text-xs shadow-lg shadow-indigo-600/25 cursor-pointer flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-50"
                     >
                       {profileLoading ? 'Saving...' : 'Save Profile Details'}
                     </button>
@@ -2648,65 +2636,65 @@ export default function App() {
               </div>
 
               {/* Form: Change Password */}
-              <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 backdrop-blur-md">
+              <div className="glass-panel rounded-3xl p-6 md:p-8">
                 <div className="flex items-center gap-2.5 mb-6">
-                  <Lock className="w-5 h-5 text-indigo-500" />
-                  <h3 className="font-extrabold text-lg">Change Password</h3>
+                  <Lock className="w-5 h-5 text-indigo-600" />
+                  <h3 className="font-extrabold text-lg text-slate-900">Change Password</h3>
                 </div>
                 
                 <form onSubmit={handleUpdatePassword} className="space-y-5">
                   {passwordMessage && (
-                    <div className="bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 rounded-xl p-3 text-xs font-semibold flex items-center gap-2">
+                    <div className="bg-emerald-500/10 border border-emerald-500/25 text-emerald-600 rounded-xl p-3 text-xs font-semibold flex items-center gap-2">
                       <CheckCircle className="w-4 h-4 shrink-0" />
                       <span>{passwordMessage}</span>
                     </div>
                   )}
                   {passwordError && (
-                    <div className="bg-rose-500/10 border border-rose-500/25 text-rose-400 rounded-xl p-3 text-xs font-semibold flex items-center gap-2">
+                    <div className="bg-rose-500/10 border border-rose-500/25 text-rose-600 rounded-xl p-3 text-xs font-semibold flex items-center gap-2">
                       <AlertCircle className="w-4 h-4 shrink-0" />
                       <span>{passwordError}</span>
                     </div>
                   )}
                   
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Current Password</label>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Current Password</label>
                     <input 
                       type="password" 
                       value={currentPassword}
                       onChange={e => setCurrentPassword(e.target.value)}
                       placeholder="••••••••"
                       required
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25 rounded-xl outline-none text-sm font-semibold text-slate-800 dark:text-slate-100 transition"
+                      className="w-full px-4 py-3 glass-input rounded-xl text-sm font-semibold text-slate-900 transition"
                     />
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">New Password</label>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">New Password</label>
                     <input 
                       type="password" 
                       value={newPassword}
                       onChange={e => setNewPassword(e.target.value)}
                       placeholder="••••••••"
                       required
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25 rounded-xl outline-none text-sm font-semibold text-slate-800 dark:text-slate-100 transition"
+                      className="w-full px-4 py-3 glass-input rounded-xl text-sm font-semibold text-slate-900 transition"
                     />
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Confirm New Password</label>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Confirm New Password</label>
                     <input 
                       type="password" 
                       value={confirmNewPassword}
                       onChange={e => setConfirmNewPassword(e.target.value)}
                       placeholder="••••••••"
                       required
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/25 rounded-xl outline-none text-sm font-semibold text-slate-800 dark:text-slate-100 transition"
+                      className="w-full px-4 py-3 glass-input rounded-xl text-sm font-semibold text-slate-900 transition"
                     />
                   </div>
 
                   <button 
                     type="submit" 
-                    className="py-2.5 px-5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs shadow-lg shadow-indigo-600/35 hover:shadow-indigo-600/50 cursor-pointer flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
+                    className="btn-magnetic py-2.5 px-5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-bold text-xs shadow-lg shadow-indigo-600/25 cursor-pointer flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
                   >
                     Change Password
                   </button>
@@ -2716,12 +2704,12 @@ export default function App() {
             </div>
 
             {/* Danger Zone */}
-            <div className="bg-rose-500/5 border border-rose-500/20 rounded-3xl p-6 md:p-8 backdrop-blur-md">
-              <div className="flex items-center gap-2.5 mb-4 text-rose-500">
+            <div className="glass-panel rounded-3xl p-6 md:p-8 border-rose-500/30">
+              <div className="flex items-center gap-2.5 mb-4 text-rose-600">
                 <AlertTriangle className="w-5 h-5" />
                 <h3 className="font-extrabold text-lg">Danger Zone</h3>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xl mb-6">
+              <p className="text-xs text-slate-500 max-w-xl mb-6 font-medium">
                 Deleting your account is permanent. This will remove your account profile from the database and you will be immediately signed out. You will not be able to recover this account later.
               </p>
               <button 
@@ -2768,23 +2756,23 @@ export default function App() {
       {/* INTERACTIVE LIVE RISK PARAMETER SIMULATOR MODAL */}
       {/* ======================================================== */}
       {showSimulatorModal && (
-        <div className="fixed inset-0 z-[999] bg-slate-950/80 backdrop-blur-xl flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fade-in no-print">
-          <div className="bg-slate-900 border border-slate-700/80 rounded-3xl max-w-4xl w-full p-6 sm:p-8 shadow-2xl space-y-6 animate-modal-spring text-slate-100 my-auto">
+        <div className="fixed inset-0 z-[999] glass-modal-backdrop flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fade-in no-print">
+          <div className="glass-modal-container rounded-3xl max-w-4xl w-full p-6 sm:p-8 shadow-2xl space-y-6 animate-modal-spring text-slate-900 my-auto border border-slate-200">
             
             {/* Modal Header */}
-            <div className="flex justify-between items-center border-b border-slate-800 pb-4">
+            <div className="flex justify-between items-center border-b border-slate-200 pb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold border border-indigo-500/30">
-                  <Zap className="w-5 h-5 text-amber-400 animate-pulse" />
+                <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-500/20 to-indigo-500/20 text-indigo-600 flex items-center justify-center font-bold border border-amber-500/30 filter drop-shadow-[0_0_10px_rgba(245,158,11,0.25)]">
+                  <Zap className="w-6 h-6 text-amber-500 animate-pulse" />
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-lg text-slate-100">Interactive Real-Time Risk Simulator</h3>
-                  <p className="text-xs text-slate-400">Drag clinical parameters below to watch continuous risk probabilities update in real time.</p>
+                  <h3 className="font-extrabold text-xl text-slate-900 tracking-tight">Interactive Real-Time Risk Simulator</h3>
+                  <p className="text-xs text-slate-600 font-medium">Drag clinical parameters below to watch continuous risk probabilities update in real time.</p>
                 </div>
               </div>
               <button 
                 onClick={() => setShowSimulatorModal(false)}
-                className="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center cursor-pointer transition"
+                className="w-9 h-9 rounded-xl glass-pill flex items-center justify-center cursor-pointer text-slate-500 hover:text-rose-600 transition"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2793,86 +2781,86 @@ export default function App() {
             {/* Main Grid: Parameters Left, Real-Time Predictions Right */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
               
-              {/* Sliders Input Panel */}
-              <div className="lg:col-span-7 space-y-5 bg-slate-950/50 border border-slate-800/80 rounded-2xl p-5 max-h-[460px] overflow-y-auto pr-3">
+              {/* Sliders Input Panel (Glass Container) */}
+              <div className="lg:col-span-7 space-y-5 glass-panel rounded-2xl p-5 max-h-[460px] overflow-y-auto pr-3">
                 
                 {/* Fasting Glucose Slider */}
                 <div className="space-y-1.5">
                   <div className="flex justify-between text-xs font-bold">
-                    <span className="text-slate-400">Fasting Blood Glucose</span>
-                    <span className="text-indigo-400 font-extrabold">{simParams.glucose} mg/dL</span>
+                    <span className="text-slate-700">Fasting Blood Glucose</span>
+                    <span className="text-indigo-600 font-extrabold">{simParams.glucose} mg/dL</span>
                   </div>
                   <input 
                     type="range" min="60" max="250" value={simParams.glucose}
                     onChange={e => setSimParams(prev => ({ ...prev, glucose: parseInt(e.target.value) }))}
-                    className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                    className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600"
                   />
-                  <div className="flex justify-between text-[10px] text-slate-500"><span>60 Normal</span><span>100 Pre-diabetes</span><span>250 High</span></div>
+                  <div className="flex justify-between text-[10px] text-slate-500 font-semibold"><span>60 Normal</span><span>100 Pre-diabetes</span><span>250 High</span></div>
                 </div>
 
                 {/* Systolic BP Slider */}
                 <div className="space-y-1.5">
                   <div className="flex justify-between text-xs font-bold">
-                    <span className="text-slate-400">Systolic Blood Pressure</span>
-                    <span className="text-rose-400 font-extrabold">{simParams.bpSystolic} mmHg</span>
+                    <span className="text-slate-700">Systolic Blood Pressure</span>
+                    <span className="text-rose-600 font-extrabold">{simParams.bpSystolic} mmHg</span>
                   </div>
                   <input 
                     type="range" min="85" max="200" value={simParams.bpSystolic}
                     onChange={e => setSimParams(prev => ({ ...prev, bpSystolic: parseInt(e.target.value) }))}
-                    className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-rose-500"
+                    className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-rose-600"
                   />
-                  <div className="flex justify-between text-[10px] text-slate-500"><span>85 Low</span><span>120 Normal</span><span>200 Crisis</span></div>
+                  <div className="flex justify-between text-[10px] text-slate-500 font-semibold"><span>85 Low</span><span>120 Normal</span><span>200 Crisis</span></div>
                 </div>
 
                 {/* BMI Slider */}
                 <div className="space-y-1.5">
                   <div className="flex justify-between text-xs font-bold">
-                    <span className="text-slate-400">Body Mass Index (BMI)</span>
-                    <span className="text-amber-400 font-extrabold">{simParams.bmi} kg/m²</span>
+                    <span className="text-slate-700">Body Mass Index (BMI)</span>
+                    <span className="text-amber-600 font-extrabold">{simParams.bmi} kg/m²</span>
                   </div>
                   <input 
                     type="range" min="16" max="45" step="0.5" value={simParams.bmi}
                     onChange={e => setSimParams(prev => ({ ...prev, bmi: parseFloat(e.target.value) }))}
-                    className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                    className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-amber-600"
                   />
-                  <div className="flex justify-between text-[10px] text-slate-500"><span>16 Lean</span><span>25 Normal</span><span>45 Severe</span></div>
+                  <div className="flex justify-between text-[10px] text-slate-500 font-semibold"><span>16 Lean</span><span>25 Normal</span><span>45 Severe</span></div>
                 </div>
 
                 {/* Cholesterol Slider */}
                 <div className="space-y-1.5">
                   <div className="flex justify-between text-xs font-bold">
-                    <span className="text-slate-400">Serum Cholesterol</span>
-                    <span className="text-purple-400 font-extrabold">{simParams.cholesterol} mg/dL</span>
+                    <span className="text-slate-700">Serum Cholesterol</span>
+                    <span className="text-purple-600 font-extrabold">{simParams.cholesterol} mg/dL</span>
                   </div>
                   <input 
                     type="range" min="110" max="360" value={simParams.cholesterol}
                     onChange={e => setSimParams(prev => ({ ...prev, cholesterol: parseInt(e.target.value) }))}
-                    className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                    className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-purple-600"
                   />
-                  <div className="flex justify-between text-[10px] text-slate-500"><span>110 Normal</span><span>200 Borderline</span><span>360 High</span></div>
+                  <div className="flex justify-between text-[10px] text-slate-500 font-semibold"><span>110 Normal</span><span>200 Borderline</span><span>360 High</span></div>
                 </div>
 
                 {/* Fasting Insulin Slider */}
                 <div className="space-y-1.5">
                   <div className="flex justify-between text-xs font-bold">
-                    <span className="text-slate-400">Fasting Insulin</span>
-                    <span className="text-cyan-400 font-extrabold">{simParams.insulin} µIU/mL</span>
+                    <span className="text-slate-700">Fasting Insulin</span>
+                    <span className="text-cyan-600 font-extrabold">{simParams.insulin} µIU/mL</span>
                   </div>
                   <input 
                     type="range" min="2" max="50" value={simParams.insulin}
                     onChange={e => setSimParams(prev => ({ ...prev, insulin: parseInt(e.target.value) }))}
-                    className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                    className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-cyan-600"
                   />
                 </div>
 
                 {/* Categorical Selectors */}
                 <div className="grid grid-cols-2 gap-3 pt-2">
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Smoking Status</label>
+                    <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider block mb-1">Smoking Status</label>
                     <select 
                       value={simParams.smoking}
                       onChange={e => setSimParams(prev => ({ ...prev, smoking: e.target.value }))}
-                      className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs font-bold text-slate-200 outline-none"
+                      className="w-full px-3 py-2 glass-input rounded-xl text-xs font-bold text-slate-900 outline-none cursor-pointer"
                     >
                       <option value="no">Non-Smoker</option>
                       <option value="yes">Active Smoker</option>
@@ -2880,11 +2868,11 @@ export default function App() {
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Alcohol Consumption</label>
+                    <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider block mb-1">Alcohol Consumption</label>
                     <select 
                       value={simParams.alcohol}
                       onChange={e => setSimParams(prev => ({ ...prev, alcohol: e.target.value }))}
-                      className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs font-bold text-slate-200 outline-none"
+                      className="w-full px-3 py-2 glass-input rounded-xl text-xs font-bold text-slate-900 outline-none cursor-pointer"
                     >
                       <option value="low">Low / None</option>
                       <option value="moderate">Moderate</option>
@@ -2896,25 +2884,25 @@ export default function App() {
               </div>
 
               {/* Real-time Dynamic Gauge & Risk Meters Right */}
-              <div className="lg:col-span-5 flex flex-col justify-between space-y-5 bg-slate-950/60 border border-slate-800/80 rounded-2xl p-6">
+              <div className="lg:col-span-5 flex flex-col justify-between space-y-5 glass-panel rounded-2xl p-6">
                 
                 {/* Simulated Overall Health Score Radial Meter */}
                 <div className="flex flex-col items-center">
-                  <div className="relative w-36 h-36 flex items-center justify-center">
+                  <div className="relative w-36 h-36 flex items-center justify-center circle-progress-container">
                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 160 160">
-                      <circle className="stroke-slate-800 fill-none" cx="80" cy="80" r="68" strokeWidth="10"></circle>
+                      <circle className="stroke-slate-200 fill-none" cx="80" cy="80" r="68" strokeWidth="10"></circle>
                       <circle 
                         className="transition-all duration-500 ease-out fill-none"
                         cx="80" cy="80" r="68" strokeWidth="10" 
-                        stroke={liveSimResults.overallScore > 75 ? '#10b981' : liveSimResults.overallScore > 50 ? '#f59e0b' : '#f43f5e'}
+                        stroke={liveSimResults.overallScore > 75 ? '#059669' : liveSimResults.overallScore > 50 ? '#d97706' : '#e11d48'}
                         strokeDasharray={427}
                         strokeDashoffset={427 - (427 * liveSimResults.overallScore) / 100}
                         strokeLinecap="round"
                       ></circle>
                     </svg>
                     <div className="absolute text-center">
-                      <div className="text-3xl font-extrabold text-white">{liveSimResults.overallScore}</div>
-                      <div className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Simulated Score</div>
+                      <div className="text-3xl font-black text-slate-900">{liveSimResults.overallScore}</div>
+                      <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Simulated Score</div>
                     </div>
                   </div>
                 </div>
@@ -2925,15 +2913,15 @@ export default function App() {
                   {/* Diabetes */}
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs font-bold">
-                      <span className="text-slate-300">Diabetes Risk</span>
-                      <span className={liveSimResults.risks.diabetes > 65 ? 'text-rose-400' : 'text-emerald-400'}>{liveSimResults.risks.diabetes}%</span>
+                      <span className="text-slate-700">Diabetes Risk</span>
+                      <span className={liveSimResults.risks.diabetes > 65 ? 'text-rose-600 font-extrabold' : 'text-emerald-600 font-extrabold'}>{liveSimResults.risks.diabetes}%</span>
                     </div>
-                    <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                    <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
                       <div 
                         className="h-full rounded-full transition-all duration-300"
                         style={{ 
                           width: `${liveSimResults.risks.diabetes}%`,
-                          backgroundColor: liveSimResults.risks.diabetes > 65 ? '#f43f5e' : liveSimResults.risks.diabetes > 35 ? '#f59e0b' : '#10b981'
+                          backgroundColor: liveSimResults.risks.diabetes > 65 ? '#e11d48' : liveSimResults.risks.diabetes > 35 ? '#d97706' : '#059669'
                         }}
                       ></div>
                     </div>
@@ -2942,15 +2930,15 @@ export default function App() {
                   {/* Heart Disease */}
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs font-bold">
-                      <span className="text-slate-300">Heart Disease Risk</span>
-                      <span className={liveSimResults.risks.heartDisease > 65 ? 'text-rose-400' : 'text-emerald-400'}>{liveSimResults.risks.heartDisease}%</span>
+                      <span className="text-slate-700">Heart Disease Risk</span>
+                      <span className={liveSimResults.risks.heartDisease > 65 ? 'text-rose-600 font-extrabold' : 'text-emerald-600 font-extrabold'}>{liveSimResults.risks.heartDisease}%</span>
                     </div>
-                    <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                    <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
                       <div 
                         className="h-full rounded-full transition-all duration-300"
                         style={{ 
                           width: `${liveSimResults.risks.heartDisease}%`,
-                          backgroundColor: liveSimResults.risks.heartDisease > 65 ? '#f43f5e' : liveSimResults.risks.heartDisease > 35 ? '#f59e0b' : '#10b981'
+                          backgroundColor: liveSimResults.risks.heartDisease > 65 ? '#e11d48' : liveSimResults.risks.heartDisease > 35 ? '#d97706' : '#059669'
                         }}
                       ></div>
                     </div>
@@ -2959,15 +2947,15 @@ export default function App() {
                   {/* Kidney Disease */}
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs font-bold">
-                      <span className="text-slate-300">Kidney Disease Risk</span>
-                      <span className={liveSimResults.risks.kidneyDisease > 65 ? 'text-rose-400' : 'text-emerald-400'}>{liveSimResults.risks.kidneyDisease}%</span>
+                      <span className="text-slate-700">Kidney Disease Risk</span>
+                      <span className={liveSimResults.risks.kidneyDisease > 65 ? 'text-rose-600 font-extrabold' : 'text-emerald-600 font-extrabold'}>{liveSimResults.risks.kidneyDisease}%</span>
                     </div>
-                    <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                    <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
                       <div 
                         className="h-full rounded-full transition-all duration-300"
                         style={{ 
                           width: `${liveSimResults.risks.kidneyDisease}%`,
-                          backgroundColor: liveSimResults.risks.kidneyDisease > 65 ? '#f43f5e' : liveSimResults.risks.kidneyDisease > 35 ? '#f59e0b' : '#10b981'
+                          backgroundColor: liveSimResults.risks.kidneyDisease > 65 ? '#e11d48' : liveSimResults.risks.kidneyDisease > 35 ? '#d97706' : '#059669'
                         }}
                       ></div>
                     </div>
@@ -2976,15 +2964,15 @@ export default function App() {
                   {/* Liver Disease */}
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs font-bold">
-                      <span className="text-slate-300">Liver Disease Risk</span>
-                      <span className={liveSimResults.risks.liverDisease > 65 ? 'text-rose-400' : 'text-emerald-400'}>{liveSimResults.risks.liverDisease}%</span>
+                      <span className="text-slate-700">Liver Disease Risk</span>
+                      <span className={liveSimResults.risks.liverDisease > 65 ? 'text-rose-600 font-extrabold' : 'text-emerald-600 font-extrabold'}>{liveSimResults.risks.liverDisease}%</span>
                     </div>
-                    <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                    <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
                       <div 
                         className="h-full rounded-full transition-all duration-300"
                         style={{ 
                           width: `${liveSimResults.risks.liverDisease}%`,
-                          backgroundColor: liveSimResults.risks.liverDisease > 65 ? '#f43f5e' : liveSimResults.risks.liverDisease > 35 ? '#f59e0b' : '#10b981'
+                          backgroundColor: liveSimResults.risks.liverDisease > 65 ? '#e11d48' : liveSimResults.risks.liverDisease > 35 ? '#d97706' : '#059669'
                         }}
                       ></div>
                     </div>
@@ -3008,7 +2996,7 @@ export default function App() {
                     setShowSimulatorModal(false);
                     setCurrentTab('wizard');
                   }}
-                  className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-indigo-600/30 cursor-pointer transition active:scale-[0.98]"
+                  className="btn-magnetic w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-indigo-600/30 cursor-pointer transition active:scale-[0.98]"
                 >
                   Import Parameters into Full Assessment
                 </button>
