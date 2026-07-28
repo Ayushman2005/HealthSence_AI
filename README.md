@@ -41,7 +41,7 @@
 - **Linter**: Oxlint
 
 ### **Backend**
-- **Server Framework**: Python Flask, Flask-CORS
+- **Server Framework**: Python FastAPI, Uvicorn, Pydantic
 - **Machine Learning**: Scikit-Learn, XGBoost, Pandas, NumPy, Pickle
 - **Database Layer**: PyMySQL (MySQL 8.0+), SQLite3 (Auto-fallback)
 - **Authentication**: HMAC SHA-256 Signed Token Authentication
@@ -53,7 +53,7 @@
 ```
 Project 2026/
 ├── backend/
-│   ├── server.py              # Main Flask REST API server & database routines
+│   ├── server.py              # Main FastAPI REST API server & database routines
 │   ├── train_models.py        # Model training orchestration script
 │   ├── .env                   # Environment variable configuration
 │   ├── models/                # Trained PKL models, scaler, metrics, & SQLite DB
@@ -129,7 +129,7 @@ Project 2026/
    python train_models.py
    ```
 
-6. Start the Flask server:
+6. Start the FastAPI server:
    ```bash
    python server.py
    ```

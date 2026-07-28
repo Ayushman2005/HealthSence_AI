@@ -1,28 +1,57 @@
 import os
 import json
 import pickle
+import warnings
+warnings.filterwarnings('ignore')
 import subprocess
 import hmac
 import hashlib
 import time
+import sqlite3
 from functools import wraps
+from contextlib import asynccontextmanager
 import numpy as np
 import pymysql
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+from fastapi import FastAPI, Request, HTTPException, Depends, Header, status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+from typing import Optional, Dict, Any
+
+# Load environment variables
+def load_dotenv():
+    env_path = ".env"
+    if not os.path.exists(env_path):
+        env_path = os.path.join(os.path.dirname(__file__), ".env")
+    if os.path.exists(env_path):
+        with open(env_path, "r") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#"):
+                    parts = line.split("=", 1)
+                    if len(parts) == 2:
+                        key = parts[0].strip()
+                        val = parts[1].strip()
+                        if val.startswith('"') and val.endswith('"'):
+                            val = val[1:-1]
+                        elif val.startswith("'") and val.endswith("'"):
+                            val = val[1:-1]
+                        os.environ[key] = val
+
+load_dotenv()
 
 # Admin credentials & authentication configurations
 ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', '')
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', '')
 JWT_SECRET = os.environ.get('JWT_SECRET', '')
 
-def generate_token(username):
+def generate_token(username: str) -> str:
     timestamp = str(int(time.time()))
     payload = f"{username}:{timestamp}"
     signature = hmac.new(JWT_SECRET.encode(), payload.encode(), hashlib.sha256).hexdigest()
     return f"{payload}:{signature}"
 
-def verify_token(token):
+def verify_token(token: str) -> bool:
     if not token:
         return False
     try:
@@ -52,47 +81,24 @@ def verify_token(token):
         pass
     return False
 
-def requires_auth(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        auth_header = request.headers.get('Authorization', None)
-        if not auth_header:
-            return jsonify({'error': 'Authorization header is missing'}), 401
-        
-        parts = auth_header.split()
-        if parts[0].lower() != 'bearer' or len(parts) != 2:
-            return jsonify({'error': 'Authorization header must be Bearer token'}), 401
-            
-        token = parts[1]
-        if not verify_token(token):
-            return jsonify({'error': 'Unauthorized or token expired'}), 401
-            
-        return f(*args, **kwargs)
-    return decorated
+def get_auth_token(authorization: Optional[str] = Header(None)) -> str:
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Authorization header is missing")
+    parts = authorization.split()
+    if len(parts) != 2 or parts[0].lower() != "bearer":
+        raise HTTPException(status_code=401, detail="Authorization header must be Bearer token")
+    token = parts[1]
+    if not verify_token(token):
+        raise HTTPException(status_code=401, detail="Unauthorized or token expired")
+    return token
 
-def load_dotenv():
-    env_path = ".env"
-    if not os.path.exists(env_path):
-        env_path = os.path.join(os.path.dirname(__file__), ".env")
-    if os.path.exists(env_path):
-        with open(env_path, "r") as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith("#"):
-                    parts = line.split("=", 1)
-                    if len(parts) == 2:
-                        key = parts[0].strip()
-                        val = parts[1].strip()
-                        if val.startswith('"') and val.endswith('"'):
-                            val = val[1:-1]
-                        elif val.startswith("'") and val.endswith("'"):
-                            val = val[1:-1]
-                        os.environ[key] = val
-
-load_dotenv()
-
-app = Flask(__name__)
-CORS(app) # Enable Cross-Origin Resource Sharing
+def extract_username_from_auth(authorization: Optional[str] = Header(None)) -> Optional[str]:
+    if authorization:
+        parts = authorization.split()
+        if len(parts) == 2:
+            token = parts[1]
+            return token.split(':')[0]
+    return None
 
 # Global variables for models and utilities
 scaler = None
@@ -101,10 +107,10 @@ models = {}
 model_metrics = {}
 diseases = ['diabetes', 'heart_disease', 'kidney_disease', 'liver_disease']
 algs = ['logistic_regression', 'decision_tree', 'random_forest', 'xgboost', 'svm']
+USE_SQLITE = False
 
 # MySQL Database connection helper
 def get_db_connection():
-    # Reads environment variables, falling back to localhost defaults
     return pymysql.connect(
         host=os.environ.get('MYSQL_HOST', 'localhost'),
         user=os.environ.get('MYSQL_USER', 'root'),
@@ -113,10 +119,6 @@ def get_db_connection():
         charset='utf8mb4',
         cursorclass=pymysql.cursors.DictCursor
     )
-
-import sqlite3
-
-USE_SQLITE = False
 
 def init_db():
     global USE_SQLITE
@@ -205,7 +207,7 @@ def init_db():
             print(f"Critical Error: Failed to initialize SQLite local database: {sq_err}")
 
 # DB Execution helper methods
-def db_execute(query, params=None):
+def db_execute(query: str, params: tuple = None):
     if params is None:
         params = ()
     if USE_SQLITE:
@@ -222,7 +224,7 @@ def db_execute(query, params=None):
         conn.commit()
         conn.close()
 
-def db_fetchall(query, params=None):
+def db_fetchall(query: str, params: tuple = None):
     if params is None:
         params = ()
     if USE_SQLITE:
@@ -243,7 +245,7 @@ def db_fetchall(query, params=None):
         conn.close()
         return result
 
-def db_fetchone(query, params=None):
+def db_fetchone(query: str, params: tuple = None):
     if params is None:
         params = ()
     if USE_SQLITE:
@@ -266,7 +268,7 @@ def db_fetchone(query, params=None):
 
 # Load ML Assets
 def load_ml_assets():
-    global scaler, feature_names, models
+    global scaler, feature_names, models, model_metrics
     print("Loading Machine Learning assets...")
     
     # Load Scaler
@@ -307,11 +309,39 @@ def load_ml_assets():
                 loaded_count += 1
     print(f"  Loaded {loaded_count}/20 models successfully.")
 
-# Run Database and ML startup routines
-init_db()
-load_ml_assets()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup tasks
+    init_db()
+    load_ml_assets()
+    yield
+    # Shutdown tasks (if any)
 
-def select_best_algorithm_for_disease(disease):
+app = FastAPI(
+    title="Health Risk AI API",
+    description="FastAPI Backend for Health Risk AI Prediction System",
+    version="1.0.0",
+    lifespan=lifespan
+)
+
+# Enable CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Custom exception handler for consistent {"error": "message"} responses
+@app.exception_handler(HTTPException)
+async def custom_http_exception_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"error": exc.detail}
+    )
+
+def select_best_algorithm_for_disease(disease: str) -> str:
     global model_metrics
     pref_order = ['random_forest', 'xgboost', 'svm', 'logistic_regression', 'decision_tree']
     
@@ -334,14 +364,12 @@ def select_best_algorithm_for_disease(disease):
                 best_score = current_score
                 best_alg = alg
             elif current_score == best_score:
-                # Tie breaker: choose the one that appears earlier in pref_order
                 if pref_order.index(alg) < pref_order.index(best_alg):
                     best_alg = alg
                     
     return best_alg
 
-def encode_input(data, bmi):
-    # Match the order of numeric variables in train_models.py
+def encode_input(data: dict, bmi: float):
     numericals = [
         float(data.get('age', 35)),
         float(data.get('height', 170)),
@@ -356,7 +384,6 @@ def encode_input(data, bmi):
         float(data.get('heartRate', 70))
     ]
     
-    # Categorical mapping definitions matching train_models.py
     cat_categories = {
         'gender': ['male', 'female', 'other'],
         'smoking': ['yes', 'no'],
@@ -364,7 +391,6 @@ def encode_input(data, bmi):
         'physical_activity': ['sedentary', 'moderate', 'active']
     }
     
-    # Extract values from request
     mapped_keys = {
         'gender': str(data.get('gender', 'male')).lower(),
         'smoking': str(data.get('smoking', 'no')).lower(),
@@ -380,44 +406,62 @@ def encode_input(data, bmi):
         for cat in cats:
             categoricals.append(1.0 if val == cat else 0.0)
             
-    # Combine numericals and encoded categoricals
     all_features = np.array(numericals + categoricals).reshape(1, -1)
     return all_features
 
-@app.route('/api/predict', methods=['POST'])
-def predict():
+def hash_password(password: str) -> str:
+    salt = "healthrisk-ai-salt-2026"
+    return hashlib.sha256((password + salt).encode()).hexdigest()
+
+# Request Pydantic Schemas
+class RegisterRequest(BaseModel):
+    username: Optional[str] = None
+    password: Optional[str] = None
+    name: Optional[str] = None
+
+class LoginRequest(BaseModel):
+    username: Optional[str] = None
+    password: Optional[str] = None
+
+class ProfileUpdateRequest(BaseModel):
+    name: Optional[str] = None
+
+class PasswordUpdateRequest(BaseModel):
+    current_password: Optional[str] = None
+    new_password: Optional[str] = None
+
+# --- API Endpoints ---
+
+@app.post('/api/predict')
+async def predict(request: Request):
     try:
-        data = request.json
+        data = await request.json()
         if not data:
-            return jsonify({'error': 'No input payload provided'}), 400
+            raise HTTPException(status_code=400, detail='No input payload provided')
             
-        # 1. Parse name, height, weight and compute BMI
         name = data.get('name', 'Anonymous')
         height = float(data.get('height', 170))
         weight = float(data.get('weight', 70))
         
         if height <= 0:
-            return jsonify({'error': 'Height must be positive'}), 400
+            raise HTTPException(status_code=400, detail='Height must be positive')
             
         height_meters = height / 100
         bmi = round(weight / (height_meters * height_meters), 1)
         
-        # 2. Encode categorical and numerical variables
         X = encode_input(data, bmi)
         
-        # 3. Apply StandardScaler on first 11 features (numerical portion)
         global scaler
         if scaler is None:
             load_ml_assets()
             if scaler is None:
-                return jsonify({'error': 'Model assets (scaler) are not loaded on server.'}), 500
+                raise HTTPException(status_code=500, detail='Model assets (scaler) are not loaded on server.')
                 
         X_num_scaled = scaler.transform(X[:, :11])
         X_scaled = X.copy()
         X_scaled[:, :11] = X_num_scaled
         
-        # 4. Determine algorithm and run predictions (fallback / dynamic selection)
-        passed_alg = data.get('algorithm', 'auto').lower()
+        passed_alg = str(data.get('algorithm', 'auto')).lower()
         
         predictions = {}
         selected_algorithms = {}
@@ -432,10 +476,9 @@ def predict():
             disease_models = models.get(disease, {})
             model = disease_models.get(best_alg)
             if model is None:
-                # Fallback to random_forest if the best algorithm's model is not loaded
                 model = disease_models.get('random_forest')
                 if model is None:
-                    return jsonify({'error': f'Model for {disease} not found'}), 500
+                    raise HTTPException(status_code=500, detail=f'Model for {disease} not found')
                 best_alg = 'random_forest'
                 selected_algorithms[disease] = best_alg
                 
@@ -444,14 +487,12 @@ def predict():
             
         print(f"Predictions run. Selected algorithms: {selected_algorithms}")
             
-        # 5. Calculate Overall Health Score based on predictions
         avg_risk = sum(predictions.values()) / len(diseases)
         health_score = 100 - (avg_risk * 0.75)
         high_alerts = sum(1 for r in predictions.values() if r >= 70)
         health_score -= (high_alerts * 8)
         health_score = int(max(15, min(100, round(health_score))))
         
-        # 6. Generate Clinical Explanations & Contributing Factors
         explanations = {
             'diabetes': [],
             'heartDisease': [],
@@ -514,7 +555,6 @@ def predict():
             if not explanations[k]:
                 explanations[k].append("All parameters within standard clinical limits.")
                 
-        # 7. Generate Recommendations
         recs = {
             "immediate": [],
             "lifestyle": [],
@@ -553,11 +593,9 @@ def predict():
         if not recs["medical"]:
             recs["medical"].append("Continue with routine annual health screenings.")
             
-        # 8. Dynamic Confidence Score
         confidence = int(round(85 + (abs(avg_risk - 50) / 50) * 11))
         confidence = min(96, max(82, confidence))
         
-        # Build results structure
         results = {
             'risks': {
                 'diabetes': predictions['diabetes'],
@@ -576,13 +614,11 @@ def predict():
             }
         }
         
-        # 9. SAVE TO MYSQL DATABASE
         alg_suffix = passed_alg if passed_alg in algs else 'auto'
         assess_id = f"assess-{int(np.round(np.random.rand() * 1000000))}-{alg_suffix}"
         from datetime import datetime
         timestamp_str = datetime.now().isoformat()
         
-        # Gather structured inputs
         personal_info = {'name': name, 'age': age, 'gender': gender, 'height': height, 'weight': weight, 'bmi': bmi}
         lifestyle_info = {'smoking': smoking, 'alcohol': alcohol, 'physicalActivity': activity, 'sleepDuration': sleep}
         medical_info = {'bpSystolic': bp_systolic, 'bpDiastolic': bp_diastolic, 'cholesterol': cholesterol, 'glucose': glucose, 'insulin': insulin, 'heartRate': heart_rate}
@@ -603,9 +639,7 @@ def predict():
             print(f"Saved assessment {assess_id} to database successfully.")
         except Exception as db_err:
             print(f"Failed to write to database: {db_err}")
-            # Do not throw, return results anyway (acts as soft fallback)
             
-        # Append database specific attributes for frontend
         results_with_metadata = results.copy()
         results_with_metadata['id'] = assess_id
         results_with_metadata['name'] = name
@@ -614,200 +648,197 @@ def predict():
         results_with_metadata['lifestyle'] = lifestyle_info
         results_with_metadata['medical'] = medical_info
         
-        return jsonify(results_with_metadata)
+        return results_with_metadata
         
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"Error during prediction: {e}")
-        return jsonify({'error': str(e)}), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
-def hash_password(password):
-    salt = "healthrisk-ai-salt-2026"
-    return hashlib.sha256((password + salt).encode()).hexdigest()
-
-@app.route('/api/register', methods=['POST'])
-def register():
+@app.post('/api/register')
+async def register(req: RegisterRequest):
     try:
-        data = request.json or {}
-        username = data.get('username')
-        password = data.get('password')
-        name = data.get('name')
+        username = req.username
+        password = req.password
+        name = req.name
         
         if not username or not password or not name:
-            return jsonify({'error': 'Name, username, and password are required'}), 400
+            raise HTTPException(status_code=400, detail='Name, username, and password are required')
             
         username = username.strip()
         name = name.strip()
         
         if len(name) < 2:
-            return jsonify({'error': 'Name must be at least 2 characters long'}), 400
+            raise HTTPException(status_code=400, detail='Name must be at least 2 characters long')
         if len(username) < 3:
-            return jsonify({'error': 'Username must be at least 3 characters long'}), 400
+            raise HTTPException(status_code=400, detail='Username must be at least 3 characters long')
         if len(password) < 6:
-            return jsonify({'error': 'Password must be at least 6 characters long'}), 400
+            raise HTTPException(status_code=400, detail='Password must be at least 6 characters long')
             
-        # Check if user already exists (case-insensitive)
         if username.lower() == ADMIN_USERNAME.lower():
-            return jsonify({'error': 'Username already exists'}), 400
+            raise HTTPException(status_code=400, detail='Username already exists')
             
         existing_user = db_fetchone("SELECT * FROM users WHERE LOWER(username) = LOWER(%s)", (username,))
         if existing_user:
-            return jsonify({'error': 'Username already exists'}), 400
+            raise HTTPException(status_code=400, detail='Username already exists')
             
-        # Insert user
         password_hash = hash_password(password)
         db_execute("INSERT INTO users (username, password_hash, name) VALUES (%s, %s, %s)", (username, password_hash, name))
         
-        # Return success with token
         token = generate_token(username)
-        return jsonify({
+        return {
             'success': True,
             'token': token,
             'message': 'Registration successful'
-        })
+        }
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"Error during registration: {e}")
-        return jsonify({'error': str(e)}), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
-@app.route('/api/login', methods=['POST'])
-def login():
+@app.post('/api/login')
+async def login(req: LoginRequest):
     try:
-        data = request.json or {}
-        username = data.get('username')
-        password = data.get('password')
+        username = req.username
+        password = req.password
         
         if not username or not password:
-            return jsonify({'error': 'Username and password are required'}), 400
+            raise HTTPException(status_code=400, detail='Username and password are required')
             
         username = username.strip()
         
-        # Hardcoded fallback admin check
         if username.lower() == ADMIN_USERNAME.lower() and password == ADMIN_PASSWORD:
             token = generate_token(ADMIN_USERNAME)
-            return jsonify({
+            return {
                 'success': True,
                 'token': token,
                 'message': 'Login successful'
-            })
+            }
             
-        # Check database
         user = db_fetchone("SELECT * FROM users WHERE LOWER(username) = LOWER(%s)", (username,))
         if user:
             password_hash = hash_password(password)
             if user['password_hash'] == password_hash:
                 token = generate_token(user['username'])
-                return jsonify({
+                return {
                     'success': True,
                     'token': token,
                     'message': 'Login successful'
-                })
+                }
                 
-        return jsonify({'error': 'Invalid username or password'}), 401
+        raise HTTPException(status_code=401, detail='Invalid username or password')
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"Error during login: {e}")
-        return jsonify({'error': str(e)}), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
-def get_auth_username():
-    auth_header = request.headers.get('Authorization')
-    if auth_header:
-        parts = auth_header.split()
-        if len(parts) == 2:
-            token = parts[1]
-            return token.split(':')[0]
-    return None
-
-@app.route('/api/user/profile', methods=['GET'])
-@requires_auth
-def get_user_profile():
+@app.get('/api/user/profile')
+async def get_user_profile(
+    authorization: Optional[str] = Header(None),
+    token: str = Depends(get_auth_token)
+):
     try:
-        username = get_auth_username()
-        if username == ADMIN_USERNAME:
-            return jsonify({
+        username = extract_username_from_auth(authorization)
+        if username and username.lower() == ADMIN_USERNAME.lower():
+            return {
                 'username': ADMIN_USERNAME,
                 'name': 'System Administrator',
                 'created_at': 'System Default'
-            })
+            }
         
         user = db_fetchone("SELECT username, name, created_at FROM users WHERE username = %s", (username,))
         if not user:
-            return jsonify({'error': 'User not found'}), 404
-        return jsonify(user)
+            raise HTTPException(status_code=404, detail='User not found')
+        return user
+    except HTTPException:
+        raise
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
-@app.route('/api/user/profile', methods=['PUT'])
-@requires_auth
-def update_user_profile():
+@app.put('/api/user/profile')
+async def update_user_profile(
+    req: ProfileUpdateRequest,
+    authorization: Optional[str] = Header(None),
+    token: str = Depends(get_auth_token)
+):
     try:
-        username = get_auth_username()
-        if username == ADMIN_USERNAME:
-            return jsonify({'error': 'Cannot update system administrator profile'}), 400
+        username = extract_username_from_auth(authorization)
+        if username and username.lower() == ADMIN_USERNAME.lower():
+            raise HTTPException(status_code=400, detail='Cannot update system administrator profile')
             
-        data = request.json or {}
-        new_name = data.get('name')
+        new_name = req.name
         if not new_name or len(new_name.strip()) < 2:
-            return jsonify({'error': 'Name must be at least 2 characters long'}), 400
+            raise HTTPException(status_code=400, detail='Name must be at least 2 characters long')
             
         db_execute("UPDATE users SET name = %s WHERE username = %s", (new_name.strip(), username))
-        return jsonify({'success': True, 'message': 'Profile updated successfully', 'name': new_name.strip()})
+        return {'success': True, 'message': 'Profile updated successfully', 'name': new_name.strip()}
+    except HTTPException:
+        raise
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
-@app.route('/api/user/password', methods=['PUT'])
-@requires_auth
-def update_user_password():
+@app.put('/api/user/password')
+async def update_user_password(
+    req: PasswordUpdateRequest,
+    authorization: Optional[str] = Header(None),
+    token: str = Depends(get_auth_token)
+):
     try:
-        username = get_auth_username()
-        if username == ADMIN_USERNAME:
-            return jsonify({'error': 'Cannot update system administrator password'}), 400
+        username = extract_username_from_auth(authorization)
+        if username and username.lower() == ADMIN_USERNAME.lower():
+            raise HTTPException(status_code=400, detail='Cannot update system administrator password')
             
-        data = request.json or {}
-        current_password = data.get('current_password')
-        new_password = data.get('new_password')
+        current_password = req.current_password
+        new_password = req.new_password
         
         if not current_password or not new_password:
-            return jsonify({'error': 'Current and new password are required'}), 400
+            raise HTTPException(status_code=400, detail='Current and new password are required')
         if len(new_password) < 6:
-            return jsonify({'error': 'New password must be at least 6 characters long'}), 400
+            raise HTTPException(status_code=400, detail='New password must be at least 6 characters long')
             
-        # Verify current password
         user = db_fetchone("SELECT * FROM users WHERE username = %s", (username,))
         if not user or user['password_hash'] != hash_password(current_password):
-            return jsonify({'error': 'Incorrect current password'}), 401
+            raise HTTPException(status_code=401, detail='Incorrect current password')
             
-        # Update password
         new_hash = hash_password(new_password)
         db_execute("UPDATE users SET password_hash = %s WHERE username = %s", (new_hash, username))
-        return jsonify({'success': True, 'message': 'Password updated successfully'})
+        return {'success': True, 'message': 'Password updated successfully'}
+    except HTTPException:
+        raise
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
-@app.route('/api/user/account', methods=['DELETE'])
-@requires_auth
-def delete_user_account():
+@app.delete('/api/user/account')
+async def delete_user_account(
+    authorization: Optional[str] = Header(None),
+    token: str = Depends(get_auth_token)
+):
     try:
-        username = get_auth_username()
-        if username == ADMIN_USERNAME:
-            return jsonify({'error': 'Cannot delete system administrator account'}), 400
+        username = extract_username_from_auth(authorization)
+        if username and username.lower() == ADMIN_USERNAME.lower():
+            raise HTTPException(status_code=400, detail='Cannot delete system administrator account')
             
         db_execute("DELETE FROM users WHERE username = %s", (username,))
-        return jsonify({'success': True, 'message': 'Account deleted successfully'})
+        return {'success': True, 'message': 'Account deleted successfully'}
+    except HTTPException:
+        raise
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
-@app.route('/api/assessments', methods=['GET'])
-@requires_auth
-def get_assessments():
+@app.get('/api/assessments')
+async def get_assessments(token: str = Depends(get_auth_token)):
     try:
         records = db_fetchall("SELECT * FROM assessments ORDER BY timestamp DESC")
         
-        # Deserialize JSON database fields
         for r in records:
             r['personal'] = json.loads(r['personal']) if isinstance(r['personal'], str) else r['personal']
             r['lifestyle'] = json.loads(r['lifestyle']) if isinstance(r['lifestyle'], str) else r['lifestyle']
             r['medical'] = json.loads(r['medical']) if isinstance(r['medical'], str) else r['medical']
             r['results'] = json.loads(r['results']) if isinstance(r['results'], str) else r['results']
             
-            # Reconstruct direct results keys for history list convenience
             r['results']['id'] = r['id']
             r['results']['name'] = r['name']
             r['results']['timestamp'] = r['timestamp']
@@ -815,38 +846,39 @@ def get_assessments():
             r['results']['lifestyle'] = r['lifestyle']
             r['results']['medical'] = r['medical']
             
-        return jsonify(records)
+        return records
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"Error retrieving database logs: {e}")
-        return jsonify({'error': str(e)}), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
-@app.route('/api/assessments/<id>', methods=['DELETE'])
-@requires_auth
-def delete_assessment(id):
+@app.delete('/api/assessments/{id}')
+async def delete_assessment(id: str, token: str = Depends(get_auth_token)):
     try:
         db_execute("DELETE FROM assessments WHERE id = %s", (id,))
-        return jsonify({'success': True, 'message': f'Record {id} successfully deleted from database.'})
+        return {'success': True, 'message': f'Record {id} successfully deleted from database.'}
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"Error deleting record {id} from database: {e}")
-        return jsonify({'error': str(e)}), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
-@app.route('/api/metrics', methods=['GET'])
-@requires_auth
-def get_metrics():
+@app.get('/api/metrics')
+async def get_metrics(token: str = Depends(get_auth_token)):
     metrics_path = "models/model_metrics.json"
     if os.path.exists(metrics_path):
         try:
             with open(metrics_path, "r") as f:
                 metrics_data = json.load(f)
-            return jsonify(metrics_data)
+            return metrics_data
         except Exception as e:
-            return jsonify({'error': f'Failed to read metrics: {e}'}), 500
+            raise HTTPException(status_code=500, detail=f'Failed to read metrics: {e}')
     else:
-        return jsonify({'error': 'Model metrics file not found. Please train models first.'}), 404
+        raise HTTPException(status_code=404, detail='Model metrics file not found. Please train models first.')
 
-@app.route('/api/retrain', methods=['POST'])
-@requires_auth
-def retrain():
+@app.post('/api/retrain')
+async def retrain(token: str = Depends(get_auth_token)):
     try:
         print("Received retraining request. Executing train_models.py...")
         result = subprocess.run(["python", "train_models.py"], capture_output=True, text=True, check=True)
@@ -858,21 +890,24 @@ def retrain():
         if os.path.exists(metrics_path):
             with open(metrics_path, "r") as f:
                 metrics_data = json.load(f)
-            return jsonify({
+            return {
                 'success': True,
                 'message': 'Models retrained and reloaded successfully.',
                 'metrics': metrics_data
-            })
+            }
         else:
-            return jsonify({'success': True, 'message': 'Models retrained but metrics file not found.'})
+            return {'success': True, 'message': 'Models retrained but metrics file not found.'}
             
     except subprocess.CalledProcessError as e:
         print(f"Retraining script failed: {e.stderr}")
-        return jsonify({'error': f'Training script execution failed: {e.stderr}'}), 500
+        raise HTTPException(status_code=500, detail=f'Training script execution failed: {e.stderr}')
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"Retraining error: {e}")
-        return jsonify({'error': str(e)}), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == '__main__':
-    print("Starting Flask Backend Server...")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    import uvicorn
+    print("Starting FastAPI Backend Server...")
+    uvicorn.run("server:app", host="0.0.0.0", port=5000, reload=True)

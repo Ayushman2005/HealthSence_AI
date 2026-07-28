@@ -67,7 +67,7 @@ def main():
     pkl_files = glob.glob(os.path.join(models_dir, "*.pkl"))
     model_pkls = [f for f in pkl_files if not f.endswith("scaler.pkl")]
     print(f"\nTraining summary: Successfully loaded/trained {len(model_pkls)} model files in models/ directory.")
-    print("All models are ready for Flask server deployment.")
+    print("All models are ready for FastAPI server deployment.")
 
 if __name__ == "__main__":
     main()
