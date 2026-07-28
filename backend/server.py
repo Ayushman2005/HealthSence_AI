@@ -805,7 +805,7 @@ async def admin_system_status(
         'success': True,
         'system_health': 'Optimal / Operational',
         'api_version': 'v2.6.0',
-        'database_mode': 'MySQL Active' if DB_POOL else 'SQLite / Local Storage Active',
+        'database_mode': 'MySQL Active' if not USE_SQLITE else 'SQLite / Local Storage Active',
         'models': models_status,
         'total_cached_assessments': len(assessments_records)
     }
