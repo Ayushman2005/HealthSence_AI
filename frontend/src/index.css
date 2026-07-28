@@ -355,24 +355,28 @@ body::before {
 .text-gradient-indigo {
   background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #d946ef 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .text-gradient-emerald {
   background: linear-gradient(135deg, #059669 0%, #0d9488 50%, #0284c7 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .text-gradient-rose {
   background: linear-gradient(135deg, #e11d48 0%, #c026d3 50%, #ea580c 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .text-gradient-amber {
   background: linear-gradient(135deg, #d97706 0%, #ca8a04 50%, #eab308 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
