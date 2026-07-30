@@ -1,33 +1,44 @@
-# HealthRisk AI 🏥🤖
+# HealthSence AI 🏥🤖
 
-**HealthRisk AI** is an advanced, full-stack medical health risk assessment platform. Utilizing machine learning models trained across multiple clinical datasets, HealthRisk AI analyzes patient physiological, lifestyle, and medical parameters to predict individual risk percentages for **Diabetes**, **Heart Disease**, **Kidney Disease**, and **Liver Disease**.
+**HealthSence AI** is an advanced, full-stack medical health risk assessment platform. Utilizing machine learning models trained across comprehensive clinical datasets, HealthSence AI analyzes patient physiological, lifestyle, and medical parameters to predict individual risk percentages for **Diabetes**, **Heart Disease**, **Kidney Disease**, and **Liver Disease**.
+
+In addition to multi-disease predictive risk scoring, HealthSence AI features an **AI Medical Report OCR & Prescription Recommendation Engine**, a **Resilient 3-Tier Database System** (Supabase PostgreSQL / MySQL / SQLite), and an **Admin Dashboard** with live system monitoring and on-demand model retraining.
 
 ---
 
 ## 🌟 Key Features
 
-- **Multi-Disease Risk Prediction Engine**: Evaluates physiological input metrics against models trained for Diabetes, Cardiovascular Disease, Chronic Kidney Disease, and Liver Disease.
-- **5 ML Algorithm Suite & Automatic Model Selection**:
+- **Multi-Disease Risk Prediction Engine**:
+  - Evaluates physiological & lifestyle metrics to predict risk scores for Diabetes, Cardiovascular Disease, Chronic Kidney Disease, and Liver Disease.
+- **5 ML Algorithm Suite & Automatic Selection**:
   - Implements **Random Forest**, **XGBoost**, **Support Vector Classifier (SVM)**, **Decision Tree**, and **Logistic Regression**.
-  - Dynamically evaluates and selects the optimal performing algorithm per disease based on F1-Score, Accuracy, and ROC-AUC metrics, while also offering manual algorithm selection.
+  - Dynamically selects the best-performing algorithm per disease based on F1-Score, Accuracy, and ROC-AUC metrics, while supporting manual algorithm overrides.
+- **AI Medical Report Analysis & Prescription Generator (`POST /api/analyze-report`)**:
+  - Parses uploaded PDF/text medical lab reports to extract key physiological biomarkers (glucose, blood pressure, cholesterol, insulin, BMI).
+  - Determines primary clinical diagnosis and severity ratings.
+  - Automatically generates targeted pharmaceutical prescription recommendations (drug name, dosage, frequency, therapeutic purpose, and clinical precautions) alongside lifestyle interventions.
 - **Automated Health Score & Clinical Explanations**:
   - Computes an overall composite **Health Score (15–100)** and confidence index.
-  - Highlights precise clinical risk factors (e.g., elevated fasting glucose, high systolic/diastolic blood pressure, BMI, lifestyle factors).
+  - Highlights specific clinical risk drivers (e.g., elevated fasting glucose, blood pressure, BMI).
   - Categorizes actionable recommendations into **Immediate Actions**, **Lifestyle Modifications**, and **Recommended Medical Screenings**.
-- **Resilient Dual-Database Architecture**:
-  - Native support for **MySQL** (`health_risk_db`).
-  - Automatic seamless failover to embedded **SQLite** (`models/local_storage.db`) when a MySQL server connection is unavailable.
-- **Secure Authentication & Account Management**:
-  - Token-based authentication using **HMAC SHA-256 / JWT** signatures.
-  - User Registration, Login, Profile updates, Password updates, and Account deletion.
+- **Resilient 3-Tier Database Architecture**:
+  - **Tier 1 (Cloud Primary)**: Supabase Cloud PostgreSQL with Row Level Security (RLS) and automatic schema migration (`supabase_schema.sql`).
+  - **Tier 2 (Self-Hosted/Local)**: MySQL Database (`health_risk_db`).
+  - **Tier 3 (Embedded Fallback)**: Embedded SQLite (`models/local_storage.db`).
+  - Seamless automatic failover across tiers ensures continuous operation without service interruption.
+- **Secure Authentication & User Account Management**:
+  - HMAC SHA-256 / JWT signed token authentication.
+  - User Registration, Login, Profile updates, Password changes, and Account deletion.
+  - Immutable Admin security credential table (`admin_credentials`).
 - **Assessment History & Record Auditing**:
-  - Preserves past patient risk assessments with full JSON input snapshot and predictive results.
-  - Offers record filtering, detailed modal views, and record deletion.
-- **Admin Dashboard & Model Retraining Engine**:
-  - Benchmarks ML algorithm metrics across all 4 disease models.
-  - Enables on-demand retraining of machine learning models directly via the backend API execution pipeline (`train_models.py`).
+  - Persists patient risk assessments with full JSON input snapshots and predictive outcomes.
+  - Offers record searching, detailed record viewing, and record deletion.
+- **Admin Dashboard & Retraining Engine**:
+  - Real-time monitoring of active database mode, total users, system health, and assessment counts.
+  - Displays algorithm accuracy and F1 benchmarks across all 4 disease models.
+  - Triggers on-demand machine learning model retraining directly via backend execution (`train_models.py`).
 - **Modern Responsive UI**:
-  - Built with **React 19**, **Vite 8**, **Tailwind CSS 4**, **Lucide Icons**, and **Chart.js**.
+  - Glassmorphic UI built with **React 19**, **Vite 8**, **Tailwind CSS 4**, **Lucide Icons**, and **Chart.js**.
 
 ---
 
@@ -36,15 +47,15 @@
 ### **Frontend**
 - **Framework**: React 19, Vite 8
 - **Styling**: Tailwind CSS 4, Custom Glassmorphism UI
-- **Data Visualization**: Chart.js, react-chartjs-2
+- **Data Visualization**: Chart.js, `react-chartjs-2`
 - **Icons**: Lucide React
 - **Linter**: Oxlint
 
 ### **Backend**
 - **Server Framework**: Python FastAPI, Uvicorn, Pydantic
 - **Machine Learning**: Scikit-Learn, XGBoost, Pandas, NumPy, Pickle
-- **Database Layer**: PyMySQL (MySQL 8.0+), SQLite3 (Auto-fallback)
-- **Authentication**: HMAC SHA-256 Signed Token Authentication
+- **Database Layer**: Supabase PostgreSQL (`supabase-py`, `psycopg2`), PyMySQL (MySQL 8.0+), SQLite3
+- **Authentication**: HMAC SHA-256 Signed Tokens
 
 ---
 
@@ -53,27 +64,29 @@
 ```
 Project 2026/
 ├── backend/
-│   ├── server.py              # Main FastAPI REST API server & database routines
-│   ├── train_models.py        # Model training orchestration script
-│   ├── .env                   # Environment variable configuration
-│   ├── models/                # Trained PKL models, scaler, metrics, & SQLite DB
-│   │   ├── model_metrics.json # Performance metrics across algorithms
-│   │   ├── scaler.pkl         # Trained StandardScaler for numeric inputs
-│   │   ├── *.pkl              # Individual disease-algorithm model artifacts
-│   │   └── local_storage.db   # SQLite fallback database
-│   └── notebooks/             # Jupyter notebooks for EDA & model experimentation
+│   ├── server.py              # FastAPI REST API server, database handlers & endpoints
+│   ├── train_models.py        # Automated ML model training & dataset synthesis script
+│   ├── supabase_schema.sql    # PostgreSQL schema setup & Row Level Security policies
+│   ├── .env                   # Environment variables (Supabase, MySQL, Admin, JWT)
+│   ├── requirements.txt       # Python dependencies
+│   ├── models/                # Trained model artifacts & SQLite storage
+│   │   ├── model_metrics.json # Accuracy & F1 benchmarks across algorithms
+│   │   ├── scaler.pkl         # Trained StandardScaler for numerical inputs
+│   │   ├── *.pkl              # Trained PKL models for each disease-algorithm pair
+│   │   └── local_storage.db   # Embedded SQLite fallback database
+│   └── notebooks/             # Jupyter notebooks for EDA & model training
 │       ├── diabetes_model_training.ipynb
 │       ├── heart_disease_model_training.ipynb
 │       ├── kidney_disease_model_training.ipynb
 │       └── liver_disease_model_training.ipynb
 ├── frontend/
-│   ├── src/                   # React source code & components
-│   │   ├── App.jsx            # Main dashboard app, routes, modals, and views
-│   │   ├── index.css          # Design system & CSS rules
+│   ├── src/                   # React frontend application
+│   │   ├── App.jsx            # Main App dashboard, routes, modals & components
+│   │   ├── index.css          # Core CSS design system & Tailwind setup
 │   │   └── main.jsx           # App entry point
-│   ├── index.html             # Main HTML template
-│   ├── package.json           # Frontend dependencies & scripts
-│   └── vite.config.js         # Vite bundler configuration
+│   ├── index.html             # HTML template
+│   ├── package.json           # Frontend dependencies & npm scripts
+│   └── vite.config.js         # Vite configuration
 └── README.md                  # Project documentation
 ```
 
@@ -84,13 +97,13 @@ Project 2026/
 ### Prerequisites
 - **Python**: `v3.10` or higher
 - **Node.js**: `v18.0.0` or higher
-- **MySQL Server** *(Optional)*: If not running, the application automatically uses SQLite.
+- **Supabase Cloud / MySQL** *(Optional)*: If unavailable, the server automatically defaults to embedded SQLite.
 
 ---
 
 ### 1️⃣ Setting Up the Backend
 
-1. Navigate to the backend directory:
+1. Navigate to the `backend` directory:
    ```bash
    cd backend
    ```
@@ -112,34 +125,41 @@ Project 2026/
    pip install -r requirements.txt
    ```
 
-4. Configure environment variables (Optional):
-   Create or edit `backend/.env`:
+4. Configure environment variables (Create or update `backend/.env`):
    ```env
-   ADMIN_USERNAME=admin
-   ADMIN_PASSWORD=adminpassword
-   JWT_SECRET=your_secure_jwt_secret_key_here
+   # Database Configuration (Tier 1: Supabase Cloud)
+   SUPABASE_URL=https://<your-project-id>.supabase.co
+   SUPABASE_KEY=your_supabase_secret_or_service_key
+   SUPABASE_DB_URL=postgresql://postgres:<password>@db.<project-id>.supabase.co:5432/postgres
+
+   # Database Configuration (Tier 2: MySQL)
    MYSQL_HOST=localhost
    MYSQL_USER=root
    MYSQL_PASSWORD=your_mysql_password
    MYSQL_DB=health_risk_db
+
+   # Security & Authentication
+   ADMIN_USERNAME=Ayushman24
+   ADMIN_PASSWORD=Ayushman@#2005
+   JWT_SECRET=your_secure_jwt_secret_key
    ```
 
-5. Train the Machine Learning models (generates model `.pkl` files and data transformers):
+5. Train the Machine Learning models (Generates dataset, scalers, and model pickle files):
    ```bash
    python train_models.py
    ```
 
-6. Start the FastAPI server:
+6. Launch the FastAPI backend server:
    ```bash
    python server.py
    ```
-   The backend API will run at **`http://localhost:5000`**.
+   The backend API will start at **`http://localhost:5000`**.
 
 ---
 
 ### 2️⃣ Setting Up the Frontend
 
-1. Open a new terminal and navigate to the frontend directory:
+1. Open a new terminal and navigate to the `frontend` directory:
    ```bash
    cd frontend
    ```
@@ -149,55 +169,55 @@ Project 2026/
    npm install
    ```
 
-3. Run the development server:
+3. Start the Vite development server:
    ```bash
    npm run dev
    ```
-   The web dashboard will be available at **`http://localhost:5173`** (or the URL output by Vite).
+   The application dashboard will open at **`http://localhost:5173`**.
 
 ---
 
 ## 🔌 API Endpoints Reference
 
-### **Authentication & User Management**
+### **Authentication & Account Management**
 | Method | Endpoint | Description | Auth Required |
 | :--- | :--- | :--- | :---: |
 | `POST` | `/api/register` | Register a new user account | ❌ |
-| `POST` | `/api/login` | Authenticate user & receive access token | ❌ |
-| `GET` | `/api/user/profile` | Retrieve logged-in user profile details | ✅ |
-| `PUT` | `/api/user/profile` | Update user full name | ✅ |
-| `PUT` | `/api/user/password` | Update account password | ✅ |
+| `POST` | `/api/login` | Authenticate user/admin & return token | ❌ |
+| `GET` | `/api/user/profile` | Retrieve profile details of logged-in user | ✅ |
+| `PUT` | `/api/user/profile` | Update user profile name | ✅ |
+| `PUT` | `/api/user/password` | Change user account password | ✅ |
 | `DELETE` | `/api/user/account` | Delete user account | ✅ |
 
-### **Risk Assessment & Analytics**
+### **Risk Assessment & Medical AI Engine**
 | Method | Endpoint | Description | Auth Required |
 | :--- | :--- | :--- | :---: |
 | `POST` | `/api/predict` | Calculate risk predictions across 4 diseases | ❌ |
-| `GET` | `/api/assessments` | Retrieve history of saved patient assessments | ✅ |
-| `DELETE` | `/api/assessments/<id>` | Delete a patient assessment record | ✅ |
+| `POST` | `/api/analyze-report` | AI scan of lab report PDF & prescription recommendation generator | ✅ |
+| `GET` | `/api/assessments` | Retrieve historical saved patient risk assessments | ✅ |
+| `DELETE` | `/api/assessments/{id}` | Delete a specific assessment record | ✅ |
 
-### **Model Management & Retraining**
+### **Admin & Model Operations**
 | Method | Endpoint | Description | Auth Required |
 | :--- | :--- | :--- | :---: |
-| `GET` | `/api/metrics` | Fetch ML algorithm accuracy & F1 benchmarks | ✅ |
-| `POST` | `/api/retrain` | Trigger retraining pipeline (`train_models.py`) | ✅ |
+| `GET` | `/api/metrics` | Retrieve benchmark metrics for all ML algorithms | ✅ |
+| `POST` | `/api/retrain` | Trigger model retraining pipeline (`train_models.py`) | ✅ |
+| `GET` | `/api/admin/users` | List all registered users & total assessment count | ✅ (Admin) |
+| `GET` | `/api/admin/system-status` | View system health, DB connection mode & model statuses | ✅ (Admin) |
 
 ---
 
-## 🤖 Machine Learning Workflow & Datasets
+## 🤖 Machine Learning Workflow
 
-1. **Preprocessing & Feature Engineering**:
-   - **Numerical Features (11)**: Age, Height, Weight, Body Mass Index (BMI), Sleep Duration, Systolic BP, Diastolic BP, Cholesterol, Fasting Glucose, Insulin, Heart Rate.
-   - **Categorical Features (4)**: Gender (One-Hot Encoded), Smoking status, Alcohol consumption, Physical activity level.
-   - **Standardization**: Numerical features are scaled using `StandardScaler`.
-
-2. **Model Training & Consolidation**:
-   - Notebooks in `backend/notebooks/` train models for each disease across 5 algorithms.
-   - Outputs are stored in `backend/models/` as pickle files (`<disease>_<algorithm>.pkl`).
-   - Merges individual datasets into a unified `clinical_dataset.csv`.
+1. **Feature Matrix (15 Metrics)**:
+   - **Numerical (11)**: Age, Height, Weight, BMI, Sleep Duration, Systolic BP, Diastolic BP, Cholesterol, Fasting Glucose, Insulin, Heart Rate.
+   - **Categorical (4)**: Gender, Smoking Status, Alcohol Consumption, Physical Activity Level.
+2. **Model Training & Evaluation**:
+   - Models trained per disease for 5 algorithms (Random Forest, XGBoost, Support Vector Classifier, Decision Tree, Logistic Regression).
+   - Artifacts stored under `backend/models/*.pkl` alongside performance metrics in `model_metrics.json`.
 
 ---
 
 ## 🛡️ License
 
-This project is released under the [MIT License](LICENSE).
+This project is licensed under the [MIT License](LICENSE).
