@@ -16,3 +16,5 @@ matplotlib>=3.7.0
 
 # Database Connectivity
 PyMySQL>=1.1.0
+supabase>=2.0.0
+

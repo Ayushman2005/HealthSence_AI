@@ -18,6 +18,12 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import Optional, Dict, Any
 
+try:
+    from supabase import create_client, Client
+    HAS_SUPABASE_LIB = True
+except ImportError:
+    HAS_SUPABASE_LIB = False
+
 # Load environment variables
 def load_dotenv():
     env_path = ".env"
@@ -44,6 +50,13 @@ load_dotenv()
 ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'admin')
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'admin123')
 JWT_SECRET = os.environ.get('JWT_SECRET', 'healthsence_secret_key_2026')
+
+# Supabase Configurations
+SUPABASE_URL = os.environ.get('SUPABASE_URL', '').strip()
+SUPABASE_KEY = os.environ.get('SUPABASE_KEY', '').strip()
+supabase_client: Optional[Any] = None
+DB_MODE = 'SQLITE'  # Modes: 'SUPABASE', 'MYSQL', or 'SQLITE'
+USE_SQLITE = False
 
 def generate_token(username: str) -> str:
     timestamp = str(int(time.time()))
@@ -107,7 +120,6 @@ models = {}
 model_metrics = {}
 diseases = ['diabetes', 'heart_disease', 'kidney_disease', 'liver_disease']
 algs = ['logistic_regression', 'decision_tree', 'random_forest', 'xgboost', 'svm']
-USE_SQLITE = False
 
 # MySQL Database connection helper
 def get_db_connection():
@@ -121,8 +133,31 @@ def get_db_connection():
     )
 
 def init_db():
-    global USE_SQLITE
-    # 1. Try to connect to MySQL
+    global DB_MODE, USE_SQLITE, supabase_client, SUPABASE_URL, SUPABASE_KEY
+    
+    # Refresh env configuration
+    load_dotenv()
+    SUPABASE_URL = os.environ.get('SUPABASE_URL', '').strip()
+    SUPABASE_KEY = os.environ.get('SUPABASE_KEY', '').strip() or os.environ.get('SUPABASE_SECRET_KEY', '').strip() or os.environ.get('SUPABASE_PUBLISHABLE_KEY', '').strip()
+
+    # 1. Try Supabase Cloud Database first
+    if HAS_SUPABASE_LIB and SUPABASE_URL and SUPABASE_KEY:
+
+        try:
+            print(f"Connecting to Supabase Cloud Database ({SUPABASE_URL})...")
+            client = create_client(SUPABASE_URL, SUPABASE_KEY)
+            # Connectivity verification check
+            res = client.table('users').select('id').limit(1).execute()
+            supabase_client = client
+            DB_MODE = 'SUPABASE'
+            USE_SQLITE = False
+            print("Supabase Cloud Database connected and verified successfully. DB_MODE = 'SUPABASE'")
+            return
+        except Exception as sb_err:
+            print(f"Supabase connection check failed: {sb_err}")
+            print("Supabase unavailable or not configured. Falling back to MySQL / SQLite.")
+
+    # 2. Try MySQL connection
     try:
         conn = pymysql.connect(
             host=os.environ.get('MYSQL_HOST', 'localhost'),
@@ -165,51 +200,111 @@ def init_db():
                 pass
         conn.commit()
         conn.close()
-        print("MySQL database and tables ('assessments', 'users') verified/created successfully.")
+        print("MySQL database and tables ('assessments', 'users') verified/created successfully. DB_MODE = 'MYSQL'")
+        DB_MODE = 'MYSQL'
         USE_SQLITE = False
+        return
     except Exception as e:
         print(f"Error during MySQL database initialization: {e}")
         print("MySQL connection failed. Falling back to local SQLite storage.")
-        USE_SQLITE = True
-        
+
+    # 3. Fallback to Local SQLite
+    DB_MODE = 'SQLITE'
+    USE_SQLITE = True
+    try:
+        os.makedirs("models", exist_ok=True)
+        conn = sqlite3.connect("models/local_storage.db")
+        cursor = conn.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS assessments (
+                id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                timestamp TEXT NOT NULL,
+                personal TEXT NOT NULL,
+                lifestyle TEXT NOT NULL,
+                medical TEXT NOT NULL,
+                results TEXT NOT NULL
+            )
+        """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL UNIQUE,
+                password_hash TEXT NOT NULL,
+                name TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
         try:
-            os.makedirs("models", exist_ok=True)
-            conn = sqlite3.connect("models/local_storage.db")
-            cursor = conn.cursor()
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS assessments (
-                    id TEXT PRIMARY KEY,
-                    name TEXT NOT NULL,
-                    timestamp TEXT NOT NULL,
-                    personal TEXT NOT NULL,
-                    lifestyle TEXT NOT NULL,
-                    medical TEXT NOT NULL,
-                    results TEXT NOT NULL
-                )
-            """)
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS users (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    username TEXT NOT NULL UNIQUE,
-                    password_hash TEXT NOT NULL,
-                    name TEXT NOT NULL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """)
-            try:
-                cursor.execute("ALTER TABLE users ADD COLUMN name TEXT DEFAULT 'User'")
-            except Exception:
-                pass
-            conn.commit()
-            conn.close()
-            print("SQLite local database and tables verified/created successfully.")
-        except Exception as sq_err:
-            print(f"Critical Error: Failed to initialize SQLite local database: {sq_err}")
+            cursor.execute("ALTER TABLE users ADD COLUMN name TEXT DEFAULT 'User'")
+        except Exception:
+            pass
+        conn.commit()
+        conn.close()
+        print("SQLite local database and tables verified/created successfully. DB_MODE = 'SQLITE'")
+    except Exception as sq_err:
+        print(f"Critical Error: Failed to initialize SQLite local database: {sq_err}")
 
 # DB Execution helper methods
 def db_execute(query: str, params: tuple = None):
     if params is None:
         params = ()
+
+    if DB_MODE == 'SUPABASE' and supabase_client is not None:
+        try:
+            query_upper = query.strip().upper()
+            if "INSERT INTO ASSESSMENTS" in query_upper:
+                p = params
+                p_personal = json.loads(p[3]) if isinstance(p[3], str) else p[3]
+                p_lifestyle = json.loads(p[4]) if isinstance(p[4], str) else p[4]
+                p_medical = json.loads(p[5]) if isinstance(p[5], str) else p[5]
+                p_results = json.loads(p[6]) if isinstance(p[6], str) else p[6]
+                
+                payload = {
+                    "id": str(p[0]),
+                    "name": str(p[1]),
+                    "timestamp": str(p[2]),
+                    "personal": p_personal,
+                    "lifestyle": p_lifestyle,
+                    "medical": p_medical,
+                    "results": p_results
+                }
+                supabase_client.table("assessments").insert(payload).execute()
+                return
+                
+            elif "INSERT INTO USERS" in query_upper:
+                p = params
+                payload = {
+                    "username": str(p[0]),
+                    "password_hash": str(p[1]),
+                    "name": str(p[2])
+                }
+                supabase_client.table("users").insert(payload).execute()
+                return
+                
+            elif "UPDATE USERS SET NAME =" in query_upper:
+                new_name, username = params
+                supabase_client.table("users").update({"name": str(new_name)}).eq("username", str(username)).execute()
+                return
+                
+            elif "UPDATE USERS SET PASSWORD_HASH =" in query_upper:
+                new_hash, username = params
+                supabase_client.table("users").update({"password_hash": str(new_hash)}).eq("username", str(username)).execute()
+                return
+                
+            elif "DELETE FROM USERS WHERE USERNAME =" in query_upper:
+                username = params[0]
+                supabase_client.table("users").delete().eq("username", str(username)).execute()
+                return
+                
+            elif "DELETE FROM ASSESSMENTS WHERE ID =" in query_upper:
+                assess_id = params[0]
+                supabase_client.table("assessments").delete().eq("id", str(assess_id)).execute()
+                return
+        except Exception as sb_ex_err:
+            print(f"Supabase db_execute error: {sb_ex_err}")
+            raise sb_ex_err
+
     if USE_SQLITE:
         sqlite_query = query.replace("%s", "?")
         conn = sqlite3.connect("models/local_storage.db")
@@ -227,6 +322,28 @@ def db_execute(query: str, params: tuple = None):
 def db_fetchall(query: str, params: tuple = None):
     if params is None:
         params = ()
+
+    if DB_MODE == 'SUPABASE' and supabase_client is not None:
+        try:
+            query_upper = query.strip().upper()
+            if "FROM USERS" in query_upper:
+                res = supabase_client.table("users").select("username, name, created_at").order("created_at", desc=True).execute()
+                data = res.data or []
+                for row in data:
+                    if 'created_at' in row and row['created_at']:
+                        row['created_at'] = str(row['created_at'])
+                return data
+                
+            elif "FROM ASSESSMENTS" in query_upper:
+                if "SELECT ID FROM ASSESSMENTS" in query_upper:
+                    res = supabase_client.table("assessments").select("id").execute()
+                else:
+                    res = supabase_client.table("assessments").select("*").order("timestamp", desc=True).execute()
+                return res.data or []
+        except Exception as sb_fa_err:
+            print(f"Supabase db_fetchall error: {sb_fa_err}")
+            raise sb_fa_err
+
     if USE_SQLITE:
         sqlite_query = query.replace("%s", "?")
         conn = sqlite3.connect("models/local_storage.db")
@@ -248,6 +365,27 @@ def db_fetchall(query: str, params: tuple = None):
 def db_fetchone(query: str, params: tuple = None):
     if params is None:
         params = ()
+
+    if DB_MODE == 'SUPABASE' and supabase_client is not None:
+        try:
+            query_upper = query.strip().upper()
+            if "FROM USERS" in query_upper:
+                username = str(params[0]) if params else ""
+                if "SELECT USERNAME, NAME, CREATED_AT" in query_upper:
+                    res = supabase_client.table("users").select("username, name, created_at").eq("username", username).execute()
+                else:
+                    res = supabase_client.table("users").select("*").ilike("username", username).execute()
+                data = res.data
+                if data and len(data) > 0:
+                    user_record = dict(data[0])
+                    if 'created_at' in user_record and user_record['created_at']:
+                        user_record['created_at'] = str(user_record['created_at'])
+                    return user_record
+                return None
+        except Exception as sb_fo_err:
+            print(f"Supabase db_fetchone error: {sb_fo_err}")
+            raise sb_fo_err
+
     if USE_SQLITE:
         sqlite_query = query.replace("%s", "?")
         conn = sqlite3.connect("models/local_storage.db")
@@ -265,6 +403,7 @@ def db_fetchone(query: str, params: tuple = None):
             result = cursor.fetchone()
         conn.close()
         return result
+
 
 # Load ML Assets
 def load_ml_assets():
@@ -805,7 +944,8 @@ async def admin_system_status(
         'success': True,
         'system_health': 'Optimal / Operational',
         'api_version': 'v2.6.0',
-        'database_mode': 'MySQL Active' if not USE_SQLITE else 'SQLite / Local Storage Active',
+        'database_mode': f"Supabase Cloud Active ({SUPABASE_URL})" if DB_MODE == 'SUPABASE' else ('MySQL Active' if DB_MODE == 'MYSQL' else 'SQLite / Local Storage Active'),
+
         'models': models_status,
         'total_cached_assessments': len(assessments_records)
     }

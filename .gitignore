@@ -126,3 +126,4 @@ $RECYCLE.BIN/
 *.njsproj
 *.sln
 *.sw?
+backend/supabase_schema.sql
