@@ -1370,48 +1370,15 @@ export default function App() {
             />
             <h2 className="font-extrabold text-3xl text-gradient-indigo tracking-tight">HealthSenceAI</h2>
             <p className="text-xs text-slate-400 mt-2 max-w-sm font-medium">
-              {authRole === 'admin'
-                ? 'System Administrator Governance Gateway'
-                : authMode === 'login' 
-                  ? 'Sign in to access your clinical dashboard and models' 
-                  : 'Create an account to begin clinical assessments'}
+              {authMode === 'login' 
+                ? 'Sign in to access your clinical dashboard and models' 
+                : 'Create an account to begin clinical assessments'}
             </p>
-          </div>
-
-          {/* User vs Admin Portal Switcher */}
-          <div className="flex bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800 mb-6">
-            <button 
-              type="button"
-              onClick={() => { setAuthRole('user'); setAuthMode('login'); setLoginUsername(''); setLoginPassword(''); setLoginError(''); }}
-              className={`flex-1 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer ${
-                authRole === 'user' ? 'bg-amber-500 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <User className="w-4 h-4" />
-              User Login
-            </button>
-            <button 
-              type="button"
-              onClick={() => { setAuthRole('admin'); setAuthMode('login'); setLoginUsername('admin'); setLoginPassword('admin123'); setLoginError(''); }}
-              className={`flex-1 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer ${
-                authRole === 'admin' ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-md' : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <ShieldAlert className="w-4 h-4" />
-              Admin Login
-            </button>
           </div>
           
           {authMode === 'login' ? (
             /* Login Form */
             <form onSubmit={handleLogin} className="space-y-5">
-              {authRole === 'admin' && (
-                <div className="bg-amber-500/10 border border-amber-500/30 text-amber-300 rounded-xl p-3 text-xs font-semibold flex items-center gap-2">
-                  <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0" />
-                  <span>Admin Credentials Default: <strong>admin</strong> / <strong>admin123</strong></span>
-                </div>
-              )}
-
               {loginError && (
                 <div className="bg-rose-500/10 border border-rose-500/25 text-rose-400 rounded-xl p-3 text-xs font-semibold flex items-center gap-2 animate-shake">
                   <AlertCircle className="w-4 h-4 shrink-0" />
@@ -1421,13 +1388,13 @@ export default function App() {
               
               <div className="flex flex-col gap-2">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                  {authRole === 'admin' ? 'Admin Username' : 'Username'}
+                  Username
                 </label>
                 <input 
                   type="text" 
                   value={loginUsername}
                   onChange={e => setLoginUsername(e.target.value)}
-                  placeholder={authRole === 'admin' ? 'admin' : 'Enter your username'}
+                  placeholder="Enter your username"
                   required
                   className="w-full px-4 py-3 glass-input rounded-xl text-sm font-semibold text-slate-100 placeholder-slate-500"
                 />
@@ -1435,7 +1402,7 @@ export default function App() {
 
               <div className="flex flex-col gap-2">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                  {authRole === 'admin' ? 'Admin Password' : 'Password'}
+                  Password
                 </label>
                 <input 
                   type="password" 
@@ -1450,30 +1417,24 @@ export default function App() {
               <button 
                 type="submit" 
                 disabled={loginLoading}
-                className={`btn-magnetic w-full py-3.5 text-white rounded-xl font-bold text-sm shadow-lg cursor-pointer flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-50 ${
-                  authRole === 'admin' 
-                    ? 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 shadow-amber-600/35' 
-                    : 'bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 shadow-amber-500/35'
-                }`}
+                className="btn-magnetic w-full py-3.5 text-white bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 shadow-amber-500/35 rounded-xl font-bold text-sm shadow-lg cursor-pointer flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-50"
               >
-                {loginLoading ? 'Authenticating...' : authRole === 'admin' ? 'Admin Sign In' : 'Sign In'}
+                {loginLoading ? 'Authenticating...' : 'Sign In'}
                 <ArrowRight className="w-4 h-4" />
               </button>
               
-              {authRole === 'user' && (
-                <div className="text-center pt-2">
-                  <p className="text-xs text-slate-400 font-semibold">
-                    Don't have an account?{' '}
-                    <button 
-                      type="button"
-                      onClick={() => { setAuthMode('register'); setLoginError(''); }}
-                      className="text-amber-600 hover:text-amber-500 hover:underline cursor-pointer font-bold"
-                    >
-                      Register
-                    </button>
-                  </p>
-                </div>
-              )}
+              <div className="text-center pt-2">
+                <p className="text-xs text-slate-400 font-semibold">
+                  Don't have an account?{' '}
+                  <button 
+                    type="button"
+                    onClick={() => { setAuthMode('register'); setLoginError(''); }}
+                    className="text-amber-600 hover:text-amber-500 hover:underline cursor-pointer font-bold"
+                  >
+                    Sign Up Now
+                  </button>
+                </p>
+              </div>
             </form>
           ) : (
             /* Register Form */

@@ -24,6 +24,13 @@ try:
 except ImportError:
     HAS_SUPABASE_LIB = False
 
+try:
+    import psycopg2
+    HAS_PSYCOPG2 = True
+except ImportError:
+    HAS_PSYCOPG2 = False
+
+
 # Load environment variables
 def load_dotenv():
     env_path = ".env"
@@ -47,9 +54,10 @@ def load_dotenv():
 load_dotenv()
 
 # Admin credentials & authentication configurations
-ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'admin')
-ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'admin123')
+ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'Ayushman24')
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'Ayushman@#2005')
 JWT_SECRET = os.environ.get('JWT_SECRET', 'healthsence_secret_key_2026')
+
 
 # Supabase Configurations
 SUPABASE_URL = os.environ.get('SUPABASE_URL', '').strip()
@@ -85,11 +93,15 @@ def verify_token(token: str) -> bool:
             if username.lower() == ADMIN_USERNAME.lower():
                 return True
             try:
+                admin = db_fetchone("SELECT * FROM admin_credentials WHERE LOWER(username) = LOWER(%s)", (username,))
+                if admin:
+                    return True
                 user = db_fetchone("SELECT * FROM users WHERE LOWER(username) = LOWER(%s)", (username,))
                 return user is not None
             except Exception:
                 # If database helper is not initialized yet or fails, fallback to successful signature match
                 return True
+
     except Exception:
         pass
     return False
@@ -132,6 +144,30 @@ def get_db_connection():
         cursorclass=pymysql.cursors.DictCursor
     )
 
+def sync_supabase_schema():
+    """
+    Auto-synchronizes supabase_schema.sql with Supabase Cloud Database whenever edited.
+    """
+    schema_path = os.path.join(os.path.dirname(__file__), "supabase_schema.sql")
+    if not os.path.exists(schema_path):
+        return
+
+    try:
+        db_url = os.environ.get("SUPABASE_DB_URL", "").strip() or os.environ.get("POSTGRES_URL", "").strip()
+        if db_url and HAS_PSYCOPG2:
+            print("Auto-synchronizing supabase_schema.sql with Supabase PostgreSQL database...")
+            with open(schema_path, "r", encoding="utf-8") as f:
+                sql_content = f.read()
+            conn = psycopg2.connect(db_url)
+            cursor = conn.cursor()
+            cursor.execute(sql_content)
+            conn.commit()
+            cursor.close()
+            conn.close()
+            print("Successfully synchronized supabase_schema.sql with Supabase Cloud Database!")
+    except Exception as err:
+        print(f"Notice during automatic schema synchronization: {err}")
+
 def init_db():
     global DB_MODE, USE_SQLITE, supabase_client, SUPABASE_URL, SUPABASE_KEY
     
@@ -142,7 +178,6 @@ def init_db():
 
     # 1. Try Supabase Cloud Database first
     if HAS_SUPABASE_LIB and SUPABASE_URL and SUPABASE_KEY:
-
         try:
             print(f"Connecting to Supabase Cloud Database ({SUPABASE_URL})...")
             client = create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -152,10 +187,14 @@ def init_db():
             DB_MODE = 'SUPABASE'
             USE_SQLITE = False
             print("Supabase Cloud Database connected and verified successfully. DB_MODE = 'SUPABASE'")
+            
+            # Execute automatic schema synchronization if SUPABASE_DB_URL is configured
+            sync_supabase_schema()
             return
         except Exception as sb_err:
             print(f"Supabase connection check failed: {sb_err}")
             print("Supabase unavailable or not configured. Falling back to MySQL / SQLite.")
+
 
     # 2. Try MySQL connection
     try:
@@ -194,13 +233,28 @@ def init_db():
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS admin_credentials (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    username VARCHAR(100) NOT NULL UNIQUE,
+                    password_hash VARCHAR(255) NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            cursor.execute("SELECT COUNT(*) as cnt FROM admin_credentials")
+            row = cursor.fetchone()
+            if row and row['cnt'] == 0:
+                admin_user = os.environ.get('ADMIN_USERNAME', 'admin')
+                admin_pass = os.environ.get('ADMIN_PASSWORD', 'admin123')
+                admin_hash = hash_password(admin_pass)
+                cursor.execute("INSERT INTO admin_credentials (username, password_hash) VALUES (%s, %s)", (admin_user, admin_hash))
             try:
                 cursor.execute("ALTER TABLE users ADD COLUMN name VARCHAR(100) DEFAULT 'User'")
             except Exception:
                 pass
         conn.commit()
         conn.close()
-        print("MySQL database and tables ('assessments', 'users') verified/created successfully. DB_MODE = 'MYSQL'")
+        print("MySQL database and tables ('assessments', 'users', 'admin_credentials') verified/created successfully. DB_MODE = 'MYSQL'")
         DB_MODE = 'MYSQL'
         USE_SQLITE = False
         return
@@ -235,6 +289,21 @@ def init_db():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS admin_credentials (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL UNIQUE,
+                password_hash TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        cursor.execute("SELECT COUNT(*) FROM admin_credentials")
+        cnt = cursor.fetchone()[0]
+        if cnt == 0:
+            admin_user = os.environ.get('ADMIN_USERNAME', 'admin')
+            admin_pass = os.environ.get('ADMIN_PASSWORD', 'admin123')
+            admin_hash = hash_password(admin_pass)
+            cursor.execute("INSERT INTO admin_credentials (username, password_hash) VALUES (?, ?)", (admin_user, admin_hash))
         try:
             cursor.execute("ALTER TABLE users ADD COLUMN name TEXT DEFAULT 'User'")
         except Exception:
@@ -250,9 +319,13 @@ def db_execute(query: str, params: tuple = None):
     if params is None:
         params = ()
 
+    query_upper = query.strip().upper()
+    if "ADMIN_CREDENTIALS" in query_upper:
+        if "UPDATE" in query_upper or "DELETE" in query_upper:
+            raise Exception("Admin credentials table is read-only and cannot be modified or deleted.")
+
     if DB_MODE == 'SUPABASE' and supabase_client is not None:
         try:
-            query_upper = query.strip().upper()
             if "INSERT INTO ASSESSMENTS" in query_upper:
                 p = params
                 p_personal = json.loads(p[3]) if isinstance(p[3], str) else p[3]
@@ -280,6 +353,15 @@ def db_execute(query: str, params: tuple = None):
                     "name": str(p[2])
                 }
                 supabase_client.table("users").insert(payload).execute()
+                return
+
+            elif "INSERT INTO ADMIN_CREDENTIALS" in query_upper:
+                p = params
+                payload = {
+                    "username": str(p[0]),
+                    "password_hash": str(p[1])
+                }
+                supabase_client.table("admin_credentials").insert(payload).execute()
                 return
                 
             elif "UPDATE USERS SET NAME =" in query_upper:
@@ -369,7 +451,18 @@ def db_fetchone(query: str, params: tuple = None):
     if DB_MODE == 'SUPABASE' and supabase_client is not None:
         try:
             query_upper = query.strip().upper()
-            if "FROM USERS" in query_upper:
+            if "FROM ADMIN_CREDENTIALS" in query_upper:
+                username = str(params[0]) if params else ""
+                res = supabase_client.table("admin_credentials").select("*").ilike("username", username).execute()
+                data = res.data
+                if data and len(data) > 0:
+                    admin_rec = dict(data[0])
+                    if 'created_at' in admin_rec and admin_rec['created_at']:
+                        admin_rec['created_at'] = str(admin_rec['created_at'])
+                    return admin_rec
+                return None
+
+            elif "FROM USERS" in query_upper:
                 username = str(params[0]) if params else ""
                 if "SELECT USERNAME, NAME, CREATED_AT" in query_upper:
                     res = supabase_client.table("users").select("username, name, created_at").eq("username", username).execute()
@@ -385,6 +478,7 @@ def db_fetchone(query: str, params: tuple = None):
         except Exception as sb_fo_err:
             print(f"Supabase db_fetchone error: {sb_fo_err}")
             raise sb_fo_err
+
 
     if USE_SQLITE:
         sqlite_query = query.replace("%s", "?")
@@ -847,7 +941,20 @@ async def login(req: LoginRequest):
             
         username = username.strip()
         
-        if username.lower() == ADMIN_USERNAME.lower() and password == ADMIN_PASSWORD:
+        # Check admin credentials table first
+        admin_rec = db_fetchone("SELECT * FROM admin_credentials WHERE LOWER(username) = LOWER(%s)", (username,))
+        if admin_rec:
+            if admin_rec.get('password_hash') == hash_password(password):
+                token = generate_token(admin_rec['username'])
+                return {
+                    'success': True,
+                    'token': token,
+                    'role': 'admin',
+                    'username': admin_rec['username'],
+                    'name': 'System Administrator',
+                    'message': 'Admin login successful'
+                }
+        elif username.lower() == ADMIN_USERNAME.lower() and password == ADMIN_PASSWORD:
             token = generate_token(ADMIN_USERNAME)
             return {
                 'success': True,
@@ -857,6 +964,7 @@ async def login(req: LoginRequest):
                 'name': 'System Administrator',
                 'message': 'Admin login successful'
             }
+
             
         user = db_fetchone("SELECT * FROM users WHERE LOWER(username) = LOWER(%s)", (username,))
         if user:
@@ -1209,4 +1317,6 @@ async def analyze_medical_report(
 if __name__ == '__main__':
     import uvicorn
     print("Starting FastAPI Backend Server...")
-    uvicorn.run("server:app", host="0.0.0.0", port=5000, reload=True)
+    uvicorn.run("server:app", host="0.0.0.0", port=5000, reload=True, reload_includes=["*.py", "*.sql", "*.env"])
+
+
