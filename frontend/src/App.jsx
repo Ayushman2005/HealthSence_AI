@@ -28,7 +28,7 @@ const MOCK_PROFILES = [
     lifestyle: { smoking: "yes", alcohol: "high", physicalActivity: "sedentary", sleepDuration: 5.5 },
     medical: { bpSystolic: 145, bpDiastolic: 92, cholesterol: 242, glucose: 112, insulin: 16, heartRate: 82 },
     results: {
-      risks: { diabetes: 58, heartDisease: 84, kidneyDisease: 62, liverDisease: 78 },
+      risks: { diabetes: 58, heartDisease: 84, kidneyDisease: 62, liverDisease: 78, hypertension: 72, stroke: 65 },
       overallScore: 41,
       confidence: 100,
       recommendations: {
@@ -77,7 +77,7 @@ const MOCK_PROFILES = [
     lifestyle: { smoking: "no", alcohol: "low", physicalActivity: "active", sleepDuration: 8.0 },
     medical: { bpSystolic: 115, bpDiastolic: 75, cholesterol: 175, glucose: 82, insulin: 8, heartRate: 64 },
     results: {
-      risks: { diabetes: 12, heartDisease: 8, kidneyDisease: 10, liverDisease: 11 },
+      risks: { diabetes: 12, heartDisease: 8, kidneyDisease: 10, liverDisease: 11, hypertension: 15, stroke: 9 },
       overallScore: 94,
       confidence: 100,
       recommendations: {
@@ -1141,14 +1141,16 @@ export default function App() {
   const overviewRadarData = useMemo(() => {
     if (!latestAssessment) return null;
     return {
-      labels: ['Diabetes', 'Heart Disease', 'Kidney Disease', 'Liver Disease'],
+      labels: ['Diabetes', 'Heart Disease', 'Kidney Disease', 'Liver Disease', 'Hypertension', 'Stroke Risk'],
       datasets: [{
         label: 'Risk Likelihood (%)',
         data: [
           latestAssessment.results.risks.diabetes,
-          latestAssessment.results.risks.heartDisease,
-          latestAssessment.results.risks.kidneyDisease,
-          latestAssessment.results.risks.liverDisease
+          latestAssessment.results.risks.heartDisease || latestAssessment.results.risks.heart || 0,
+          latestAssessment.results.risks.kidneyDisease || latestAssessment.results.risks.kidney || 0,
+          latestAssessment.results.risks.liverDisease || latestAssessment.results.risks.liver || 0,
+          latestAssessment.results.risks.hypertension || 0,
+          latestAssessment.results.risks.stroke || 0
         ],
         backgroundColor: 'rgba(245, 158, 11, 0.2)',
         borderColor: 'rgba(245, 158, 11, 0.8)',
@@ -1243,7 +1245,7 @@ export default function App() {
   // ML Studio accuracy chart mappings
   const mlStudioAccuracyData = useMemo(() => {
     if (!metrics) return null;
-    const targets = ['diabetes', 'heart_disease', 'kidney_disease', 'liver_disease'];
+    const targets = ['diabetes', 'heart_disease', 'kidney_disease', 'liver_disease', 'hypertension', 'stroke'];
     const algsList = ['logistic_regression', 'decision_tree', 'random_forest', 'xgboost', 'svm'];
     const colors = {
       'logistic_regression': 'rgba(59, 130, 246, 0.8)',
@@ -1255,7 +1257,7 @@ export default function App() {
     const algDisplay = { 'logistic_regression': 'LogReg', 'decision_tree': 'DecTree', 'random_forest': 'RandForest', 'xgboost': 'XGBoost', 'svm': 'SVM' };
     
     return {
-      labels: ['Diabetes', 'Heart', 'Kidney', 'Liver'],
+      labels: ['Diabetes', 'Heart', 'Kidney', 'Liver', 'Hypertension', 'Stroke'],
       datasets: algsList.map(alg => ({
         label: algDisplay[alg],
         data: targets.map(t => metrics[t] && metrics[t][alg] ? Math.round(metrics[t][alg]['accuracy'] * 100) : 0),
@@ -1267,7 +1269,7 @@ export default function App() {
 
   const mlStudioF1Data = useMemo(() => {
     if (!metrics) return null;
-    const targets = ['diabetes', 'heart_disease', 'kidney_disease', 'liver_disease'];
+    const targets = ['diabetes', 'heart_disease', 'kidney_disease', 'liver_disease', 'hypertension', 'stroke'];
     const algsList = ['logistic_regression', 'decision_tree', 'random_forest', 'xgboost', 'svm'];
     const colors = {
       'logistic_regression': 'rgba(59, 130, 246, 0.8)',
@@ -1279,7 +1281,7 @@ export default function App() {
     const algDisplay = { 'logistic_regression': 'LogReg', 'decision_tree': 'DecTree', 'random_forest': 'RandForest', 'xgboost': 'XGBoost', 'svm': 'SVM' };
     
     return {
-      labels: ['Diabetes', 'Heart', 'Kidney', 'Liver'],
+      labels: ['Diabetes', 'Heart', 'Kidney', 'Liver', 'Hypertension', 'Stroke'],
       datasets: algsList.map(alg => ({
         label: algDisplay[alg],
         data: targets.map(t => metrics[t] && metrics[t][alg] ? Math.round(metrics[t][alg]['f1_score'] * 100) : 0),
@@ -1295,7 +1297,8 @@ export default function App() {
     const avg = Math.round(insightsTimelineData.reduce((acc, val) => acc + val.results.overallScore, 0) / insightsTimelineData.length);
     
     const lastRec = insightsTimelineData[insightsTimelineData.length - 1];
-    const maxRisk = Math.max(lastRec.results.risks.diabetes, lastRec.results.risks.heartDisease, lastRec.results.risks.kidneyDisease, lastRec.results.risks.liverDisease);
+    const riskVals = Object.values(lastRec.results.risks || {}).map(Number);
+    const maxRisk = riskVals.length ? Math.max(...riskVals) : 0;
     
     let advice = "Maintain screenings";
     if (maxRisk >= 70) advice = "Schedule clinical consult";
@@ -2678,13 +2681,15 @@ export default function App() {
               </div>
             </div>
 
-            {/* Disease risk cards grid (4 targets) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Disease risk cards grid (6 targets) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[
-                { key: 'diabetes', title: 'Diabetes Likelihood', val: resultsAssessment.results.risks.diabetes, icon: Droplet, explanations: resultsAssessment.results.explanations.diabetes },
-                { key: 'heart', title: 'Heart Disease Likelihood', val: resultsAssessment.results.risks.heartDisease, icon: Heart, explanations: resultsAssessment.results.explanations.heart },
-                { key: 'kidney', title: 'Kidney Disease Likelihood', val: resultsAssessment.results.risks.kidneyDisease, icon: ShieldAlert, explanations: resultsAssessment.results.explanations.kidney },
-                { key: 'liver', title: 'Liver Disease Likelihood', val: resultsAssessment.results.risks.liverDisease, icon: Activity, explanations: resultsAssessment.results.explanations.liver }
+                { key: 'diabetes', title: 'Diabetes Likelihood', val: resultsAssessment.results.risks.diabetes, icon: Droplet, explanations: resultsAssessment.results.explanations?.diabetes },
+                { key: 'heart', title: 'Heart Disease Likelihood', val: resultsAssessment.results.risks.heartDisease ?? resultsAssessment.results.risks.heart, icon: Heart, explanations: resultsAssessment.results.explanations?.heart || resultsAssessment.results.explanations?.heartDisease },
+                { key: 'kidney', title: 'Kidney Disease Likelihood', val: resultsAssessment.results.risks.kidneyDisease ?? resultsAssessment.results.risks.kidney, icon: ShieldAlert, explanations: resultsAssessment.results.explanations?.kidney || resultsAssessment.results.explanations?.kidneyDisease },
+                { key: 'liver', title: 'Liver Disease Likelihood', val: resultsAssessment.results.risks.liverDisease ?? resultsAssessment.results.risks.liver, icon: Activity, explanations: resultsAssessment.results.explanations?.liver || resultsAssessment.results.explanations?.liverDisease },
+                { key: 'hypertension', title: 'Hypertension Likelihood', val: resultsAssessment.results.risks.hypertension ?? 0, icon: Stethoscope, explanations: resultsAssessment.results.explanations?.hypertension },
+                { key: 'stroke', title: 'Stroke Risk Likelihood', val: resultsAssessment.results.risks.stroke ?? 0, icon: AlertOctagon, explanations: resultsAssessment.results.explanations?.stroke }
               ].map(item => {
                 const Icon = item.icon;
                 const rDetails = getRiskLevelDetails(item.val);

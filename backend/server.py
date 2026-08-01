@@ -130,7 +130,7 @@ scaler = None
 feature_names = []
 models = {}
 model_metrics = {}
-diseases = ['diabetes', 'heart_disease', 'kidney_disease', 'liver_disease']
+diseases = ['diabetes', 'heart_disease', 'kidney_disease', 'liver_disease', 'hypertension', 'stroke']
 algs = ['logistic_regression', 'decision_tree', 'random_forest', 'xgboost', 'svm']
 
 # MySQL Database connection helper
@@ -540,7 +540,7 @@ def load_ml_assets():
                 with open(model_path, "rb") as f:
                     models[disease][alg] = pickle.load(f)
                 loaded_count += 1
-    print(f"  Loaded {loaded_count}/20 models successfully.")
+    print(f"  Loaded {loaded_count}/{len(diseases)*len(algs)} models successfully.")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -730,7 +730,9 @@ async def predict(request: Request):
             'diabetes': [],
             'heartDisease': [],
             'kidneyDisease': [],
-            'liverDisease': []
+            'liverDisease': [],
+            'hypertension': [],
+            'stroke': []
         }
         
         age = int(data.get('age', 35))
@@ -784,6 +786,24 @@ async def predict(request: Request):
         if cholesterol > 220:
             explanations['liverDisease'].append(f"Hyperlipidemia (cholesterol {cholesterol} mg/dL) contributes to fatty deposits in liver tissue.")
             
+        if bp_systolic >= 130 or bp_diastolic >= 85:
+            explanations['hypertension'].append(f"High blood pressure ({bp_systolic}/{bp_diastolic} mmHg) indicates hypertension baseline.")
+        if bmi >= 25:
+            explanations['hypertension'].append(f"Elevated BMI of {bmi} kg/m² increases vascular resistance.")
+        if heart_rate >= 80:
+            explanations['hypertension'].append(f"Resting heart rate of {heart_rate} bpm indicates elevated cardiac tone.")
+        if alcohol in ['high', 'moderate']:
+            explanations['hypertension'].append("Regular alcohol consumption elevates systemic blood pressure.")
+
+        if bp_systolic >= 140 or bp_diastolic >= 90:
+            explanations['stroke'].append(f"Hypertension ({bp_systolic}/{bp_diastolic} mmHg) is a primary risk factor for cerebrovascular events.")
+        if cholesterol >= 220:
+            explanations['stroke'].append(f"High cholesterol ({cholesterol} mg/dL) increases arterial plaque and ischemia risk.")
+        if smoking == 'yes':
+            explanations['stroke'].append("Active smoking damages cerebral blood vessels.")
+        if age >= 55:
+            explanations['stroke'].append(f"Age of {age} significantly increases cerebrovascular vulnerability.")
+
         for k in explanations:
             if not explanations[k]:
                 explanations[k].append("All parameters within standard clinical limits.")
@@ -802,6 +822,10 @@ async def predict(request: Request):
             recs["immediate"].append("Consult a cardiologist for a cardiovascular diagnostic checkup.")
         if predictions['liver_disease'] >= 70:
             recs["immediate"].append("Schedule a hepatic ultrasound examination with your doctor.")
+        if predictions.get('hypertension', 0) >= 70:
+            recs["immediate"].append("Consult a physician for hypertension management and blood pressure control.")
+        if predictions.get('stroke', 0) >= 70:
+            recs["immediate"].append("Seek urgent medical consultation for stroke and cardiovascular prevention.")
             
         if smoking == 'yes':
             recs["lifestyle"].append("Enroll in a tobacco cessation program. Smoking accelerates vascular damage.")
@@ -833,7 +857,9 @@ async def predict(request: Request):
                 'diabetes': predictions['diabetes'],
                 'heartDisease': predictions['heart_disease'],
                 'kidneyDisease': predictions['kidney_disease'],
-                'liverDisease': predictions['liver_disease']
+                'liverDisease': predictions['liver_disease'],
+                'hypertension': predictions['hypertension'],
+                'stroke': predictions['stroke']
             },
             'overallScore': health_score,
             'confidence': confidence,
@@ -842,7 +868,9 @@ async def predict(request: Request):
                 'diabetes': explanations['diabetes'],
                 'heart': explanations['heartDisease'],
                 'kidney': explanations['kidneyDisease'],
-                'liver': explanations['liverDisease']
+                'liver': explanations['liverDisease'],
+                'hypertension': explanations['hypertension'],
+                'stroke': explanations['stroke']
             }
         }
         

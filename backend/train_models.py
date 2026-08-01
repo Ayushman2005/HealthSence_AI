@@ -33,7 +33,9 @@ def main():
         os.path.join(notebooks_dir, "diabetes_model_training.ipynb"),
         os.path.join(notebooks_dir, "heart_disease_model_training.ipynb"),
         os.path.join(notebooks_dir, "kidney_disease_model_training.ipynb"),
-        os.path.join(notebooks_dir, "liver_disease_model_training.ipynb")
+        os.path.join(notebooks_dir, "liver_disease_model_training.ipynb"),
+        os.path.join(notebooks_dir, "hypertension_model_training.ipynb"),
+        os.path.join(notebooks_dir, "stroke_model_training.ipynb")
     ]
     
     for nb_path in notebook_files:
@@ -50,12 +52,16 @@ def main():
         df_heart = pd.read_csv(os.path.join(models_dir, "heart_disease_dataset.csv"))
         df_kidney = pd.read_csv(os.path.join(models_dir, "kidney_disease_dataset.csv"))
         df_liver = pd.read_csv(os.path.join(models_dir, "liver_disease_dataset.csv"))
+        df_hyper = pd.read_csv(os.path.join(models_dir, "hypertension_dataset.csv"))
+        df_stroke = pd.read_csv(os.path.join(models_dir, "stroke_dataset.csv"))
         
         # Build consolidated dataframe
         df_combined = df_diab.copy()
         df_combined['heart_disease'] = df_heart['heart_disease']
         df_combined['kidney_disease'] = df_kidney['kidney_disease']
         df_combined['liver_disease'] = df_liver['liver_disease']
+        df_combined['hypertension'] = df_hyper['hypertension']
+        df_combined['stroke'] = df_stroke['stroke']
         
         clinical_path = os.path.join(models_dir, "clinical_dataset.csv")
         df_combined.to_csv(clinical_path, index=False)
