@@ -8,6 +8,7 @@ import hmac
 import hashlib
 import time
 import sqlite3
+import sys
 from functools import wraps
 from contextlib import asynccontextmanager
 import numpy as np
@@ -31,11 +32,12 @@ except ImportError:
     HAS_PSYCOPG2 = False
 
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODELS_DIR = os.path.join(BASE_DIR, "models")
+
 # Load environment variables
 def load_dotenv():
-    env_path = ".env"
-    if not os.path.exists(env_path):
-        env_path = os.path.join(os.path.dirname(__file__), ".env")
+    env_path = os.path.join(BASE_DIR, ".env")
     if os.path.exists(env_path):
         with open(env_path, "r") as f:
             for line in f:
@@ -266,8 +268,8 @@ def init_db():
     DB_MODE = 'SQLITE'
     USE_SQLITE = True
     try:
-        os.makedirs("models", exist_ok=True)
-        conn = sqlite3.connect("models/local_storage.db")
+        os.makedirs(MODELS_DIR, exist_ok=True)
+        conn = sqlite3.connect(os.path.join(MODELS_DIR, "local_storage.db"))
         cursor = conn.cursor()
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS assessments (
@@ -389,7 +391,7 @@ def db_execute(query: str, params: tuple = None):
 
     if USE_SQLITE:
         sqlite_query = query.replace("%s", "?")
-        conn = sqlite3.connect("models/local_storage.db")
+        conn = sqlite3.connect(os.path.join(MODELS_DIR, "local_storage.db"))
         cursor = conn.cursor()
         cursor.execute(sqlite_query, params)
         conn.commit()
@@ -428,7 +430,7 @@ def db_fetchall(query: str, params: tuple = None):
 
     if USE_SQLITE:
         sqlite_query = query.replace("%s", "?")
-        conn = sqlite3.connect("models/local_storage.db")
+        conn = sqlite3.connect(os.path.join(MODELS_DIR, "local_storage.db"))
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         cursor.execute(sqlite_query, params)
@@ -482,7 +484,7 @@ def db_fetchone(query: str, params: tuple = None):
 
     if USE_SQLITE:
         sqlite_query = query.replace("%s", "?")
-        conn = sqlite3.connect("models/local_storage.db")
+        conn = sqlite3.connect(os.path.join(MODELS_DIR, "local_storage.db"))
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         cursor.execute(sqlite_query, params)
@@ -505,7 +507,7 @@ def load_ml_assets():
     print("Loading Machine Learning assets...")
     
     # Load Scaler
-    scaler_path = "models/scaler.pkl"
+    scaler_path = os.path.join(MODELS_DIR, "scaler.pkl")
     if os.path.exists(scaler_path):
         with open(scaler_path, "rb") as f:
             scaler = pickle.load(f)
@@ -514,14 +516,14 @@ def load_ml_assets():
         print("  WARNING: scaler.pkl not found. Please train models first.")
         
     # Load Feature Names list
-    names_path = "models/feature_names.json"
+    names_path = os.path.join(MODELS_DIR, "feature_names.json")
     if os.path.exists(names_path):
         with open(names_path, "r") as f:
             feature_names = json.load(f)
         print("  Feature names mapping loaded successfully.")
         
     # Load model metrics
-    metrics_path = "models/model_metrics.json"
+    metrics_path = os.path.join(MODELS_DIR, "model_metrics.json")
     if os.path.exists(metrics_path):
         try:
             with open(metrics_path, "r") as f:
@@ -535,12 +537,12 @@ def load_ml_assets():
     for disease in diseases:
         models[disease] = {}
         for alg in algs:
-            model_path = f"models/{disease}_{alg}.pkl"
+            model_path = os.path.join(MODELS_DIR, f"{disease}_{alg}.pkl")
             if os.path.exists(model_path):
                 with open(model_path, "rb") as f:
                     models[disease][alg] = pickle.load(f)
                 loaded_count += 1
-    print(f"  Loaded {loaded_count}/{len(diseases)*len(algs)} models successfully.")
+    print(f"  Loaded {loaded_count}/{len(diseases)*len(algs)} models successfully from {MODELS_DIR}.")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -1194,7 +1196,7 @@ async def delete_assessment(id: str, token: str = Depends(get_auth_token)):
 
 @app.get('/api/metrics')
 async def get_metrics(token: str = Depends(get_auth_token)):
-    metrics_path = "models/model_metrics.json"
+    metrics_path = os.path.join(MODELS_DIR, "model_metrics.json")
     if os.path.exists(metrics_path):
         try:
             with open(metrics_path, "r") as f:
@@ -1209,12 +1211,13 @@ async def get_metrics(token: str = Depends(get_auth_token)):
 async def retrain(token: str = Depends(get_auth_token)):
     try:
         print("Received retraining request. Executing train_models.py...")
-        result = subprocess.run(["python", "train_models.py"], capture_output=True, text=True, check=True)
+        train_script = os.path.join(BASE_DIR, "train_models.py")
+        result = subprocess.run([sys.executable, train_script], capture_output=True, text=True, check=True, cwd=BASE_DIR)
         print("Retraining completed successfully.")
         
         load_ml_assets()
         
-        metrics_path = "models/model_metrics.json"
+        metrics_path = os.path.join(MODELS_DIR, "model_metrics.json")
         if os.path.exists(metrics_path):
             with open(metrics_path, "r") as f:
                 metrics_data = json.load(f)

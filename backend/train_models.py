@@ -2,6 +2,8 @@ import os
 import json
 import glob
 import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
 
 def execute_notebook_cells(notebook_path):
     print(f"\n==================================================")
