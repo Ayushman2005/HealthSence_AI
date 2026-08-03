@@ -17,132 +17,6 @@ ChartJS.register(
   RadialLinearScale, Title, Tooltip, Legend, Filler
 );
 
-const MOCK_PROFILES = [
-  {
-    id: "mock-1",
-    name: "John Doe",
-    timestamp: "2026-07-01T10:30:00Z",
-    personal: { name: "John Doe", age: 58, gender: "male", height: 175, weight: 88, bmi: 28.7 },
-    lifestyle: { smoking: "yes", alcohol: "high", physicalActivity: "sedentary", sleepDuration: 5.5 },
-    medical: { bpSystolic: 145, bpDiastolic: 92, cholesterol: 242, glucose: 112, insulin: 16, heartRate: 82 },
-    results: {
-      risks: { diabetes: 58, heartDisease: 84, kidneyDisease: 62, liverDisease: 78, hypertension: 72, stroke: 65 },
-      overallScore: 41,
-      confidence: 100,
-      recommendations: {
-        immediate: [
-          "Consult a doctor regarding high blood pressure (145/92 mmHg) and high cholesterol (242 mg/dL).",
-          "Schedule a liver function assessment due to heavy alcohol usage and overweight BMI status."
-        ],
-        lifestyle: [
-          "Seek professional support to stop smoking.",
-          "Limit alcohol intake to a maximum of 1-2 standard drinks per week, or abstain completely.",
-          "Strive for 7-8 hours of sleep per night to support metabolic health.",
-          "Incorporate 30 minutes of low-impact physical activity (like walking) 5 days a week."
-        ],
-        medical: [
-          "Set up daily home blood pressure monitoring.",
-          "Review cholesterol management options (dietary changes or statins) with a primary care provider."
-        ]
-      },
-      explanations: {
-        diabetes: [
-          "Elevated fasting glucose of 112 mg/dL exceeds normal limit (<100 mg/dL).",
-          "Elevated BMI of 28.7 kg/m² indicates overweight.",
-          "Sedentary lifestyle factor limits insulin sensitivity."
-        ],
-        heart: [
-          "Hypertension of 145/92 mmHg increases cardiac arterial strain.",
-          "Active smoking is a primary cardiovascular risk factor.",
-          "Cholesterol of 242 mg/dL is elevated."
-        ],
-        kidney: [
-          "Hypertension of 145/92 mmHg damages renal filtration capillaries.",
-          "Glucose of 112 mg/dL increases kidney workload."
-        ],
-        liver: [
-          "Heavy alcohol consumption increases liver toxicity risk.",
-          "Elevated BMI of 28.7 kg/m² contributes to NAFLD risk."
-        ]
-      }
-    }
-  },
-  {
-    id: "mock-2",
-    name: "Jane Smith",
-    timestamp: "2026-07-03T14:15:00Z",
-    personal: { name: "Jane Smith", age: 29, gender: "female", height: 168, weight: 58, bmi: 20.6 },
-    lifestyle: { smoking: "no", alcohol: "low", physicalActivity: "active", sleepDuration: 8.0 },
-    medical: { bpSystolic: 115, bpDiastolic: 75, cholesterol: 175, glucose: 82, insulin: 8, heartRate: 64 },
-    results: {
-      risks: { diabetes: 12, heartDisease: 8, kidneyDisease: 10, liverDisease: 11, hypertension: 15, stroke: 9 },
-      overallScore: 94,
-      confidence: 100,
-      recommendations: {
-        immediate: [],
-        lifestyle: [
-          "Maintain your current physical activity levels. Excellent job!",
-          "Continue healthy sleep habits (7-8 hours).",
-          "Ensure balanced hydration and nutrition."
-        ],
-        medical: [
-          "Continue with routine annual health screenings."
-        ]
-      },
-      explanations: {
-        diabetes: ["All parameters within standard limits."],
-        heart: ["All parameters within standard limits."],
-        kidney: ["All parameters within standard limits."],
-        liver: ["All parameters within standard limits."]
-      }
-    }
-  },
-  {
-    id: "mock-3",
-    name: "Alex Rivera",
-    timestamp: "2026-07-05T09:00:00Z",
-    personal: { name: "Alex Rivera", age: 46, gender: "other", height: 180, weight: 102, bmi: 31.5 },
-    lifestyle: { smoking: "no", alcohol: "moderate", physicalActivity: "moderate", sleepDuration: 6.5 },
-    medical: { bpSystolic: 135, bpDiastolic: 85, cholesterol: 210, glucose: 145, insulin: 28, heartRate: 74 },
-    results: {
-      risks: { diabetes: 78, heartDisease: 55, kidneyDisease: 48, liverDisease: 52 },
-      overallScore: 56,
-      confidence: 100,
-      recommendations: {
-        immediate: [
-          "Consult an endocrinologist regarding elevated fasting blood glucose (145 mg/dL) and insulin resistance markers."
-        ],
-        lifestyle: [
-          "Focus on a low-glycemic, high-fiber diet to manage insulin sensitivity and blood glucose.",
-          "Aim to reduce body weight by 5-10% through a combination of diet and increased exercise.",
-          "Increase physical activity to 150+ minutes of moderate aerobic exercise per week."
-        ],
-        medical: [
-          "Check HbA1c levels to confirm diabetes diagnosis and discuss potential therapeutic interventions.",
-          "Monitor fasting glucose levels daily."
-        ]
-      },
-      explanations: {
-        diabetes: [
-          "Fasting blood glucose of 145 mg/dL suggests diabetes range.",
-          "Obese BMI of 31.5 kg/m² contributes to insulin resistance.",
-          "Fasting insulin of 28 µIU/mL suggests insulin resistance."
-        ],
-        heart: [
-          "Elevated BP of 135/85 mmHg increases cardiac workload.",
-          "Cholesterol of 210 mg/dL is borderline high."
-        ],
-        kidney: [
-          "Fasting glucose of 145 mg/dL adds microvascular kidney stress."
-        ],
-        liver: [
-          "Obese BMI of 31.5 kg/m² increases NAFLD fatty liver risk.",
-          "Moderate alcohol usage increases hepatic fat loads."
-        ]
-      }
-    }
-  }
-];
 export default function App() {
   
   const [currentTab, setCurrentTab] = useState('dashboard');
@@ -182,9 +56,9 @@ export default function App() {
   
   const [wizardStep, setWizardStep] = useState(1);
   const [formData, setFormData] = useState({
-    name: '', age: '35', gender: 'male', height: '170', weight: '70',
-    smoking: 'no', alcohol: 'low', physicalActivity: 'moderate', sleepDuration: 7,
-    bpSystolic: 120, bpDiastolic: 80, cholesterol: 180, glucose: 90, insulin: 8, heartRate: 70,
+    name: '', age: '', gender: 'male', height: '', weight: '',
+    smoking: 'no', alcohol: 'low', physicalActivity: 'moderate', sleepDuration: '',
+    bpSystolic: '', bpDiastolic: '', cholesterol: '', glucose: '', insulin: '', heartRate: '',
     algorithm: 'auto'
   });
   const [errors, setErrors] = useState({});
@@ -609,94 +483,6 @@ export default function App() {
     }
   };
 
-  const seedDemoData = async () => {
-    try {
-      showToast("Seeding demo patient profiles...", "primary");
-      
-      const payload1 = {
-        name: "John Doe", age: 58, gender: "male", height: 175, weight: 88,
-        smoking: "yes", alcohol: "high", physicalActivity: "sedentary", sleepDuration: 5.5,
-        bpSystolic: 145, bpDiastolic: 92, cholesterol: 242, glucose: 112, insulin: 16, heartRate: 82,
-        algorithm: 'auto'
-      };
-      
-      const payload2 = {
-        name: "Jane Smith", age: 29, gender: "female", height: 168, weight: 58,
-        smoking: "no", alcohol: "low", physicalActivity: "active", sleepDuration: 8.0,
-        bpSystolic: 115, bpDiastolic: 75, cholesterol: 175, glucose: 82, insulin: 8, heartRate: 64,
-        algorithm: 'auto'
-      };
-      
-      const payload3 = {
-        name: "Alex Rivera", age: 46, gender: "other", height: 180, weight: 102,
-        smoking: "no", alcohol: "moderate", physicalActivity: "moderate", sleepDuration: 6.5,
-        bpSystolic: 135, bpDiastolic: 85, cholesterol: 210, glucose: 145, insulin: 28, heartRate: 74,
-        algorithm: 'auto'
-      };
-      
-      const payloads = [payload1, payload2, payload3];
-      const newRecords = [];
-      
-      for (const payload of payloads) {
-        try {
-          const res = await fetch("http://localhost:5000/api/predict", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-          });
-          if (res.ok) {
-            const resultsData = await res.json();
-            const record = {
-              id: resultsData.id,
-              name: resultsData.name,
-              timestamp: resultsData.timestamp,
-              personal: resultsData.personal,
-              lifestyle: resultsData.lifestyle,
-              medical: resultsData.medical,
-              results: {
-                risks: resultsData.risks,
-                overallScore: resultsData.overallScore,
-                confidence: resultsData.confidence,
-                recommendations: resultsData.recommendations,
-                explanations: resultsData.explanations
-              }
-            };
-            newRecords.push(record);
-          } else {
-            throw new Error();
-          }
-        } catch (e) {
-          const finalBMI = parseFloat((payload.weight / ((payload.height / 100) * (payload.height / 100))).toFixed(1));
-          const localResult = computeHeuristicFallback(payload, finalBMI);
-          const mockId = `assess-fallback-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-          const mockTime = new Date().toISOString();
-          
-          const record = {
-            id: mockId,
-            name: payload.name,
-            timestamp: mockTime,
-            personal: { name: payload.name, age: payload.age, gender: payload.gender, height: payload.height, weight: payload.weight, bmi: finalBMI },
-            lifestyle: { smoking: payload.smoking, alcohol: payload.alcohol, physicalActivity: payload.physicalActivity, sleepDuration: payload.sleepDuration },
-            medical: { bpSystolic: payload.bpSystolic, bpDiastolic: payload.bpDiastolic, cholesterol: payload.cholesterol, glucose: payload.glucose, insulin: payload.insulin, heartRate: payload.heartRate },
-            results: localResult
-          };
-          newRecords.push(record);
-        }
-      }
-      
-      setAssessments(prev => [...newRecords, ...prev]);
-      if (newRecords.length > 0) {
-        setLatestAssessment(newRecords[0]);
-        setActiveUser(newRecords[0].name);
-        setInsightsUser(newRecords[0].name);
-      }
-      showToast("Demo patient profiles loaded successfully!", "success");
-      fetchMetrics();
-    } catch (err) {
-      showToast("Failed to seed demo data", "danger");
-    }
-  };
-
   useEffect(() => {
     if (authToken) {
       fetchAssessments();
@@ -1101,9 +887,9 @@ export default function App() {
   const resetWizard = () => {
     setWizardStep(1);
     setFormData({
-      name: '', age: '35', gender: 'male', height: '170', weight: '70',
-      smoking: 'no', alcohol: 'low', physicalActivity: 'moderate', sleepDuration: 7,
-      bpSystolic: 120, bpDiastolic: 80, cholesterol: 180, glucose: 90, insulin: 8, heartRate: 70,
+      name: '', age: '', gender: 'male', height: '', weight: '',
+      smoking: 'no', alcohol: 'low', physicalActivity: 'moderate', sleepDuration: '',
+      bpSystolic: '', bpDiastolic: '', cholesterol: '', glucose: '', insulin: '', heartRate: '',
       algorithm: 'auto'
     });
     setErrors({});
@@ -1745,13 +1531,13 @@ export default function App() {
                   <Inbox className="w-8 h-8" />
                 </div>
                 <h3 className="font-extrabold text-2xl text-slate-900">No assessments found</h3>
-                <p className="text-sm text-slate-600 font-medium max-w-sm">Connect a MySQL database or fill the form wizard to display clinical statistics.</p>
+                <p className="text-sm text-slate-600 font-medium max-w-sm">Enter original patient details in the clinical wizard or scan a medical report to perform your first assessment.</p>
                 <div className="flex flex-col sm:flex-row gap-4 mt-3">
                   <button onClick={() => setCurrentTab('wizard')} className="btn-magnetic bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white font-bold py-3 px-6 rounded-xl inline-flex items-center gap-2 cursor-pointer transition shadow-lg shadow-amber-500/35">
-                    <HeartPulse className="w-5 h-5" /> Start Assessment
+                    <HeartPulse className="w-5 h-5" /> Start New Assessment
                   </button>
-                  <button onClick={seedDemoData} className="btn-magnetic bg-white/90 hover:bg-white text-amber-600 border border-amber-200 font-bold py-3 px-6 rounded-xl inline-flex items-center gap-2 cursor-pointer transition shadow-md">
-                    <Sparkles className="w-5 h-5 text-amber-500" /> Seed Demo Patient Data
+                  <button onClick={() => setCurrentTab('upload_report')} className="btn-magnetic bg-white/90 hover:bg-white text-amber-600 border border-amber-200 font-bold py-3 px-6 rounded-xl inline-flex items-center gap-2 cursor-pointer transition shadow-md">
+                    <FileText className="w-5 h-5 text-amber-500" /> Scan Medical Lab Report
                   </button>
                 </div>
               </div>
@@ -3017,7 +2803,7 @@ export default function App() {
                   <Inbox className="w-8 h-8" />
                 </div>
                 <h3 className="font-extrabold text-2xl text-slate-900">No patient history found</h3>
-                <p className="text-sm text-slate-600 font-medium max-w-sm">Run a clinical assessment or click "Seed Demo Patient Data" on the dashboard to enable timeline graphing insights.</p>
+                <p className="text-sm text-slate-600 font-medium max-w-sm">Perform an original clinical assessment or upload a medical lab report to view longitudinal timeline graphs.</p>
                 <button 
                   onClick={() => setCurrentTab('wizard')}
                   className="btn-magnetic mt-2 bg-gradient-to-r from-amber-500 to-yellow-500 text-white font-bold py-3 px-6 rounded-xl inline-flex items-center gap-2 cursor-pointer transition shadow-lg shadow-amber-500/25 text-xs"
