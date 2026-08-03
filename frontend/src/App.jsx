@@ -12,13 +12,11 @@ import {
 } from 'chart.js';
 import { Line, Radar, Bar } from 'react-chartjs-2';
 
-// Register ChartJS modules
 ChartJS.register(
   CategoryScale, LinearScale, PointElement, LineElement, BarElement, 
   RadialLinearScale, Title, Tooltip, Legend, Filler
 );
 
-// Baseline Demo Clinical Profiles
 const MOCK_PROFILES = [
   {
     id: "mock-1",
@@ -146,7 +144,7 @@ const MOCK_PROFILES = [
   }
 ];
 export default function App() {
-  // Application states
+  
   const [currentTab, setCurrentTab] = useState('dashboard');
   const [theme] = useState('light');
   
@@ -155,15 +153,14 @@ export default function App() {
   const [latestAssessment, setLatestAssessment] = useState(null);
   const [metrics, setMetrics] = useState(null);
 
-  // Authentication states
   const [authToken, setAuthToken] = useState(() => sessionStorage.getItem('healthrisk_auth_token') || '');
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const [loginLoading, setLoginLoading] = useState(false);
   
-  const [authMode, setAuthMode] = useState('login'); // 'login' or 'register'
-  const [authRole, setAuthRole] = useState('user'); // 'user' or 'admin'
+  const [authMode, setAuthMode] = useState('login'); 
+  const [authRole, setAuthRole] = useState('user'); 
   const [adminUsersList, setAdminUsersList] = useState([]);
   const [registerName, setRegisterName] = useState('');
   const [registerUsername, setRegisterUsername] = useState('');
@@ -172,7 +169,6 @@ export default function App() {
   const [registerError, setRegisterError] = useState('');
   const [registerLoading, setRegisterLoading] = useState(false);
   
-  // Account Management states
   const [userProfile, setUserProfile] = useState(null);
   const [profileName, setProfileName] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
@@ -184,7 +180,6 @@ export default function App() {
   const [passwordError, setPasswordError] = useState('');
   const [profileLoading, setProfileLoading] = useState(false);
   
-  // Wizards Form States
   const [wizardStep, setWizardStep] = useState(1);
   const [formData, setFormData] = useState({
     name: '', age: '35', gender: 'male', height: '170', weight: '70',
@@ -194,7 +189,7 @@ export default function App() {
   });
   const [errors, setErrors] = useState({});
   const [predicting, setPredicting] = useState(false);
-  // Custom Dynamic Theme Accent & Live Simulator state
+  
   const [themeAccent, setThemeAccent] = useState('amber');
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
@@ -206,7 +201,6 @@ export default function App() {
     alcohol: 'low', physicalActivity: 'moderate'
   });
 
-  // Real-time Dynamic Risk Computation for Simulator
   const liveSimResults = useMemo(() => {
     const age = parseFloat(simParams.age);
     const bmi = parseFloat(simParams.bmi);
@@ -243,18 +237,14 @@ export default function App() {
 
   const [retraining, setRetraining] = useState(false);
 
-  // Result view page details target
   const [resultsAssessment, setResultsAssessment] = useState(null);
   const [expandedRisks, setExpandedRisks] = useState({ diabetes: false, heart: false, kidney: false, liver: false });
 
-  // History Filter states
   const [historySearch, setHistorySearch] = useState('');
   const [historyFilter, setHistoryFilter] = useState('all');
 
-  // Insights filter state 
   const [insightsUser, setInsightsUser] = useState('');
 
-  // Medical Report Analyzer State
   const [reportFile, setReportFile] = useState(null);
   const [reportText, setReportText] = useState('');
   const [analyzingReport, setAnalyzingReport] = useState(false);
@@ -308,10 +298,8 @@ export default function App() {
     }
   };
 
-  // Toast Notification state
   const [toasts, setToasts] = useState([]);
 
-  // Toast Trigger Helper
   const showToast = (message, type = 'primary') => {
     const id = Date.now();
     setToasts(prev => [...prev, { id, message, type }]);
@@ -320,7 +308,6 @@ export default function App() {
     }, 4000);
   };
 
-  // Sync Class Theme with Body (Always Light Mode)
   useEffect(() => {
     const root = window.document.documentElement;
     localStorage.setItem('healthrisk_theme', 'light');
@@ -328,7 +315,6 @@ export default function App() {
     document.body.className = "bg-amber-50/20 text-slate-900 min-h-screen transition-colors duration-500 selection:bg-amber-500/20 selection:text-amber-900";
   }, []);
 
-  // Dynamic Initial Loading Screen Progress Sequence
   useEffect(() => {
     let progress = 0;
     const interval = setInterval(() => {
@@ -356,7 +342,6 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
-  // Authentication Handlers
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoginLoading(true);
@@ -439,7 +424,6 @@ export default function App() {
     showToast("Logged out successfully.", "warning");
   };
 
-  // Load assessments & metrics from API
   const fetchAssessments = async () => {
     if (!authToken) return;
     try {
@@ -725,7 +709,6 @@ export default function App() {
     }
   }, [authToken]);
 
-  // Role-Based Access Control check for Admin Portal
   useEffect(() => {
     if (currentTab === 'admin_portal' && userProfile && userProfile.role !== 'admin') {
       setCurrentTab('dashboard');
@@ -733,7 +716,6 @@ export default function App() {
     }
   }, [currentTab, userProfile]);
 
-  // Protected Tab Wrapper Component / Helper
   const renderProtectedTab = (component) => {
     if (!authToken) {
       return (
@@ -802,8 +784,6 @@ export default function App() {
     return component;
   };
 
-
-  // Update latest assessment context for selected active user
   useEffect(() => {
     if (activeUser && assessments.length > 0) {
       const matched = assessments.find(a => a.name === activeUser);
@@ -813,7 +793,6 @@ export default function App() {
     }
   }, [activeUser, assessments]);
 
-  // BMI Dynamic Calculation
   const calculatedBMI = useMemo(() => {
     const w = parseFloat(formData.weight);
     const h = parseFloat(formData.height);
@@ -833,7 +812,6 @@ export default function App() {
     return { text: 'Obese (WHO)', color: 'badge-high' };
   }, [calculatedBMI]);
 
-  // Form step-by-step validations
   const validateStep = (step) => {
     const newErrors = {};
     if (step === 1) {
@@ -877,11 +855,9 @@ export default function App() {
     }
   };
 
-  // Submit assessment to Flask with ML calculations
   const submitAssessment = async () => {
     setPredicting(true);
     
-    // Auto calculated BMI
     const finalBMI = parseFloat(calculatedBMI) || 22.0;
     
     const payload = {
@@ -932,7 +908,6 @@ export default function App() {
         }
       };
       
-      // Update local state list
       setAssessments(prev => [newRecord, ...prev]);
       setResultsAssessment(newRecord);
       setActiveUser(resultsData.name);
@@ -945,7 +920,6 @@ export default function App() {
       console.warn("Could not connect to ML backend server, executing local diagnostics engine fallback:", err);
       showToast("ML server offline. Falling back to local clinical rules.", "warning");
       
-      // Run local Javascript scoring fallback
       const localResult = computeHeuristicFallback(payload, finalBMI);
       const mockId = `assess-fallback-${Date.now()}`;
       const mockTime = new Date().toISOString();
@@ -971,12 +945,10 @@ export default function App() {
     }
   };
 
-  // Local heuristics calculations engine fallback
   const computeHeuristicFallback = (data, bmi) => {
     const explanations = { diabetes: [], heart: [], kidney: [], liver: [] };
     let dRisk = 5, hRisk = 5, kRisk = 5, lRisk = 5;
     
-    // Diabetes
     if (data.glucose > 100) {
       const c = Math.min(50, (data.glucose - 100) * 0.4);
       dRisk += c;
@@ -998,7 +970,6 @@ export default function App() {
     }
     if (data.physicalActivity === 'sedentary') dRisk += 10;
     
-    // Heart
     const bpSysDiff = Math.max(0, data.bpSystolic - 120);
     const bpDiaDiff = Math.max(0, data.bpDiastolic - 80);
     if (bpSysDiff > 0 || bpDiaDiff > 0) {
@@ -1016,7 +987,6 @@ export default function App() {
       explanations.heart.push("Active smoking factor (+25% risk).");
     }
     
-    // Kidney
     if (data.bpSystolic > 130) {
       kRisk += 15 + (data.bpSystolic - 130) * 0.5;
       explanations.kidney.push("High systolic BP strains renal vasculature.");
@@ -1026,7 +996,6 @@ export default function App() {
       explanations.kidney.push("High glucose adds microvascular renal load.");
     }
     
-    // Liver
     if (data.alcohol === 'high') {
       lRisk += 40;
       explanations.liver.push("Heavy alcohol intake increases liver cell toxicity.");
@@ -1045,7 +1014,6 @@ export default function App() {
       liverDisease: Math.min(95, Math.max(5, Math.round(lRisk)))
     };
 
-    // Calculate score
     let score = 100;
     if (bmi >= 30) score -= 15;
     if (data.bpSystolic >= 140) score -= 15;
@@ -1053,7 +1021,6 @@ export default function App() {
     if (data.smoking === 'yes') score -= 15;
     score = Math.max(15, score);
 
-    // Default explanations
     Object.keys(explanations).forEach(k => {
       if (explanations[k].length === 0) explanations[k].push("All indicators normal.");
     });
@@ -1071,7 +1038,6 @@ export default function App() {
     };
   };
 
-  // Trigger retraining pipeline
   const handleRetrain = async () => {
     setRetraining(true);
     try {
@@ -1098,7 +1064,6 @@ export default function App() {
     }
   };
 
-  // Delete Assessment
   const handleDeleteAssessment = async (id) => {
     if (window.confirm("Are you sure you want to permanently delete this health assessment record?")) {
       try {
@@ -1117,7 +1082,6 @@ export default function App() {
         showToast(err.message || "Record removed from local history list.", "warning");
       }
       
-      // Update local state list
       const updated = assessments.filter(a => a.id !== id);
       setAssessments(updated);
       
@@ -1134,7 +1098,6 @@ export default function App() {
     }
   };
 
-  // Reset Wizards Form
   const resetWizard = () => {
     setWizardStep(1);
     setFormData({
@@ -1146,7 +1109,6 @@ export default function App() {
     setErrors({});
   };
 
-  // Filter History Lists
   const filteredAssessments = useMemo(() => {
     return assessments.filter(a => {
       const matchesSearch = a.name.toLowerCase().includes(historySearch.toLowerCase());
@@ -1160,7 +1122,6 @@ export default function App() {
     });
   }, [assessments, historySearch, historyFilter]);
 
-  // Insights timeline sorting
   const insightsTimelineData = useMemo(() => {
     if (!insightsUser) return [];
     return assessments
@@ -1168,7 +1129,6 @@ export default function App() {
       .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
   }, [assessments, insightsUser]);
 
-  // Chart Rendering data maps
   const overviewRadarData = useMemo(() => {
     if (!latestAssessment) return null;
     return {
@@ -1217,7 +1177,6 @@ export default function App() {
     };
   }, [activeUser, assessments]);
 
-  // Insights Score Progress Data
   const insightsScoreTrendData = useMemo(() => {
     return {
       labels: insightsTimelineData.map(h => {
@@ -1237,7 +1196,6 @@ export default function App() {
     };
   }, [insightsTimelineData]);
 
-  // Insights Vitals Timeline Data
   const insightsVitalsData = useMemo(() => {
     return {
       labels: insightsTimelineData.map(h => {
@@ -1273,7 +1231,6 @@ export default function App() {
     };
   }, [insightsTimelineData]);
 
-  // ML Studio accuracy chart mappings
   const mlStudioAccuracyData = useMemo(() => {
     if (!metrics) return null;
     const targets = ['diabetes', 'heart_disease', 'kidney_disease', 'liver_disease', 'hypertension', 'stroke'];
@@ -1322,7 +1279,6 @@ export default function App() {
     };
   }, [metrics]);
 
-  // Aggregate stats logic for insights view
   const insightsAggregates = useMemo(() => {
     if (insightsTimelineData.length === 0) return { avg: '--', maxRisk: '--', advice: 'No assessments' };
     const avg = Math.round(insightsTimelineData.reduce((acc, val) => acc + val.results.overallScore, 0) / insightsTimelineData.length);
@@ -1338,7 +1294,6 @@ export default function App() {
     return { avg, maxRisk, advice };
   }, [insightsTimelineData]);
 
-  // Helpers to get styling classes dynamically based on score
   const getScoreBadgeStyles = (score) => {
     if (score >= 85) return { label: 'Optimal health', style: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', color: 'var(--success)' };
     if (score >= 70) return { label: 'Good health', style: 'bg-amber-500/10 text-amber-600 border-amber-500/20', color: 'var(--primary)' };
@@ -1390,11 +1345,11 @@ export default function App() {
   if (!authToken) {
     return (
       <div className="min-h-screen w-full flex items-center justify-center p-6 relative overflow-hidden text-slate-100">
-        {/* Minimal ambient canvas glow */}
+        
         <div className="absolute top-[-15%] left-[-15%] w-[45%] h-[45%] bg-zinc-200/30 rounded-full blur-[140px] pointer-events-none animate-float-blob" />
         
         <div className="w-full max-w-[460px] glass-modal-container rounded-3xl p-8 md:p-10 shadow-xl relative z-10 animate-modal-spring">
-          {/* Header */}
+          
           <div className="flex flex-col items-center text-center mb-6">
             <img 
               src="/logo.png" 
@@ -1410,7 +1365,7 @@ export default function App() {
           </div>
           
           {authMode === 'login' ? (
-            /* Login Form */
+            
             <form onSubmit={handleLogin} className="space-y-5">
               {loginError && (
                 <div className="bg-rose-500/10 border border-rose-500/25 text-rose-400 rounded-xl p-3 text-xs font-semibold flex items-center gap-2 animate-shake">
@@ -3504,7 +3459,6 @@ export default function App() {
           );
         })}
       </div>
-
 
       {/* ======================================================== */}
       {/* INTERACTIVE LIVE RISK PARAMETER SIMULATOR MODAL */}
