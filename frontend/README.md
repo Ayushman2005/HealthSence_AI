@@ -1,16 +1,38 @@
-# React + Vite
+# HealthSence AI Frontend 🏥⚛️
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+The frontend for **HealthSence AI** is built with **React 19**, **Vite 8**, **Tailwind CSS 4**, and **Chart.js**.
 
-Currently, two official plugins are available:
+## 🧩 Component Architecture
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+The frontend follows a modular, component-based page architecture where each distinct operation, page, and modal has its own dedicated `.jsx` file under `src/components/`:
 
-## React Compiler
+```
+frontend/src/
+├── App.jsx             # Main container, top-level state management & tab controller
+├── main.jsx            # Application entry point
+├── index.css           # Core CSS design system & Tailwind setup
+└── components/         # Feature Modules & Component Pages
+    ├── Navbar.jsx          # Top navigation bar & user profile dropdown
+    ├── Dashboard.jsx       # AI Health Risk Dashboard overview & charts
+    ├── Wizard.jsx          # Multi-step Clinical Diagnostics assessment wizard
+    ├── SymptomChecker.jsx  # AI Symptom Checker & Clinical Triage Engine
+    ├── HealthChatbot.jsx   # HealthBot AI 24/7 Clinical Assistant chat page
+    ├── MedicalReport.jsx   # Medical Report OCR & Prescription (Rx) Engine
+    ├── Results.jsx         # Diagnostic Risk Evaluation report & print layout
+    ├── History.jsx         # Audit History Log table & search filters
+    ├── Insights.jsx        # Chronological health score & vital sign timeline charts
+    ├── Account.jsx         # User account settings & credentials management
+    ├── AdminPortal.jsx     # Admin Governance & ML model control panel
+    ├── AuthModal.jsx       # Sign in / Sign up authentication container
+    ├── SimulatorModal.jsx  # Interactive real-time risk parameter simulator modal
+    ├── SplashLoader.jsx    # Animated initial splash loading screen
+    ├── ToastContainer.jsx  # Floating toast notification overlay
+    └── ChatWidget.jsx      # Floating persistent medical chatbot widget drawer
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🛠 Development Scripts
 
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+- **Start Dev Server**: `npm run dev` (Runs at `http://localhost:5173`)
+- **Build Production Bundle**: `npm run build`
+- **Preview Production Build**: `npm run preview`
+- **Run Oxlint**: `npx oxlint`

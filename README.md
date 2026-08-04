@@ -81,9 +81,26 @@ Project 2026/
 │       └── liver_disease_model_training.ipynb
 ├── frontend/
 │   ├── src/                   # React frontend application
-│   │   ├── App.jsx            # Main App dashboard, routes, modals & components
+│   │   ├── App.jsx            # Main container, top-level state management & route controller
+│   │   ├── main.jsx           # React app entry point
 │   │   ├── index.css          # Core CSS design system & Tailwind setup
-│   │   └── main.jsx           # App entry point
+│   │   └── components/        # Modular Component Pages & Feature Modules
+│   │       ├── Navbar.jsx          # Top navigation header & user profile dropdown
+│   │       ├── Dashboard.jsx       # AI Health Risk Dashboard overview & charts
+│   │       ├── Wizard.jsx          # Multi-step Clinical Diagnostics assessment wizard
+│   │       ├── SymptomChecker.jsx  # AI Symptom Checker & Clinical Triage Engine
+│   │       ├── HealthChatbot.jsx   # HealthBot AI 24/7 Clinical Assistant chat page
+│   │       ├── MedicalReport.jsx   # Medical Report OCR & Prescription (Rx) Engine
+│   │       ├── Results.jsx         # Diagnostic Risk Evaluation report & print layout
+│   │       ├── History.jsx         # Audit History Log table & search filters
+│   │       ├── Insights.jsx        # Chronological health score & vital sign timeline charts
+│   │       ├── Account.jsx         # User account settings & credentials management
+│   │       ├── AdminPortal.jsx     # Admin Governance & ML model control panel
+│   │       ├── AuthModal.jsx       # Sign in / Sign up authentication container
+│   │       ├── SimulatorModal.jsx  # Interactive real-time risk parameter simulator modal
+│   │       ├── SplashLoader.jsx    # Animated initial splash loading screen
+│   │       ├── ToastContainer.jsx  # Floating toast notification overlay
+│   │       └── ChatWidget.jsx      # Floating persistent medical chatbot widget drawer
 │   ├── index.html             # HTML template
 │   ├── package.json           # Frontend dependencies & npm scripts
 │   └── vite.config.js         # Vite configuration
