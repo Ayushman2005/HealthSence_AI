@@ -64,7 +64,17 @@ In addition to multi-disease predictive risk scoring, HealthSence AI features an
 ```
 Project 2026/
 ├── backend/
-│   ├── server.py              # FastAPI REST API server, database handlers & endpoints
+│   ├── main.py                # Primary FastAPI entry point, lifespan, CORS & APIRouter configuration
+│   ├── config.py              # Environment variables, admin credentials, Supabase & DB settings
+│   ├── auth.py                # Password hashing, HMAC-SHA256 tokens & auth dependency helpers
+│   ├── database.py            # Multi-tier database connection pool (Supabase Cloud / MySQL / SQLite)
+│   ├── ml_engine.py           # ML asset loader, scaler, algorithm selection & feature encoder
+│   ├── routes_auth.py         # Auth endpoints (Register, Login, Profile, Password, Account)
+│   ├── routes_predict.py      # Risk prediction endpoints (/api/predict, /api/assessments, /api/retrain)
+│   ├── routes_symptom.py      # AI Symptom Checker & Clinical Triage endpoint (/api/check-symptom)
+│   ├── routes_chatbot.py      # HealthBot AI 24/7 Clinical Assistant chat endpoint (/api/chat)
+│   ├── routes_report.py       # Medical Report OCR & Prescription generator endpoint (/api/analyze-report)
+│   ├── routes_admin.py        # System Admin Governance endpoints (/api/admin/users, /api/admin/system-status)
 │   ├── train_models.py        # Automated ML model training & dataset synthesis script
 │   ├── supabase_schema.sql    # PostgreSQL schema setup & Row Level Security policies
 │   ├── .env                   # Environment variables (Supabase, MySQL, Admin, JWT)
@@ -168,8 +178,9 @@ Project 2026/
 
 6. Launch the FastAPI backend server:
    ```bash
-   python server.py
+   python main.py
    ```
+   *(Or `python server.py` for backward compatibility).*
    The backend API will start at **`http://localhost:5000`**.
 
 ---
