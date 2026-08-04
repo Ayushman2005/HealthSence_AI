@@ -304,11 +304,11 @@ export default function App() {
       const res = await fetch("http://localhost:5000/api/assessments", {
         headers: { "Authorization": `Bearer ${authToken}` }
       });
-      if (res.status === 401) {
+      if (res.status === 401 || res.status === 404) {
         handleLogout();
         throw new Error("Session expired. Please log in again.");
       }
-      if (!res.ok) throw new Error("Flask database API unreachable");
+      if (!res.ok) throw new Error("Database API unreachable");
       const data = await res.json();
       
       const loadedData = data.map(item => ({
@@ -330,7 +330,7 @@ export default function App() {
         setInsightsUser(latest.name);
       }
     } catch (err) {
-      console.warn("Could not load from MySQL database.", err);
+      console.warn("Could not load from database.", err);
       showToast(err.message || "Failed to load database assessments.", "danger");
     }
   };
@@ -341,8 +341,7 @@ export default function App() {
       const res = await fetch("http://localhost:5000/api/metrics", {
         headers: { "Authorization": `Bearer ${authToken}` }
       });
-      if (res.status === 401) {
-        handleLogout();
+      if (res.status === 401 || res.status === 404) {
         return;
       }
       if (!res.ok) throw new Error("API failed");
@@ -374,7 +373,7 @@ export default function App() {
       const res = await fetch("http://localhost:5000/api/user/profile", {
         headers: { "Authorization": `Bearer ${authToken}` }
       });
-      if (res.status === 401) {
+      if (res.status === 401 || res.status === 404) {
         handleLogout();
         return;
       }

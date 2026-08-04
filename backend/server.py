@@ -576,6 +576,19 @@ async def custom_http_exception_handler(request: Request, exc: HTTPException):
         content={"error": exc.detail}
     )
 
+@app.get('/')
+@app.get('/api')
+@app.get('/api/health')
+@app.get('/health')
+async def root_health_check():
+    return {
+        "status": "online",
+        "service": "Health Risk AI Backend API",
+        "version": "1.0.0",
+        "database_mode": DB_MODE
+    }
+
+
 def select_best_algorithm_for_disease(disease: str) -> str:
     global model_metrics
     pref_order = ['random_forest', 'xgboost', 'svm', 'logistic_regression', 'decision_tree']
@@ -1243,6 +1256,7 @@ class ReportAnalysisRequest(BaseModel):
     file_name: Optional[str] = "Medical_Report.pdf"
 
 @app.post('/api/analyze-report')
+@app.post('/api/analyze-report/')
 async def analyze_medical_report(
     payload: ReportAnalysisRequest,
     token: str = Depends(get_auth_token)
