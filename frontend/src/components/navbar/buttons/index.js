@@ -1,9 +1,0 @@
-export { default as OverviewTabButton } from './OverviewTabButton';
-export { default as NewAssessmentTabButton } from './NewAssessmentTabButton';
-export { default as SymptomCheckerTabButton } from './SymptomCheckerTabButton';
-export { default as HealthChatbotTabButton } from './HealthChatbotTabButton';
-export { default as MedicalReportTabButton } from './MedicalReportTabButton';
-export { default as AssessmentHistoryTabButton } from './AssessmentHistoryTabButton';
-export { default as HealthInsightsTabButton } from './HealthInsightsTabButton';
-export { default as AccountTabButton } from './AccountTabButton';
-export { default as AdminPortalTabButton } from './AdminPortalTabButton';
