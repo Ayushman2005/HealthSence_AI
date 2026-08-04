@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import Navbar from './components/navbar/Navbar';
 import { 
   Activity, LayoutDashboard, HeartPulse, Sliders, Palette, Zap, ClipboardList, TrendingUp, Cpu, 
   Moon, Sun, Menu, X, ArrowRight, ArrowLeft, Droplet, Heart, ShieldAlert, 
   Sparkles, Stethoscope, AlertOctagon, ChevronDown, ChevronUp, Search, 
   Trash2, Eye, Printer, PlusCircle, Inbox, AlertCircle, Info, CheckCircle, AlertTriangle, User, Settings, Lock, LogOut,
-  UploadCloud, FileText, Pill, CheckCircle2, ShieldCheck, FileSpreadsheet
+  UploadCloud, FileText, Pill, CheckCircle2, ShieldCheck, FileSpreadsheet,
+  MessageSquare, Send, Bot, HelpCircle, RefreshCw
 } from 'lucide-react';
 import {
   Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, 
@@ -126,6 +128,74 @@ export default function App() {
   const [symptomSeverity, setSymptomSeverity] = useState('Moderate');
   const [analyzingSymptom, setAnalyzingSymptom] = useState(false);
   const [symptomResult, setSymptomResult] = useState(null);
+
+  const [chatMessages, setChatMessages] = useState([
+    {
+      id: 1,
+      sender: 'ai',
+      category: 'Welcome & System Ready',
+      text: 'Hello! I am **HealthBot AI**, your 24/7 clinical AI medical assistant. Ask me anything about disease prevention, blood pressure, diabetes, biomarkers, symptoms, medications, or healthy lifestyle guidelines.',
+      suggested_prompts: [
+        'How to lower fasting blood sugar?',
+        'What are normal blood pressure ranges?',
+        'What causes stomach ache after meals?',
+        'How does Metformin work?'
+      ],
+      time: 'Just now'
+    }
+  ]);
+  const [chatInput, setChatInput] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
+  const [isChatWidgetOpen, setIsChatWidgetOpen] = useState(false);
+
+  const handleSendChatMessage = async (presetText = null) => {
+    const textToSend = presetText || chatInput;
+    if (!textToSend.trim()) return;
+
+    const userMsgObj = {
+      id: Date.now(),
+      sender: 'user',
+      text: textToSend,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    setChatMessages(prev => [...prev, userMsgObj]);
+    if (!presetText) setChatInput('');
+    setChatLoading(true);
+
+    try {
+      const res = await fetch("http://localhost:5000/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: textToSend,
+          patient_context: activeUser ? { name: activeUser } : null
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setChatMessages(prev => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            sender: 'ai',
+            category: data.category,
+            text: data.response,
+            specialist: data.specialist_recommendation,
+            suggested_prompts: data.suggested_prompts,
+            disclaimer: data.disclaimer,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }
+        ]);
+      } else {
+        showToast(data.detail || "Chat response failed", "danger");
+      }
+    } catch (err) {
+      showToast("Failed to connect to HealthBot AI server", "danger");
+    } finally {
+      setChatLoading(false);
+    }
+  };
 
   const handleCheckSymptom = async (overrideSymptoms = null) => {
     const listToAnalyze = overrideSymptoms || symptomTags;
@@ -1418,115 +1488,16 @@ export default function App() {
       </div>
 
       {/* Top Navbar Header */}
-      <header className="sticky top-0 z-50 w-full glass-header border-b border-amber-200/60 px-2.5 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between gap-2 sm:gap-4 no-print shadow-md backdrop-blur-2xl transition-all duration-300">
-        
-        {/* Left: Brand Logo */}
-        <div 
-          onClick={() => setCurrentTab('dashboard')} 
-          className="group flex items-center gap-2.5 p-1.5 px-2 rounded-2xl hover:bg-amber-500/10 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] select-none cursor-pointer nav-pill-item"
-          title="HealthSence AI"
-        >
-          <img 
-            src="/logo.png" 
-            alt="HealthSenceAI Logo" 
-            className="w-9 h-9 rounded-xl object-contain shadow-sm group-hover:scale-105 transition-transform duration-300 shrink-0" 
-          />
-          <span className="nav-pill-label text-slate-900 font-extrabold text-lg tracking-tight">
-            HealthSence <span className="text-gradient-amber font-black">AI</span>
-          </span>
-        </div>
-
-        {/* Center: Top Navigation Options */}
-        <nav className="flex items-center gap-2 sm:gap-3 overflow-x-auto max-w-full no-scrollbar py-1 px-1">
-          {[
-            { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
-            { id: 'wizard', label: 'New Assessment', icon: HeartPulse },
-            { id: 'symptom_checker', label: 'Symptom Checker AI', icon: Stethoscope },
-            { id: 'upload_report', label: 'Medical Report AI', icon: FileText },
-            { id: 'history', label: 'Assessment History', icon: ClipboardList },
-            { id: 'insights', label: 'Health Insights', icon: TrendingUp },
-            { id: 'account', label: 'Account Management', icon: Settings },
-            ...(userProfile?.role === 'admin' ? [{ id: 'admin_portal', label: 'Admin Management', icon: ShieldAlert }] : [])
-          ].map(item => {
-            const Icon = item.icon;
-            const isActive = currentTab === item.id || (item.id === 'wizard' && currentTab === 'results');
-            return (
-              <button
-                key={item.id}
-                onClick={() => {
-                  if (item.id === 'wizard') resetWizard();
-                  setCurrentTab(item.id);
-                }}
-                title={item.label}
-                className={`group relative flex items-center gap-2.5 p-2.5 sm:p-3 text-xs sm:text-sm font-semibold rounded-2xl nav-pill-item cursor-pointer transition-all ${
-                  isActive 
-                    ? 'glass-tab-active font-extrabold scale-105' 
-                    : 'text-slate-700 bg-white/80 hover:bg-white border border-slate-200/80 hover:border-amber-400/50 hover:text-amber-700'
-                }`}
-              >
-                <Icon className={`w-5 h-5 shrink-0 transition-transform duration-300 group-hover:scale-105 ${isActive ? 'text-white' : 'text-amber-600'}`} />
-                <span className="nav-pill-label font-bold text-xs sm:text-sm">
-                  {item.label}
-                </span>
-              </button>
-            );
-          })}
-        </nav>
-
-        {/* Right: Active Patient & Profile Logos */}
-        <div className="flex items-center gap-2.5 shrink-0">
-          {/* Active Patient Indicator Logo Pill */}
-          {activeUser && (
-            <div 
-              className="group flex items-center gap-2 p-2 sm:px-2.5 sm:py-2 rounded-2xl glass-panel border-amber-300/80 text-xs font-semibold cursor-pointer nav-pill-item"
-              title={`Active Patient: ${activeUser}`}
-            >
-              <span className="relative flex h-2.5 w-2.5 shrink-0">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-              </span>
-              <span className="nav-pill-label text-slate-800 font-bold">
-                {activeUser}
-              </span>
-              <button 
-                onClick={(e) => { e.stopPropagation(); setActiveUser(''); }} 
-                className="nav-pill-label text-slate-400 hover:text-slate-900 font-extrabold ml-0.5 transition-colors"
-                title="Clear Active Patient"
-              >
-                ✕
-              </button>
-            </div>
-          )}
-
-          {/* User Profile Logo Pill */}
-          <div 
-            onClick={() => setCurrentTab('account')}
-            className="group flex items-center gap-2 p-1.5 sm:p-2 rounded-2xl bg-white/80 hover:bg-white border border-amber-200/80 cursor-pointer shadow-xs nav-pill-item"
-            title={userProfile?.name || 'Account'}
-          >
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-500 text-white flex items-center justify-center font-bold text-xs shrink-0 select-none group-hover:scale-105 transition-transform duration-300">
-              {userProfile?.name ? userProfile.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : 'U'}
-            </div>
-            <span className="nav-pill-label text-xs font-bold text-slate-800 group-hover:text-amber-600 pr-1">
-              {userProfile?.name || 'User'}
-            </span>
-          </div>
-
-          {/* Sign Out Logo Button */}
-          {authToken && (
-            <button 
-              onClick={handleLogout}
-              className="group flex items-center gap-2 p-2.5 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-600 text-xs font-bold cursor-pointer nav-pill-item"
-              title="Sign Out"
-            >
-              <LogOut className="w-5 h-5 shrink-0 group-hover:scale-110 transition-transform duration-400 ease-[cubic-bezier(0.16,1,0.3,1)]" />
-              <span className="nav-pill-label">
-                Sign Out
-              </span>
-            </button>
-          )}
-        </div>
-      </header>
+      <Navbar
+        currentTab={currentTab}
+        setCurrentTab={setCurrentTab}
+        resetWizard={resetWizard}
+        userProfile={userProfile}
+        activeUser={activeUser}
+        setActiveUser={setActiveUser}
+        authToken={authToken}
+        handleLogout={handleLogout}
+      />
 
       {/* Main Container */}
       <main className="flex-1 p-3 sm:p-6 md:p-10 w-full max-w-[1600px] mx-auto overflow-hidden">
@@ -1538,6 +1509,7 @@ export default function App() {
               {currentTab === 'dashboard' && 'AI Health Risk Dashboard'}
               {currentTab === 'wizard' && 'Clinical Diagnostics Wizard'}
               {currentTab === 'symptom_checker' && 'AI Symptom Checker & Clinical Triage'}
+              {currentTab === 'chatbot' && 'HealthBot AI Clinical Assistant'}
               {currentTab === 'upload_report' && 'Medical Report & Rx AI Diagnostic Engine'}
               {currentTab === 'results' && 'Diagnostic Risk Evaluation'}
               {currentTab === 'history' && 'Audit History Log'}
@@ -1549,6 +1521,7 @@ export default function App() {
               {currentTab === 'dashboard' && 'Precision predictive metrics and diagnostic profiles.'}
               {currentTab === 'wizard' && 'Record biomarkers to trigger machine learning predictions.'}
               {currentTab === 'symptom_checker' && 'Analyze physical symptoms (stomach ache, headache, fever, chest pain) to receive instant clinical triage & specialist advice.'}
+              {currentTab === 'chatbot' && '24/7 Conversational AI assistant answering medical, disease, medication, dietary, and lifestyle questions.'}
               {currentTab === 'upload_report' && 'Upload medical lab reports to detect underlying diseases and receive required Rx medications.'}
               {currentTab === 'results' && 'Patient diagnostic probability report.'}
               {currentTab === 'history' && 'Query, review, and manage past risk summaries.'}
@@ -2476,6 +2449,193 @@ export default function App() {
                     </div>
                   </div>
                 )}
+              </div>
+
+            </div>
+
+          </div>
+        )}
+
+        {/* ======================================================== */}
+        {/* VIEW: HEALTH AI CHATBOT CLINICAL ASSISTANT */}
+        {/* ======================================================== */}
+        {currentTab === 'chatbot' && (
+          <div className="max-w-[1200px] mx-auto space-y-6 animate-fade-in no-print">
+            
+            {/* Upper Banner Card */}
+            <div className="glass-panel rounded-3xl p-6 border border-amber-200/80 shadow-xl relative overflow-hidden">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative z-10">
+                <div className="flex items-start gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 to-yellow-500 text-white flex items-center justify-center shadow-lg shadow-amber-500/30 shrink-0">
+                    <Bot className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 border border-amber-500/30">24/7 Clinical Assistant</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 border border-emerald-500/30">Instant AI Responses</span>
+                    </div>
+                    <h2 className="text-2xl font-black text-slate-900 mt-1">HealthBot AI Clinical Assistant</h2>
+                    <p className="text-xs text-slate-600 font-medium mt-1 max-w-2xl">
+                      Ask any questions regarding disease prevention, fasting blood sugar, blood pressure targets, cholesterol, symptoms, medications, or dietary guidelines.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setChatMessages([
+                    {
+                      id: Date.now(),
+                      sender: 'ai',
+                      category: 'Chat Reset',
+                      text: 'Hello! I am **HealthBot AI**. How can I assist you with your health questions today?',
+                      suggested_prompts: [
+                        'How to lower fasting blood sugar?',
+                        'What are normal blood pressure ranges?',
+                        'What causes stomach ache after meals?'
+                      ],
+                      time: 'Just now'
+                    }
+                  ])}
+                  className="px-3.5 py-2 bg-white border border-slate-200 hover:border-amber-400 text-slate-700 font-bold text-xs rounded-xl flex items-center gap-2 cursor-pointer shadow-2xs"
+                >
+                  <RefreshCw className="w-3.5 h-3.5 text-amber-600" />
+                  <span>Reset Conversation</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Suggested Prompts Pills */}
+            <div className="p-4 glass-panel border border-amber-200/60 rounded-3xl space-y-2">
+              <span className="text-[11px] font-extrabold text-amber-900 uppercase tracking-wider block">Suggested Healthcare Questions:</span>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { label: '🩸 How to lower fasting blood sugar?', prompt: 'How to lower fasting blood sugar naturally?' },
+                  { label: '🫀 What are normal blood pressure ranges?', prompt: 'What are normal blood pressure ranges for adults?' },
+                  { label: '🤢 What causes stomach ache after meals?', prompt: 'What causes stomach ache after eating meals?' },
+                  { label: '🧪 What is an ideal LDL cholesterol level?', prompt: 'What is ideal LDL cholesterol level and how to reduce it?' },
+                  { label: '💊 How does Metformin work?', prompt: 'What is Metformin used for and what are its side effects?' },
+                  { label: '🧘 What is the DASH diet protocol?', prompt: 'What is the DASH diet for hypertension?' }
+                ].map((item, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleSendChatMessage(item.prompt)}
+                    className="px-3.5 py-2 bg-white/90 border border-slate-200/80 hover:border-amber-400 hover:bg-amber-50/60 text-slate-800 font-extrabold text-xs rounded-xl transition-all cursor-pointer shadow-2xs"
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Main Chat Thread Window */}
+            <div className="glass-panel rounded-3xl border border-amber-200/80 shadow-xl flex flex-col h-[580px] overflow-hidden">
+              
+              {/* Chat Messages Stream */}
+              <div className="flex-1 p-6 overflow-y-auto space-y-6">
+                {chatMessages.map(msg => (
+                  <div
+                    key={msg.id}
+                    className={`flex items-start gap-3.5 ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}
+                  >
+                    {/* Avatar */}
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 font-bold text-xs shadow-md ${
+                      msg.sender === 'user'
+                        ? 'bg-slate-900 text-white'
+                        : 'bg-gradient-to-tr from-amber-500 to-yellow-500 text-white'
+                    }`}>
+                      {msg.sender === 'user' ? <User className="w-5 h-5" /> : <Bot className="w-5 h-5" />}
+                    </div>
+
+                    {/* Message Bubble Content */}
+                    <div className={`max-w-[80%] space-y-2 ${msg.sender === 'user' ? 'text-right' : ''}`}>
+                      <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 px-1">
+                        <span>{msg.sender === 'user' ? (userProfile?.name || 'Patient') : 'HealthBot AI'}</span>
+                        <span>•</span>
+                        <span>{msg.time}</span>
+                        {msg.category && (
+                          <span className="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 font-extrabold">
+                            {msg.category}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className={`p-4 rounded-2xl text-xs font-semibold leading-relaxed shadow-xs ${
+                        msg.sender === 'user'
+                          ? 'bg-slate-900 text-white rounded-tr-none'
+                          : 'bg-white/90 border border-slate-200/80 text-slate-800 rounded-tl-none space-y-2'
+                      }`}>
+                        {/* Format linebreaks and markdown headers */}
+                        <div className="whitespace-pre-line">
+                          {msg.text}
+                        </div>
+
+                        {msg.specialist && (
+                          <div className="pt-2 border-t border-slate-100 flex items-center gap-1.5 text-amber-900 font-bold">
+                            <Stethoscope className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                            <span>Recommended Specialist: {msg.specialist}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Suggested Prompts if returned */}
+                      {msg.suggested_prompts && msg.suggested_prompts.length > 0 && (
+                        <div className="pt-1 flex flex-wrap gap-1.5 justify-start">
+                          {msg.suggested_prompts.map((sp, i) => (
+                            <button
+                              key={i}
+                              type="button"
+                              onClick={() => handleSendChatMessage(sp)}
+                              className="px-2.5 py-1 bg-amber-50 border border-amber-200/80 text-amber-900 text-[11px] font-extrabold rounded-lg hover:bg-amber-100 cursor-pointer"
+                            >
+                              💡 {sp}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+
+                {chatLoading && (
+                  <div className="flex items-center gap-3 text-slate-500 font-bold text-xs p-3">
+                    <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center animate-bounce">
+                      <Bot className="w-4 h-4" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-amber-500 rounded-full animate-ping"></div>
+                      <span>HealthBot AI is analyzing clinical database...</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Chat Input Bar */}
+              <div className="p-4 bg-white/80 border-t border-amber-200/60 no-print">
+                <form
+                  onSubmit={e => {
+                    e.preventDefault();
+                    handleSendChatMessage();
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <input
+                    type="text"
+                    value={chatInput}
+                    onChange={e => setChatInput(e.target.value)}
+                    placeholder="Ask HealthBot AI any medical question (e.g. How to lower glucose? What is normal BP?)..."
+                    className="flex-1 px-4 py-3 bg-white border border-slate-200 rounded-2xl outline-none text-xs font-bold text-slate-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
+                  />
+                  <button
+                    type="submit"
+                    disabled={chatLoading || !chatInput.trim()}
+                    className="btn-magnetic px-5 py-3 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 disabled:opacity-40 text-white rounded-2xl font-extrabold text-xs flex items-center justify-center gap-2 shadow-md cursor-pointer"
+                  >
+                    <span>Send</span>
+                    <Send className="w-4 h-4" />
+                  </button>
+                </form>
               </div>
 
             </div>
@@ -3900,6 +4060,99 @@ export default function App() {
           </div>
         </div>
       )}
+      {/* Floating Persistent Medical Chatbot Widget */}
+      <div className="fixed bottom-6 right-6 z-50 no-print flex flex-col items-end gap-3">
+        {/* Floating Mini Chat Popup Drawer */}
+        {isChatWidgetOpen && (
+          <div className="w-[360px] sm:w-[400px] h-[500px] glass-panel border border-amber-300 shadow-2xl rounded-3xl flex flex-col overflow-hidden animate-fade-in transition-all">
+            {/* Mini Header */}
+            <div className="p-4 bg-gradient-to-r from-amber-500 to-yellow-500 text-white flex items-center justify-between shadow-xs">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center font-bold">
+                  <Bot className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-xs text-white">HealthBot AI Assistant</h4>
+                  <span className="text-[10px] text-white/80 font-bold flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-emerald-300 animate-ping inline-block"></span>
+                    24/7 Clinical AI Online
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsChatWidgetOpen(false)}
+                className="w-7 h-7 rounded-lg bg-white/20 hover:bg-white/30 flex items-center justify-center text-white font-bold text-xs"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Scrollable Chat Stream */}
+            <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-amber-50/20 text-xs">
+              {chatMessages.map(msg => (
+                <div key={msg.id} className={`flex items-start gap-2 ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}>
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs shrink-0 ${
+                    msg.sender === 'user' ? 'bg-slate-900 text-white' : 'bg-amber-500 text-white'
+                  }`}>
+                    {msg.sender === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+                  </div>
+                  <div className={`max-w-[82%] p-3 rounded-xl font-semibold leading-normal shadow-2xs ${
+                    msg.sender === 'user' ? 'bg-slate-900 text-white rounded-tr-none' : 'bg-white border border-slate-200 text-slate-800 rounded-tl-none whitespace-pre-line'
+                  }`}>
+                    {msg.text}
+                  </div>
+                </div>
+              ))}
+              {chatLoading && (
+                <div className="flex items-center gap-2 text-slate-500 text-[11px] font-bold p-2">
+                  <Bot className="w-4 h-4 text-amber-600 animate-spin" />
+                  <span>HealthBot AI is analyzing...</span>
+                </div>
+              )}
+            </div>
+
+            {/* Mini Input Box */}
+            <div className="p-3 bg-white border-t border-slate-200">
+              <form
+                onSubmit={e => {
+                  e.preventDefault();
+                  handleSendChatMessage();
+                }}
+                className="flex items-center gap-2"
+              >
+                <input
+                  type="text"
+                  value={chatInput}
+                  onChange={e => setChatInput(e.target.value)}
+                  placeholder="Ask any health question..."
+                  className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none text-xs font-bold text-slate-800 focus:border-amber-500"
+                />
+                <button
+                  type="submit"
+                  disabled={chatLoading || !chatInput.trim()}
+                  className="p-2 bg-amber-500 hover:bg-amber-600 disabled:opacity-40 text-white rounded-xl font-bold cursor-pointer"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Floating Launcher Button */}
+        <button
+          onClick={() => setIsChatWidgetOpen(!isChatWidgetOpen)}
+          className="group relative flex items-center gap-2.5 px-4 py-3 bg-gradient-to-r from-amber-500 to-yellow-500 text-white font-extrabold text-xs rounded-full shadow-2xl shadow-amber-500/50 hover:scale-105 transition-all duration-300 cursor-pointer"
+        >
+          <span className="relative flex h-3 w-3">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+          </span>
+          <MessageSquare className="w-5 h-5 text-white" />
+          <span>Ask HealthBot AI</span>
+        </button>
+      </div>
+
     </div>
   );
 }
