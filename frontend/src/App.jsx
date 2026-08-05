@@ -1253,6 +1253,7 @@ export default function App() {
             setFormData={setFormData}
             showToast={showToast}
             setCurrentTab={setCurrentTab}
+            authToken={authToken}
           />
         )}
 
