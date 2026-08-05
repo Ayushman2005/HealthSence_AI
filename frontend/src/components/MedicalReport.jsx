@@ -4,6 +4,8 @@ import {
   Sparkles, Activity, Pill, ShieldCheck, ArrowRight, Printer, Cpu, ScanText, RefreshCw 
 } from 'lucide-react';
 import Tesseract from 'tesseract.js';
+import { API_BASE_URL } from '../config';
+
 
 export default function MedicalReport({
   reportText,
@@ -104,7 +106,7 @@ export default function MedicalReport({
         headers['Authorization'] = `Bearer ${authToken}`;
       }
 
-      const res = await fetch("http://localhost:5000/api/extract-ocr", {
+      const res = await fetch(`${API_BASE_URL}/api/extract-ocr`, {
         method: "POST",
         headers: headers,
         body: formData

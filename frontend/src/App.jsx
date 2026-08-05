@@ -20,6 +20,8 @@ import History from './components/History';
 import Insights from './components/Insights';
 import Account from './components/Account';
 import AdminPortal from './components/AdminPortal';
+import { API_BASE_URL } from './config';
+
 
 import { ClipboardList, AlertCircle, ArrowRight } from 'lucide-react';
 
@@ -212,7 +214,7 @@ export default function App() {
     setLoginLoading(true);
     setLoginError('');
     try {
-      const res = await fetch("http://localhost:5000/api/login", {
+      const res = await fetch(`${API_BASE_URL}/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: loginUsername, password: loginPassword })
@@ -255,7 +257,7 @@ export default function App() {
     }
     
     try {
-      const res = await fetch("http://localhost:5000/api/register", {
+      const res = await fetch(`${API_BASE_URL}/api/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: registerName, username: registerUsername, password: registerPassword })
@@ -292,7 +294,7 @@ export default function App() {
   // Data fetching effects
   const fetchAssessments = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/assessments", {
+      const res = await fetch(`${API_BASE_URL}/api/assessments`, {
         headers: { "Authorization": `Bearer ${authToken}` }
       });
       if (res.status === 401) {
@@ -316,7 +318,7 @@ export default function App() {
 
   const fetchMetrics = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/metrics", {
+      const res = await fetch(`${API_BASE_URL}/api/metrics`, {
         headers: authToken ? { "Authorization": `Bearer ${authToken}` } : {}
       });
       if (res.status === 401) {
@@ -332,7 +334,7 @@ export default function App() {
 
   const fetchUserProfile = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/user/profile", {
+      const res = await fetch(`${API_BASE_URL}/api/user/profile`, {
         headers: { "Authorization": `Bearer ${authToken}` }
       });
       if (res.status === 401) {
@@ -352,7 +354,7 @@ export default function App() {
 
   const fetchAdminUsersList = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/admin/users", {
+      const res = await fetch(`${API_BASE_URL}/api/admin/users`, {
         headers: { "Authorization": `Bearer ${authToken}` }
       });
       if (res.status === 401) {
@@ -401,7 +403,7 @@ export default function App() {
     setProfileMessage('');
     setProfileError('');
     try {
-      const res = await fetch("http://localhost:5000/api/user/profile", {
+      const res = await fetch(`${API_BASE_URL}/api/user/profile`, {
         method: "PUT",
         headers: { 
           "Content-Type": "application/json",
@@ -439,7 +441,7 @@ export default function App() {
     }
     
     try {
-      const res = await fetch("http://localhost:5000/api/user/password", {
+      const res = await fetch(`${API_BASE_URL}/api/user/password`, {
         method: "PUT",
         headers: { 
           "Content-Type": "application/json",
@@ -472,7 +474,7 @@ export default function App() {
       return;
     }
     try {
-      const res = await fetch("http://localhost:5000/api/user/account", {
+      const res = await fetch(`${API_BASE_URL}/api/user/account`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${authToken}` }
       });
@@ -498,7 +500,7 @@ export default function App() {
 
     setAnalyzingSymptom(true);
     try {
-      const res = await fetch("http://localhost:5000/api/check-symptom", {
+      const res = await fetch(`${API_BASE_URL}/api/check-symptom`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -540,7 +542,7 @@ export default function App() {
     }, 250);
 
     try {
-      const res = await fetch("http://localhost:5000/api/analyze-report", {
+      const res = await fetch(`${API_BASE_URL}/api/analyze-report`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -589,7 +591,7 @@ export default function App() {
     setChatLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5000/api/chat", {
+      const res = await fetch(`${API_BASE_URL}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -627,7 +629,7 @@ export default function App() {
     setRetraining(true);
     try {
       showToast("Training ML pipeline for 20 models...", "primary");
-      const res = await fetch("http://localhost:5000/api/retrain", {
+      const res = await fetch(`${API_BASE_URL}/api/retrain`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${authToken}` }
       });
@@ -653,7 +655,7 @@ export default function App() {
   const handleDeleteAssessment = async (id) => {
     if (window.confirm("Are you sure you want to permanently delete this health assessment record?")) {
       try {
-        const res = await fetch(`http://localhost:5000/api/assessments/${id}`, {
+        const res = await fetch(`${API_BASE_URL}/api/assessments/${id}`, {
           method: 'DELETE',
           headers: { "Authorization": `Bearer ${authToken}` }
         });
@@ -797,7 +799,7 @@ export default function App() {
 
     let computedResults = null;
     try {
-      const res = await fetch("http://localhost:5000/api/predict", {
+      const res = await fetch(`${API_BASE_URL}/api/predict`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
