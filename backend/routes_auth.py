@@ -139,7 +139,16 @@ async def get_user_profile(
                 'created_at': 'System Default'
             }
         
-        user = db_fetchone("SELECT username, name, created_at FROM users WHERE username = %s", (username,))
+        admin_rec = db_fetchone("SELECT * FROM admin_credentials WHERE LOWER(username) = LOWER(%s)", (username,))
+        if admin_rec:
+            return {
+                'username': admin_rec['username'],
+                'name': 'System Administrator',
+                'role': 'admin',
+                'created_at': str(admin_rec.get('created_at', 'System Default'))
+            }
+
+        user = db_fetchone("SELECT username, name, created_at FROM users WHERE LOWER(username) = LOWER(%s)", (username,))
         if not user:
             raise HTTPException(status_code=404, detail='User not found')
         user['role'] = 'user'

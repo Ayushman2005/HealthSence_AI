@@ -316,7 +316,13 @@ export default function App() {
 
   const fetchMetrics = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/metrics");
+      const res = await fetch("http://localhost:5000/api/metrics", {
+        headers: authToken ? { "Authorization": `Bearer ${authToken}` } : {}
+      });
+      if (res.status === 401) {
+        handleLogout();
+        return;
+      }
       const data = await res.json();
       if (res.ok) setMetrics(data);
     } catch (err) {
@@ -334,7 +340,7 @@ export default function App() {
         return;
       }
       const data = await res.json();
-      if (res.ok && data.success) {
+      if (res.ok && (data.username || data.name || data.role)) {
         setUserProfile(data);
         setProfileName(data.name || '');
         if (data.role === 'admin') fetchAdminUsersList();
@@ -349,9 +355,13 @@ export default function App() {
       const res = await fetch("http://localhost:5000/api/admin/users", {
         headers: { "Authorization": `Bearer ${authToken}` }
       });
+      if (res.status === 401) {
+        handleLogout();
+        return;
+      }
       const data = await res.json();
-      if (res.ok && Array.isArray(data)) {
-        setAdminUsersList(data);
+      if (res.ok && data.success && Array.isArray(data.users)) {
+        setAdminUsersList(data.users);
       }
     } catch (err) {
       console.warn("Admin users fetch failed.", err);
