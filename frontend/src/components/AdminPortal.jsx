@@ -27,7 +27,7 @@ export default function AdminPortal({
             </div>
             <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight">System Administrator Control Center</h2>
             <p className="text-xs text-slate-300 max-w-2xl font-medium leading-relaxed">
-              Manage ML classification models, system performance diagnostics, user account databases, and diagnostic classification parameters.
+              Manage health risk assessment models, system performance diagnostics, user account databases, and diagnostic classification parameters.
             </p>
           </div>
 
@@ -37,20 +37,20 @@ export default function AdminPortal({
             className="btn-magnetic px-6 py-3.5 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white font-bold text-xs rounded-2xl flex items-center gap-2 shadow-lg shadow-amber-500/30 cursor-pointer transition shrink-0 disabled:opacity-50"
           >
             <Cpu className={`w-4 h-4 ${retraining ? 'animate-spin' : ''}`} />
-            {retraining ? 'Retraining ML Models...' : 'Retrain All ML Models'}
+            {retraining ? 'Updating Diagnostic Pipeline...' : 'Update Diagnostic Pipeline'}
           </button>
         </div>
       </div>
 
-      {/* Section 1: ML Models Status Grid */}
+      {/* Section 1: Models Status Grid */}
       <div className="space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <h3 className="font-extrabold text-xl text-slate-900 flex items-center gap-2">
             <Cpu className="w-5 h-5 text-amber-600" />
-            <span>Active ML Classification Models</span>
+            <span>Active Diagnostic Assessment Models</span>
           </h3>
           <span className="text-xs font-bold text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full">
-            4/4 Models Operational (100% Precision)
+            4/4 Models Operational (High Precision)
           </span>
         </div>
 
@@ -63,7 +63,7 @@ export default function AdminPortal({
           ].map(m => (
             <div key={m.id} className="glass-panel rounded-2xl p-5 border border-slate-200 space-y-3 relative overflow-hidden shadow-sm">
               <div className="flex justify-between items-center">
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">ML Model #{m.id}</span>
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Diagnostic Model #{m.id}</span>
                 <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
                   {m.status}
                 </span>
@@ -93,7 +93,7 @@ export default function AdminPortal({
 
           <div className="space-y-3 text-xs font-semibold">
             <div className="flex justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
-              <span className="text-slate-600">FastAPI ML Backend:</span>
+              <span className="text-slate-600">FastAPI Clinical Backend:</span>
               <strong className="text-emerald-600 font-bold flex items-center gap-1">
                 <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" /> Online (Port 5000)
               </strong>

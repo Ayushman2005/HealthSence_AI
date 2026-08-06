@@ -32,6 +32,12 @@ ChartJS.register(
 
 export default function App() {
   
+  // Force Dark Mode exclusively
+  useEffect(() => {
+    document.documentElement.classList.add('dark');
+    localStorage.setItem('healthrisk_theme', 'dark');
+  }, []);
+
   // Navigation & Authentication state
   const [currentTab, setCurrentTab] = useState('dashboard');
   const [authToken, setAuthToken] = useState(() => sessionStorage.getItem('healthrisk_auth_token') || '');
@@ -628,7 +634,7 @@ export default function App() {
   const handleRetrain = async () => {
     setRetraining(true);
     try {
-      showToast("Training ML pipeline for 20 models...", "primary");
+      showToast("Updating health diagnostic pipeline...", "primary");
       const res = await fetch(`${API_BASE_URL}/api/retrain`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${authToken}` }
@@ -1120,7 +1126,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col relative overflow-x-hidden smooth-hardware">
+    <div className="min-h-screen flex flex-col relative smooth-hardware">
 
       {/* Dynamic Animated Splash Loading Screen */}
       <SplashLoader 
@@ -1150,12 +1156,12 @@ export default function App() {
       />
 
       {/* Main Container */}
-      <main className="flex-1 p-3 sm:p-6 md:p-10 w-full max-w-[1600px] mx-auto overflow-hidden">
+      <main className="flex-1 p-3 sm:p-6 md:p-10 w-full max-w-[1600px] mx-auto">
 
         {/* Dynamic Page Header Title & Subtitle */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 no-print">
           <div>
-            <h1 className="text-3xl font-black tracking-tight text-slate-900">
+            <h1 className="text-3xl font-black tracking-tight text-white">
               {currentTab === 'dashboard' && 'AI Health Risk Dashboard'}
               {currentTab === 'wizard' && 'Clinical Diagnostics Wizard'}
               {currentTab === 'symptom_checker' && 'AI Symptom Checker & Clinical Triage'}
@@ -1167,9 +1173,9 @@ export default function App() {
               {currentTab === 'account' && 'Account Settings & Management'}
               {currentTab === 'admin_portal' && 'Admin Governance & Management Portal'}
             </h1>
-            <p className="text-sm font-semibold text-slate-600 mt-1">
+            <p className="text-sm font-semibold text-slate-400 mt-1">
               {currentTab === 'dashboard' && 'Precision predictive metrics and diagnostic profiles.'}
-              {currentTab === 'wizard' && 'Record biomarkers to trigger machine learning predictions.'}
+              {currentTab === 'wizard' && 'Record biomarkers to calculate diagnostic health risk evaluations.'}
               {currentTab === 'symptom_checker' && 'Analyze physical symptoms (stomach ache, headache, fever, chest pain) to receive instant clinical triage & specialist advice.'}
               {currentTab === 'chatbot' && '24/7 Conversational AI assistant answering medical, disease, medication, dietary, and lifestyle questions.'}
               {currentTab === 'upload_report' && 'Upload medical lab reports to detect underlying diseases and receive required Rx medications.'}
@@ -1177,7 +1183,7 @@ export default function App() {
               {currentTab === 'history' && 'Query, review, and manage past risk summaries.'}
               {currentTab === 'insights' && 'Chart vital sign shifts and health index progressions.'}
               {currentTab === 'account' && 'Manage your personal credentials, profile name, and account status.'}
-              {currentTab === 'admin_portal' && 'Manage ML classification models, system health diagnostics, user accounts, and classification pipelines.'}
+              {currentTab === 'admin_portal' && 'Manage system diagnostics, user accounts, and health assessment pipelines.'}
             </p>
           </div>
         </div>

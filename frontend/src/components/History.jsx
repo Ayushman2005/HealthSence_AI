@@ -25,7 +25,7 @@ export default function History({
             placeholder="Search patient name..."
             value={historySearch}
             onChange={e => setHistorySearch(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 glass-input rounded-xl text-sm font-semibold text-slate-900 transition"
+            className="w-full pl-12 pr-4 py-3 glass-input rounded-2xl text-sm font-extrabold transition shadow-inner"
           />
         </div>
         
@@ -33,7 +33,7 @@ export default function History({
           <select 
             value={historyFilter}
             onChange={e => setHistoryFilter(e.target.value)}
-            className="w-full px-4 py-3 glass-input rounded-xl text-sm font-semibold text-slate-900 transition cursor-pointer"
+            className="w-full px-4 py-3 glass-input rounded-2xl text-sm font-extrabold transition cursor-pointer"
           >
             <option value="all">All Risk Classes</option>
             <option value="high">High Risk Alerts</option>
@@ -45,16 +45,16 @@ export default function History({
 
       {/* History grid table */}
       {filteredAssessments.length === 0 ? (
-        <div className="glass-panel rounded-2xl p-12 text-center flex flex-col items-center gap-4">
-          <Inbox className="w-16 h-16 text-amber-500" />
-          <h3 className="font-extrabold text-xl text-slate-900">No logs found</h3>
-          <p className="text-sm text-slate-600 font-medium">No diagnostic assessments fit the selected query parameters.</p>
+        <div className="glass-panel rounded-3xl p-12 text-center flex flex-col items-center gap-4 border border-amber-500/20">
+          <Inbox className="w-16 h-16 text-amber-500 animate-pulse" />
+          <h3 className="font-black text-xl text-slate-900 dark:text-white">No logs found</h3>
+          <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">No diagnostic assessments fit the selected query parameters.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto border border-slate-200/90 rounded-2xl glass-panel shadow-sm">
+        <div className="overflow-x-auto border border-amber-500/20 rounded-3xl glass-panel shadow-sm">
           <table className="w-full text-left border-collapse text-sm">
             <thead>
-              <tr className="bg-slate-100/80 border-b border-slate-200 text-slate-700 font-extrabold">
+              <tr className="bg-amber-500/10 border-b border-amber-500/20 text-slate-700 dark:text-slate-200 font-black">
                 <th className="p-4 px-6">Patient Profile</th>
                 <th className="p-4">Calculated Date</th>
                 <th className="p-4">Health Score</th>
@@ -66,7 +66,7 @@ export default function History({
                 <th className="p-4 px-6 text-center">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200/80">
+            <tbody className="divide-y divide-amber-500/10">
               {filteredAssessments.map(item => {
                 const maxVal = Math.max(item.results.risks.diabetes, item.results.risks.heartDisease, item.results.risks.kidneyDisease, item.results.risks.liverDisease);
                 const rDetails = getRiskLevelDetails(maxVal);
@@ -74,21 +74,21 @@ export default function History({
                 const dateFormatted = `${dateObj.toLocaleDateString()} ${dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
                 
                 return (
-                  <tr key={item.id} className="hover:bg-amber-50/40 transition">
+                  <tr key={item.id} className="hover:bg-amber-500/5 transition">
                     <td className="p-4 px-6">
                       <div className="flex flex-col">
-                        <span className="font-bold text-slate-900">{item.name}</span>
-                        <span className="text-xs text-slate-500 font-semibold">{item.personal.gender.toUpperCase()}, {item.personal.age} yrs</span>
+                        <span className="font-black text-slate-900 dark:text-white">{item.name}</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 font-bold">{item.personal.gender.toUpperCase()}, {item.personal.age} yrs</span>
                       </div>
                     </td>
-                    <td className="p-4 font-semibold text-slate-600">{dateFormatted}</td>
-                    <td className="p-4 font-extrabold text-slate-900">{item.results.overallScore}/100</td>
-                    <td className="p-4 font-bold text-slate-700">{item.results.risks.diabetes}%</td>
-                    <td className="p-4 font-bold text-slate-700">{item.results.risks.heartDisease}%</td>
-                    <td className="p-4 font-bold text-slate-700">{item.results.risks.kidneyDisease}%</td>
-                    <td className="p-4 font-bold text-slate-700">{item.results.risks.liverDisease}%</td>
+                    <td className="p-4 font-bold text-slate-600 dark:text-slate-300">{dateFormatted}</td>
+                    <td className="p-4 font-black text-amber-500">{item.results.overallScore}/100</td>
+                    <td className="p-4 font-extrabold text-slate-800 dark:text-slate-200">{item.results.risks.diabetes}%</td>
+                    <td className="p-4 font-extrabold text-slate-800 dark:text-slate-200">{item.results.risks.heartDisease}%</td>
+                    <td className="p-4 font-extrabold text-slate-800 dark:text-slate-200">{item.results.risks.kidneyDisease}%</td>
+                    <td className="p-4 font-extrabold text-slate-800 dark:text-slate-200">{item.results.risks.liverDisease}%</td>
                     <td className="p-4">
-                      <span className={`text-[10px] font-bold uppercase tracking-wider border rounded-full px-2.5 py-0.5 ${rDetails.badge}`}>
+                      <span className={`text-[10px] font-black uppercase tracking-wider border rounded-full px-2.5 py-0.5 ${rDetails.badge}`}>
                         {rDetails.label.split(' ')[0]}
                       </span>
                     </td>
@@ -99,16 +99,16 @@ export default function History({
                             setResultsAssessment(item);
                             setCurrentTab('results');
                           }}
-                          className="w-8 h-8 rounded-lg border border-slate-200 text-slate-600 hover:text-amber-600 hover:border-amber-500/40 hover:bg-amber-50 flex items-center justify-center cursor-pointer transition"
-                          title="View Diagnostic Report"
+                          className="p-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 rounded-xl transition cursor-pointer"
+                          title="View Full Report"
                         >
                           <Eye className="w-4 h-4" />
                         </button>
                         
                         <button 
                           onClick={() => handleDeleteAssessment(item.id)}
-                          className="w-8 h-8 rounded-lg border border-slate-200 text-slate-600 hover:text-rose-600 hover:border-rose-500/40 hover:bg-rose-50 flex items-center justify-center cursor-pointer transition"
-                          title="Delete Log Record"
+                          className="p-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 rounded-xl transition cursor-pointer"
+                          title="Delete Assessment Record"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
