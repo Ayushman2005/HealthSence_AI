@@ -127,3 +127,6 @@ $RECYCLE.BIN/
 *.sln
 *.sw?
 backend/supabase_schema.sql
+
+postman
+.postman
