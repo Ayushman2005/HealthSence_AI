@@ -14,6 +14,7 @@ frontend/.npm/
 frontend/.eslintcache
 frontend/.stylelintcache
 frontend/*.tsbuildinfo
+frontend/.env.example
 
 # ------------------------------------------
 # Python Backend
