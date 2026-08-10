@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Menu, X, LayoutDashboard, HeartPulse, Stethoscope, Bot, FileText, 
   ClipboardList, TrendingUp, Settings, ShieldAlert, LogOut, 
-  User, Zap, ChevronDown, Cpu, Sparkles, Activity 
+  User, Zap, ChevronDown, Cpu, Sparkles, Activity, Search, Volume2, VolumeX, Command
 } from 'lucide-react';
+import { soundFX } from '../utils/audioFX';
 
 export default function Navbar({
   currentTab,
@@ -14,10 +15,26 @@ export default function Navbar({
   setActiveUser,
   authToken,
   handleLogout,
-  setShowSimulatorModal
+  setShowSimulatorModal,
+  setIsCommandPaletteOpen
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [systemTime, setSystemTime] = useState(new Date().toLocaleTimeString());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSystemTime(new Date().toLocaleTimeString());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const toggleAudio = () => {
+    const newState = soundFX.toggleSound();
+    setSoundEnabled(newState);
+    if (newState) soundFX.play('switch');
+  };
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -34,41 +51,53 @@ export default function Navbar({
     navItems.push({ id: 'admin_portal', label: 'Admin Console', icon: ShieldAlert, badge: 'ADMIN' });
   }
 
+  const handleTabChange = (item) => {
+    soundFX.play('switch');
+    if (item.onClick) item.onClick();
+    setCurrentTab(item.id);
+  };
+
   return (
     <>
       <header className="sticky top-0 z-50 glass-header no-print border-b border-amber-500/20 shadow-2xl backdrop-blur-2xl">
         {/* Animated Top Ambient Glowing Sweep Border */}
         <div className="h-[2.5px] w-full bg-gradient-to-r from-transparent via-amber-500 via-yellow-400 to-transparent animate-pulse" />
 
-        <div className="w-full px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 gap-4 w-full">
+        <div className="w-full px-3 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16 gap-3 sm:gap-4 w-full">
             
-            {/* Left Section: Hamburger Menu (Three Lines) + Brand Logo */}
-            <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+            {/* Left Section: Hamburger Menu + Brand Logo */}
+            <div className="flex items-center gap-2.5 sm:gap-4 shrink-0">
               
               {/* Three Lines Hamburger Button */}
               <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
+                onClick={() => {
+                  soundFX.play('click');
+                  setSidebarOpen(!sidebarOpen);
+                }}
                 className="p-2.5 rounded-2xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 hover:text-amber-300 transition-all duration-300 cursor-pointer shadow-md hover:scale-105 active:scale-95 group"
                 title="Open Main Menu"
               >
                 {sidebarOpen ? (
-                  <X className="w-6 h-6 text-amber-400 group-hover:rotate-90 transition-transform duration-300" />
+                  <X className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400 group-hover:rotate-90 transition-transform duration-300" />
                 ) : (
-                  <Menu className="w-6 h-6 text-amber-400 group-hover:scale-110 transition-transform duration-300" />
+                  <Menu className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400 group-hover:scale-110 transition-transform duration-300" />
                 )}
               </button>
 
               {/* Brand Logo & Interactive Title */}
               <div 
                 className="flex items-center gap-3 cursor-pointer select-none group shrink-0"
-                onClick={() => setCurrentTab('dashboard')}
+                onClick={() => {
+                  soundFX.play('switch');
+                  setCurrentTab('dashboard');
+                }}
               >
                 <div className="relative">
                   {/* Outer pulsing neon glow ring */}
                   <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-400 opacity-40 blur-md group-hover:opacity-100 group-hover:blur-lg transition-all duration-300 animate-pulse" />
                   
-                  <div className="relative w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 via-amber-600 to-yellow-400 p-[2px] shadow-lg shadow-amber-500/30 group-hover:scale-110 transition-transform duration-300">
+                  <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-tr from-amber-500 via-amber-600 to-yellow-400 p-[2px] shadow-lg shadow-amber-500/30 group-hover:scale-110 transition-transform duration-300">
                     <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center p-1.5 overflow-hidden">
                       <img src="/logo.png" alt="HealthSence AI Logo" className="w-full h-full object-contain group-hover:rotate-6 group-hover:scale-110 transition-all duration-300" />
                     </div>
@@ -82,18 +111,18 @@ export default function Navbar({
 
                 <div className="flex flex-col">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xl font-black tracking-tight text-white group-hover:text-amber-400 transition-colors">
+                    <span className="text-lg sm:text-xl font-black tracking-tight text-white group-hover:text-amber-400 transition-colors">
                       Health<span className="text-amber-500 font-black">Sence</span>
                     </span>
-                    <span className="bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500 text-white text-[10px] font-black tracking-wider px-1.5 py-0.5 rounded-lg shadow-md shadow-amber-500/30 uppercase">
+                    <span className="bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500 text-white text-[9px] sm:text-[10px] font-black tracking-wider px-1.5 py-0.5 rounded-lg shadow-md shadow-amber-500/30 uppercase">
                       AI
                     </span>
                   </div>
-                  <div className="flex items-center gap-1.5 -mt-0.5">
+                  <div className="hidden sm:flex items-center gap-1.5 -mt-0.5">
                     <span className="text-[9px] font-black uppercase tracking-widest text-amber-400">
                       Clinical Risk Intelligence
                     </span>
-                    <span className="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[8px] font-black">
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[8px] font-black">
                       <span className="w-1 h-1 rounded-full bg-emerald-400 animate-ping" /> Online
                     </span>
                   </div>
@@ -102,21 +131,52 @@ export default function Navbar({
 
             </div>
 
-            {/* Middle Section: Active Tab Quick Indicator Badge */}
-            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-slate-900/80 border border-amber-500/20 text-slate-300 text-xs font-black shadow-inner">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-              <span>Current Module:</span>
-              <span className="text-amber-400 font-black uppercase tracking-wider">
-                {navItems.find(i => i.id === currentTab)?.label || 'Dashboard'}
-              </span>
+            {/* Middle Section: Quick Command Bar & Live Telemetry */}
+            <div className="hidden lg:flex items-center gap-3">
+              {/* Command Palette Launcher */}
+              <button
+                onClick={() => {
+                  soundFX.play('click');
+                  if (setIsCommandPaletteOpen) setIsCommandPaletteOpen(true);
+                }}
+                className="flex items-center gap-3 px-3.5 py-2 rounded-2xl bg-slate-900/80 hover:bg-slate-800/90 border border-amber-500/25 hover:border-amber-400/60 text-slate-300 hover:text-white text-xs font-semibold shadow-inner transition-all group cursor-pointer"
+              >
+                <Search className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
+                <span className="text-slate-400 group-hover:text-slate-200">Search modules or actions...</span>
+                <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-lg bg-slate-800 border border-slate-700 text-[10px] font-bold text-amber-400">
+                  <Command className="w-2.5 h-2.5" /> K
+                </span>
+              </button>
+
+              {/* Real-time Telemetry ECG Heartbeat & System Clock */}
+              <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-2xl bg-slate-900/60 border border-slate-800 text-[11px] font-mono text-slate-300">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span className="text-slate-400">{systemTime}</span>
+                <span className="text-amber-400/80 font-bold border-l border-slate-700 pl-2">12ms Latency</span>
+              </div>
             </div>
 
             {/* Right Action Controls */}
-            <div className="flex items-center gap-3 shrink-0">
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+
+              {/* Sound FX Audio Feedback Toggle Button */}
+              <button
+                onClick={toggleAudio}
+                className="p-2 sm:p-2.5 rounded-2xl bg-slate-900/80 hover:bg-amber-500/15 border border-amber-500/30 text-amber-400 hover:text-amber-300 transition-all cursor-pointer shadow-xs"
+                title={soundEnabled ? "Mute Clinical UI Audio" : "Enable Clinical UI Audio"}
+              >
+                {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4 text-slate-500" />}
+              </button>
 
               {/* Live Risk Simulator Button */}
               <button
-                onClick={() => setShowSimulatorModal(true)}
+                onClick={() => {
+                  soundFX.play('click');
+                  setShowSimulatorModal(true);
+                }}
                 className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-gradient-to-r from-amber-500/15 via-yellow-500/20 to-amber-500/15 border border-amber-500/40 hover:border-amber-400 text-amber-300 hover:text-white text-xs font-black transition-all duration-300 shadow-md hover:shadow-lg hover:shadow-amber-500/30 cursor-pointer btn-magnetic group"
               >
                 <Zap className="w-4 h-4 text-amber-400 group-hover:scale-125 transition-transform animate-heartbeat" />
@@ -127,8 +187,11 @@ export default function Navbar({
               {authToken ? (
                 <div className="relative">
                   <button
-                    onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                    className="flex items-center gap-2.5 p-1.5 pl-3 rounded-2xl border border-amber-500/30 hover:border-amber-400 bg-slate-900/90 backdrop-blur-xl shadow-md transition-all duration-300 cursor-pointer group"
+                    onClick={() => {
+                      soundFX.play('click');
+                      setProfileDropdownOpen(!profileDropdownOpen);
+                    }}
+                    className="flex items-center gap-2 sm:gap-2.5 p-1.5 pl-2.5 sm:pl-3 rounded-2xl border border-amber-500/30 hover:border-amber-400 bg-slate-900/90 backdrop-blur-xl shadow-md transition-all duration-300 cursor-pointer group"
                   >
                     <div className="relative w-7.5 h-7.5 rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-400 p-[1.5px] shadow-md shadow-amber-500/30">
                       <div className="w-full h-full bg-slate-950 rounded-[9px] text-amber-400 font-black text-xs flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition-colors">
@@ -169,6 +232,7 @@ export default function Navbar({
                       <div className="py-1 px-1.5 space-y-1">
                         <button
                           onClick={() => {
+                            soundFX.play('click');
                             setCurrentTab('account');
                             setProfileDropdownOpen(false);
                           }}
@@ -180,6 +244,7 @@ export default function Navbar({
 
                         <button
                           onClick={() => {
+                            soundFX.play('alert');
                             handleLogout();
                             setProfileDropdownOpen(false);
                           }}
@@ -246,8 +311,7 @@ export default function Navbar({
                   <button
                     key={item.id}
                     onClick={() => {
-                      if (item.onClick) item.onClick();
-                      setCurrentTab(item.id);
+                      handleTabChange(item);
                       setSidebarOpen(false);
                     }}
                     className={`w-full px-4 py-3 rounded-2xl text-xs font-black flex items-center justify-between transition-all duration-200 cursor-pointer ${
@@ -279,6 +343,7 @@ export default function Navbar({
             <div className="p-4 border-t border-amber-500/20 bg-slate-900/60 space-y-3">
               <button
                 onClick={() => {
+                  soundFX.play('click');
                   setShowSimulatorModal(true);
                   setSidebarOpen(false);
                 }}

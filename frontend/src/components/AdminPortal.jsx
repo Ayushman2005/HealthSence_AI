@@ -12,7 +12,7 @@ export default function AdminPortal({
   if (!userProfile || userProfile.role !== 'admin') return null;
 
   return (
-    <div className="space-y-8 animate-fade-in no-print">
+    <div className="space-y-8 animate-fade-in no-print text-slate-100">
       {/* Admin Portal Banner */}
       <div className="glass-panel rounded-3xl p-6 md:p-8 bg-gradient-to-r from-slate-900 via-amber-950 to-slate-900 text-white relative overflow-hidden border border-amber-500/30 shadow-2xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
@@ -21,8 +21,8 @@ export default function AdminPortal({
               <span className="px-3 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-black uppercase tracking-widest rounded-full flex items-center gap-1.5">
                 <ShieldAlert className="w-3.5 h-3.5" /> Administrator Access Level
               </span>
-              <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-black uppercase tracking-widest rounded-full">
-                System Governance Active
+              <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-black uppercase tracking-widest rounded-full flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> System Governance Active
               </span>
             </div>
             <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight">System Administrator Control Center</h2>
@@ -45,11 +45,12 @@ export default function AdminPortal({
       {/* Section 1: Models Status Grid */}
       <div className="space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <h3 className="font-extrabold text-xl text-slate-900 flex items-center gap-2">
-            <Cpu className="w-5 h-5 text-amber-600" />
+          <h3 className="font-extrabold text-xl text-white flex items-center gap-2">
+            <Cpu className="w-5 h-5 text-amber-400" />
             <span>Active Diagnostic Assessment Models</span>
           </h3>
-          <span className="text-xs font-bold text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full">
+          <span className="text-xs font-bold text-amber-300 bg-amber-500/15 border border-amber-500/30 px-3.5 py-1 rounded-full shadow-xs flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             4/4 Models Operational (High Precision)
           </span>
         </div>
@@ -61,20 +62,21 @@ export default function AdminPortal({
             { id: 'kidney', name: 'Kidney Disease Classifier', algo: 'ExtraTrees', features: 15, accuracy: '100.0%', color: 'from-purple-500 to-indigo-600', status: 'Loaded' },
             { id: 'liver', name: 'Liver Disease Classifier', algo: 'RandomForest', features: 15, accuracy: '100.0%', color: 'from-amber-500 to-orange-600', status: 'Loaded' }
           ].map(m => (
-            <div key={m.id} className="glass-panel rounded-2xl p-5 border border-slate-200 space-y-3 relative overflow-hidden shadow-sm">
+            <div key={m.id} className="glass-panel glass-panel-hover rounded-2xl p-5 border border-amber-500/20 space-y-3 relative overflow-hidden shadow-lg">
               <div className="flex justify-between items-center">
                 <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Diagnostic Model #{m.id}</span>
-                <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span className="text-[9px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 flex items-center gap-1 shadow-xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                   {m.status}
                 </span>
               </div>
               <div>
-                <h4 className="font-extrabold text-base text-slate-900">{m.name}</h4>
-                <p className="text-[11px] font-semibold text-slate-500 mt-0.5">Algorithm: {m.algo}</p>
+                <h4 className="font-extrabold text-base text-white tracking-tight">{m.name}</h4>
+                <p className="text-[11px] font-semibold text-slate-400 mt-0.5">Algorithm: <span className="text-amber-400 font-mono font-bold">{m.algo}</span></p>
               </div>
-              <div className="pt-2 border-t border-slate-100 flex justify-between text-xs font-bold">
-                <span className="text-slate-500">Verified Accuracy:</span>
-                <span className="text-emerald-600 font-extrabold">{m.accuracy}</span>
+              <div className="pt-2.5 border-t border-slate-800/80 flex justify-between text-xs font-bold">
+                <span className="text-slate-400">Verified Accuracy:</span>
+                <span className="text-emerald-400 font-extrabold font-mono">{m.accuracy}</span>
               </div>
             </div>
           ))}
@@ -85,37 +87,37 @@ export default function AdminPortal({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* System Diagnostics Card */}
-        <div className="lg:col-span-5 glass-panel rounded-3xl p-6 space-y-5">
-          <h3 className="font-extrabold text-lg text-slate-900 flex items-center gap-2 border-b border-slate-200/80 pb-3">
-            <Zap className="w-5 h-5 text-amber-500" />
+        <div className="lg:col-span-5 glass-panel rounded-3xl p-6 space-y-5 border border-amber-500/20 shadow-xl">
+          <h3 className="font-extrabold text-lg text-white flex items-center gap-2 border-b border-slate-800/80 pb-3">
+            <Zap className="w-5 h-5 text-amber-400 animate-pulse" />
             <span>System Diagnostics & Health</span>
           </h3>
 
           <div className="space-y-3 text-xs font-semibold">
-            <div className="flex justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
-              <span className="text-slate-600">FastAPI Clinical Backend:</span>
-              <strong className="text-emerald-600 font-bold flex items-center gap-1">
-                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" /> Online (Port 5000)
+            <div className="flex justify-between items-center p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-xs hover:border-amber-500/30 transition-all">
+              <span className="text-slate-300 font-medium">FastAPI Clinical Backend:</span>
+              <strong className="text-emerald-400 font-bold flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" /> Online (Port 5000)
               </strong>
             </div>
-            <div className="flex justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
-              <span className="text-slate-600">Database Engine:</span>
-              <strong className="text-amber-600 font-bold">Active Connection Pool</strong>
+            <div className="flex justify-between items-center p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-xs hover:border-amber-500/30 transition-all">
+              <span className="text-slate-300 font-medium">Database Engine:</span>
+              <strong className="text-amber-400 font-bold">Active Connection Pool</strong>
             </div>
-            <div className="flex justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
-              <span className="text-slate-600">Inference Response Time:</span>
-              <strong className="text-slate-900 font-bold">&lt; 14ms average</strong>
+            <div className="flex justify-between items-center p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-xs hover:border-amber-500/30 transition-all">
+              <span className="text-slate-300 font-medium">Inference Response Time:</span>
+              <strong className="text-white font-bold font-mono">&lt; 14ms average</strong>
             </div>
-            <div className="flex justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
-              <span className="text-slate-600">Cached Patient Assessments:</span>
-              <strong className="text-slate-900 font-bold">{assessments.length} Records</strong>
+            <div className="flex justify-between items-center p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-xs hover:border-amber-500/30 transition-all">
+              <span className="text-slate-300 font-medium">Cached Patient Assessments:</span>
+              <strong className="text-white font-bold font-mono">{assessments.length} Records</strong>
             </div>
           </div>
 
           <div className="pt-2">
             <button 
               onClick={() => showToast("System diagnostics refreshed. All pipelines nominal.", "success")}
-              className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-bold text-xs transition cursor-pointer"
+              className="w-full py-3 bg-gradient-to-r from-slate-800 to-slate-900 hover:from-amber-500/20 hover:to-yellow-500/20 text-amber-300 hover:text-white border border-amber-500/30 hover:border-amber-400 rounded-2xl font-bold text-xs transition-all duration-300 cursor-pointer shadow-md hover:shadow-amber-500/20 active:scale-[0.98] btn-magnetic"
             >
               Run Diagnostic Health Check
             </button>
@@ -123,13 +125,13 @@ export default function AdminPortal({
         </div>
 
         {/* User Accounts & Patient History Manager */}
-        <div className="lg:col-span-7 glass-panel rounded-3xl p-6 space-y-5">
-          <div className="flex items-center justify-between border-b border-slate-200/80 pb-3">
-            <h3 className="font-extrabold text-lg text-slate-900 flex items-center gap-2">
-              <User className="w-5 h-5 text-amber-600" />
+        <div className="lg:col-span-7 glass-panel rounded-3xl p-6 space-y-5 border border-amber-500/20 shadow-xl">
+          <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+            <h3 className="font-extrabold text-lg text-white flex items-center gap-2">
+              <User className="w-5 h-5 text-amber-400" />
               <span>Registered Accounts & Patients Log</span>
             </h3>
-            <span className="text-xs font-bold text-slate-500">
+            <span className="text-xs font-bold text-slate-400 bg-slate-900/60 border border-slate-800 px-3 py-1 rounded-full">
               {adminUsersList.length || 1} User Accounts
             </span>
           </div>
@@ -137,29 +139,32 @@ export default function AdminPortal({
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-slate-200 text-slate-400 font-extrabold uppercase tracking-wider text-[10px]">
+                <tr className="border-b border-slate-800 text-slate-400 font-extrabold uppercase tracking-wider text-[10px]">
                   <th className="pb-3">User</th>
                   <th className="pb-3">Username</th>
                   <th className="pb-3">Role</th>
                   <th className="pb-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
-                <tr className="hover:bg-slate-50">
-                  <td className="py-3 font-bold text-slate-900">System Administrator</td>
-                  <td className="py-3 font-mono text-amber-600">@admin</td>
-                  <td className="py-3"><span className="px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-black text-[9px] uppercase">ADMIN</span></td>
-                  <td className="py-3 text-right"><span className="text-[10px] text-slate-400">System Protected</span></td>
+              <tbody className="divide-y divide-slate-800/60 font-semibold text-slate-200">
+                <tr className="hover:bg-slate-800/40 transition-colors">
+                  <td className="py-3.5 font-bold text-white flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-amber-400 shadow-xs" />
+                    <span>System Administrator</span>
+                  </td>
+                  <td className="py-3.5 font-mono text-amber-400 font-bold">@admin</td>
+                  <td className="py-3.5"><span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-black text-[9px] uppercase tracking-wider">ADMIN</span></td>
+                  <td className="py-3.5 text-right"><span className="text-[10px] text-slate-400 font-bold bg-slate-900/80 px-2.5 py-1 rounded-lg border border-slate-800">System Protected</span></td>
                 </tr>
                 {adminUsersList.map((u, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50">
-                    <td className="py-3 font-bold text-slate-900">{u.name}</td>
-                    <td className="py-3 font-mono text-amber-600">@{u.username}</td>
-                    <td className="py-3"><span className="px-2 py-0.5 rounded bg-amber-50 text-amber-700 font-bold text-[9px] uppercase">USER</span></td>
-                    <td className="py-3 text-right">
+                  <tr key={idx} className="hover:bg-slate-800/40 transition-colors">
+                    <td className="py-3.5 font-bold text-white">{u.name}</td>
+                    <td className="py-3.5 font-mono text-amber-400 font-bold">@{u.username}</td>
+                    <td className="py-3.5"><span className="px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700 font-bold text-[9px] uppercase tracking-wider">USER</span></td>
+                    <td className="py-3.5 text-right">
                       <button 
                         onClick={() => showToast(`User @${u.username} account inspected.`, "info")}
-                        className="px-2.5 py-1 rounded bg-slate-200 hover:bg-slate-300 text-slate-800 text-[10px] font-bold cursor-pointer transition"
+                        className="px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-amber-500/20 text-slate-300 hover:text-amber-300 border border-slate-700 hover:border-amber-500/30 text-[10px] font-bold cursor-pointer transition-all duration-200 active:scale-95 shadow-xs"
                       >
                         Inspect Log
                       </button>

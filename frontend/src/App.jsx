@@ -1198,6 +1198,7 @@ export default function App() {
             overviewTrendData={overviewTrendData}
             getScoreBadgeStyles={getScoreBadgeStyles}
             setCurrentTab={setCurrentTab}
+            setShowSimulatorModal={setShowSimulatorModal}
           />
         )}
 
