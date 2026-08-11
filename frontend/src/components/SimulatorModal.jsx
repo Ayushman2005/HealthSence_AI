@@ -17,24 +17,30 @@ export default function SimulatorModal({
     {
       name: 'Athletic / Optimal',
       icon: '🏃',
-      params: { glucose: 85, bpSystolic: 110, bpDiastolic: 72, bmi: 21.5, cholesterol: 165, insulin: 6, smoking: 'no', alcohol: 'low' }
+      params: { age: 28, glucose: 85, bpSystolic: 110, bpDiastolic: 72, bmi: 21.5, cholesterol: 165, insulin: 6, smoking: 'no', alcohol: 'low', physicalActivity: 'active' }
     },
     {
       name: 'Sedentary Standard',
       icon: '🛋️',
-      params: { glucose: 105, bpSystolic: 128, bpDiastolic: 82, bmi: 26.2, cholesterol: 205, insulin: 12, smoking: 'no', alcohol: 'moderate' }
+      params: { age: 42, glucose: 105, bpSystolic: 128, bpDiastolic: 82, bmi: 26.2, cholesterol: 205, insulin: 12, smoking: 'no', alcohol: 'moderate', physicalActivity: 'sedentary' }
     },
     {
       name: 'Metabolic Warning',
       icon: '⚠️',
-      params: { glucose: 155, bpSystolic: 142, bpDiastolic: 90, bmi: 31.0, cholesterol: 245, insulin: 22, smoking: 'yes', alcohol: 'moderate' }
+      params: { age: 52, glucose: 155, bpSystolic: 142, bpDiastolic: 90, bmi: 31.0, cholesterol: 245, insulin: 22, smoking: 'yes', alcohol: 'moderate', physicalActivity: 'sedentary' }
     },
     {
       name: 'Hypertensive Crisis',
       icon: '🚨',
-      params: { glucose: 195, bpSystolic: 175, bpDiastolic: 108, bmi: 35.5, cholesterol: 290, insulin: 35, smoking: 'yes', alcohol: 'high' }
+      params: { age: 60, glucose: 195, bpSystolic: 175, bpDiastolic: 108, bmi: 35.5, cholesterol: 290, insulin: 35, smoking: 'yes', alcohol: 'high', physicalActivity: 'sedentary' }
     }
   ];
+
+  const overallScore = Number.isFinite(liveSimResults?.overallScore) ? liveSimResults.overallScore : 85;
+  const diabetesRisk = Number.isFinite(liveSimResults?.risks?.diabetes) ? liveSimResults.risks.diabetes : 10;
+  const heartRisk = Number.isFinite(liveSimResults?.risks?.heartDisease) ? liveSimResults.risks.heartDisease : 10;
+  const kidneyRisk = Number.isFinite(liveSimResults?.risks?.kidneyDisease) ? liveSimResults.risks.kidneyDisease : 10;
+  const liverRisk = Number.isFinite(liveSimResults?.risks?.liverDisease) ? liveSimResults.risks.liverDisease : 10;
 
   return (
     <div className="fixed inset-0 z-[999] glass-modal-backdrop flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fade-in no-print">
@@ -75,7 +81,7 @@ export default function SimulatorModal({
                 type="button"
                 onClick={() => {
                   soundFX.play('click');
-                  setSimParams(p.params);
+                  setSimParams(prev => ({ ...prev, ...p.params }));
                 }}
                 className="p-2.5 rounded-xl bg-slate-900/90 hover:bg-amber-500/15 border border-slate-800 hover:border-amber-500/40 text-left transition-all cursor-pointer group"
               >
@@ -96,13 +102,13 @@ export default function SimulatorModal({
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs font-bold">
                 <span className="text-slate-300">Fasting Blood Glucose</span>
-                <span className="text-amber-400 font-mono font-black">{simParams.glucose} mg/dL</span>
+                <span className="text-amber-400 font-mono font-black">{simParams?.glucose ?? 100} mg/dL</span>
               </div>
               <input 
-                type="range" min="60" max="250" value={simParams.glucose}
+                type="range" min="60" max="250" value={simParams?.glucose ?? 100}
                 onChange={e => {
                   soundFX.play('slider');
-                  setSimParams(prev => ({ ...prev, glucose: parseInt(e.target.value) }));
+                  setSimParams(prev => ({ ...prev, glucose: parseInt(e.target.value) || 100 }));
                 }}
                 className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-amber-400"
               />
@@ -113,13 +119,13 @@ export default function SimulatorModal({
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs font-bold">
                 <span className="text-slate-300">Systolic Blood Pressure</span>
-                <span className="text-rose-400 font-mono font-black">{simParams.bpSystolic} mmHg</span>
+                <span className="text-rose-400 font-mono font-black">{simParams?.bpSystolic ?? 120} mmHg</span>
               </div>
               <input 
-                type="range" min="85" max="200" value={simParams.bpSystolic}
+                type="range" min="85" max="200" value={simParams?.bpSystolic ?? 120}
                 onChange={e => {
                   soundFX.play('slider');
-                  setSimParams(prev => ({ ...prev, bpSystolic: parseInt(e.target.value) }));
+                  setSimParams(prev => ({ ...prev, bpSystolic: parseInt(e.target.value) || 120 }));
                 }}
                 className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-rose-500"
               />
@@ -130,13 +136,13 @@ export default function SimulatorModal({
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs font-bold">
                 <span className="text-slate-300">Body Mass Index (BMI)</span>
-                <span className="text-amber-400 font-mono font-black">{simParams.bmi} kg/m²</span>
+                <span className="text-amber-400 font-mono font-black">{simParams?.bmi ?? 24} kg/m²</span>
               </div>
               <input 
-                type="range" min="16" max="45" step="0.5" value={simParams.bmi}
+                type="range" min="16" max="45" step="0.5" value={simParams?.bmi ?? 24}
                 onChange={e => {
                   soundFX.play('slider');
-                  setSimParams(prev => ({ ...prev, bmi: parseFloat(e.target.value) }));
+                  setSimParams(prev => ({ ...prev, bmi: parseFloat(e.target.value) || 24 }));
                 }}
                 className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-amber-400"
               />
@@ -147,13 +153,13 @@ export default function SimulatorModal({
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs font-bold">
                 <span className="text-slate-300">Serum Cholesterol</span>
-                <span className="text-purple-400 font-mono font-black">{simParams.cholesterol} mg/dL</span>
+                <span className="text-purple-400 font-mono font-black">{simParams?.cholesterol ?? 180} mg/dL</span>
               </div>
               <input 
-                type="range" min="110" max="360" value={simParams.cholesterol}
+                type="range" min="110" max="360" value={simParams?.cholesterol ?? 180}
                 onChange={e => {
                   soundFX.play('slider');
-                  setSimParams(prev => ({ ...prev, cholesterol: parseInt(e.target.value) }));
+                  setSimParams(prev => ({ ...prev, cholesterol: parseInt(e.target.value) || 180 }));
                 }}
                 className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-purple-500"
               />
@@ -164,13 +170,13 @@ export default function SimulatorModal({
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs font-bold">
                 <span className="text-slate-300">Fasting Insulin</span>
-                <span className="text-amber-400 font-mono font-black">{simParams.insulin} µIU/mL</span>
+                <span className="text-amber-400 font-mono font-black">{simParams?.insulin ?? 10} µIU/mL</span>
               </div>
               <input 
-                type="range" min="2" max="50" value={simParams.insulin}
+                type="range" min="2" max="50" value={simParams?.insulin ?? 10}
                 onChange={e => {
                   soundFX.play('slider');
-                  setSimParams(prev => ({ ...prev, insulin: parseInt(e.target.value) }));
+                  setSimParams(prev => ({ ...prev, insulin: parseInt(e.target.value) || 10 }));
                 }}
                 className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-amber-400"
               />
@@ -181,7 +187,7 @@ export default function SimulatorModal({
               <div>
                 <label className="text-[10px] font-extrabold text-slate-300 uppercase tracking-wider block mb-1">Smoking Status</label>
                 <select 
-                  value={simParams.smoking}
+                  value={simParams?.smoking ?? 'no'}
                   onChange={e => setSimParams(prev => ({ ...prev, smoking: e.target.value }))}
                   className="w-full px-3 py-2.5 glass-input rounded-xl text-xs font-bold outline-none cursor-pointer text-white bg-slate-900"
                 >
@@ -193,7 +199,7 @@ export default function SimulatorModal({
               <div>
                 <label className="text-[10px] font-extrabold text-slate-300 uppercase tracking-wider block mb-1">Alcohol Consumption</label>
                 <select 
-                  value={simParams.alcohol}
+                  value={simParams?.alcohol ?? 'low'}
                   onChange={e => setSimParams(prev => ({ ...prev, alcohol: e.target.value }))}
                   className="w-full px-3 py-2.5 glass-input rounded-xl text-xs font-bold outline-none cursor-pointer text-white bg-slate-900"
                 >
@@ -217,14 +223,14 @@ export default function SimulatorModal({
                   <circle 
                     className="transition-all duration-500 ease-out fill-none"
                     cx="80" cy="80" r="68" strokeWidth="10" 
-                    stroke={liveSimResults.overallScore > 75 ? '#10b981' : liveSimResults.overallScore > 50 ? '#f59e0b' : '#f43f5e'}
+                    stroke={overallScore > 75 ? '#10b981' : overallScore > 50 ? '#f59e0b' : '#f43f5e'}
                     strokeDasharray={427}
-                    strokeDashoffset={427 - (427 * liveSimResults.overallScore) / 100}
+                    strokeDashoffset={427 - (427 * overallScore) / 100}
                     strokeLinecap="round"
                   ></circle>
                 </svg>
                 <div className="absolute text-center">
-                  <div className="text-3xl font-black text-white font-mono">{liveSimResults.overallScore}</div>
+                  <div className="text-3xl font-black text-white font-mono">{overallScore}</div>
                   <div className="text-[9px] uppercase tracking-widest text-slate-400 font-extrabold">Simulated Score</div>
                 </div>
               </div>
@@ -237,14 +243,14 @@ export default function SimulatorModal({
               <div className="space-y-1">
                 <div className="flex justify-between text-xs font-bold">
                   <span className="text-slate-300">Diabetes Risk</span>
-                  <span className={liveSimResults.risks.diabetes > 65 ? 'text-rose-400 font-mono font-black' : 'text-emerald-400 font-mono font-black'}>{liveSimResults.risks.diabetes}%</span>
+                  <span className={diabetesRisk > 65 ? 'text-rose-400 font-mono font-black' : 'text-emerald-400 font-mono font-black'}>{diabetesRisk}%</span>
                 </div>
                 <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
                   <div 
                     className="h-full rounded-full transition-all duration-300"
                     style={{ 
-                      width: `${liveSimResults.risks.diabetes}%`,
-                      backgroundColor: liveSimResults.risks.diabetes > 65 ? '#f43f5e' : liveSimResults.risks.diabetes > 35 ? '#f59e0b' : '#10b981'
+                      width: `${diabetesRisk}%`,
+                      backgroundColor: diabetesRisk > 65 ? '#f43f5e' : diabetesRisk > 35 ? '#f59e0b' : '#10b981'
                     }}
                   ></div>
                 </div>
@@ -254,14 +260,14 @@ export default function SimulatorModal({
               <div className="space-y-1">
                 <div className="flex justify-between text-xs font-bold">
                   <span className="text-slate-300">Heart Disease Risk</span>
-                  <span className={liveSimResults.risks.heartDisease > 65 ? 'text-rose-400 font-mono font-black' : 'text-emerald-400 font-mono font-black'}>{liveSimResults.risks.heartDisease}%</span>
+                  <span className={heartRisk > 65 ? 'text-rose-400 font-mono font-black' : 'text-emerald-400 font-mono font-black'}>{heartRisk}%</span>
                 </div>
                 <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
                   <div 
                     className="h-full rounded-full transition-all duration-300"
                     style={{ 
-                      width: `${liveSimResults.risks.heartDisease}%`,
-                      backgroundColor: liveSimResults.risks.heartDisease > 65 ? '#f43f5e' : liveSimResults.risks.heartDisease > 35 ? '#f59e0b' : '#10b981'
+                      width: `${heartRisk}%`,
+                      backgroundColor: heartRisk > 65 ? '#f43f5e' : heartRisk > 35 ? '#f59e0b' : '#10b981'
                     }}
                   ></div>
                 </div>
@@ -271,14 +277,14 @@ export default function SimulatorModal({
               <div className="space-y-1">
                 <div className="flex justify-between text-xs font-bold">
                   <span className="text-slate-300">Kidney Disease Risk</span>
-                  <span className={liveSimResults.risks.kidneyDisease > 65 ? 'text-rose-400 font-mono font-black' : 'text-emerald-400 font-mono font-black'}>{liveSimResults.risks.kidneyDisease}%</span>
+                  <span className={kidneyRisk > 65 ? 'text-rose-400 font-mono font-black' : 'text-emerald-400 font-mono font-black'}>{kidneyRisk}%</span>
                 </div>
                 <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
                   <div 
                     className="h-full rounded-full transition-all duration-300"
                     style={{ 
-                      width: `${liveSimResults.risks.kidneyDisease}%`,
-                      backgroundColor: liveSimResults.risks.kidneyDisease > 65 ? '#f43f5e' : liveSimResults.risks.kidneyDisease > 35 ? '#f59e0b' : '#10b981'
+                      width: `${kidneyRisk}%`,
+                      backgroundColor: kidneyRisk > 65 ? '#f43f5e' : kidneyRisk > 35 ? '#f59e0b' : '#10b981'
                     }}
                   ></div>
                 </div>
@@ -288,14 +294,14 @@ export default function SimulatorModal({
               <div className="space-y-1">
                 <div className="flex justify-between text-xs font-bold">
                   <span className="text-slate-300">Liver Disease Risk</span>
-                  <span className={liveSimResults.risks.liverDisease > 65 ? 'text-rose-400 font-mono font-black' : 'text-emerald-400 font-mono font-black'}>{liveSimResults.risks.liverDisease}%</span>
+                  <span className={liverRisk > 65 ? 'text-rose-400 font-mono font-black' : 'text-emerald-400 font-mono font-black'}>{liverRisk}%</span>
                 </div>
                 <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
                   <div 
                     className="h-full rounded-full transition-all duration-300"
                     style={{ 
-                      width: `${liveSimResults.risks.liverDisease}%`,
-                      backgroundColor: liveSimResults.risks.liverDisease > 65 ? '#f43f5e' : liveSimResults.risks.liverDisease > 35 ? '#f59e0b' : '#10b981'
+                      width: `${liverRisk}%`,
+                      backgroundColor: liverRisk > 65 ? '#f43f5e' : liverRisk > 35 ? '#f59e0b' : '#10b981'
                     }}
                   ></div>
                 </div>
@@ -308,14 +314,14 @@ export default function SimulatorModal({
                 soundFX.play('success');
                 setFormData(prev => ({
                   ...prev,
-                  glucose: simParams.glucose,
-                  bpSystolic: simParams.bpSystolic,
-                  bpDiastolic: simParams.bpDiastolic,
-                  bmi: simParams.bmi,
-                  cholesterol: simParams.cholesterol,
-                  insulin: simParams.insulin,
-                  smoking: simParams.smoking,
-                  alcohol: simParams.alcohol
+                  glucose: simParams?.glucose ?? 100,
+                  bpSystolic: simParams?.bpSystolic ?? 120,
+                  bpDiastolic: simParams?.bpDiastolic ?? 80,
+                  bmi: simParams?.bmi ?? 24,
+                  cholesterol: simParams?.cholesterol ?? 180,
+                  insulin: simParams?.insulin ?? 10,
+                  smoking: simParams?.smoking ?? 'no',
+                  alcohol: simParams?.alcohol ?? 'low'
                 }));
                 setShowSimulatorModal(false);
                 setCurrentTab('wizard');

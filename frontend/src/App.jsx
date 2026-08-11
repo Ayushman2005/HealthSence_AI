@@ -181,35 +181,41 @@ export default function App() {
 
   // Compute live simulator results
   const liveSimResults = useMemo(() => {
-    const age = parseFloat(simParams.age);
-    const bmi = parseFloat(simParams.bmi);
-    const glucose = parseFloat(simParams.glucose);
-    const systolic = parseFloat(simParams.bpSystolic);
-    const diastolic = parseFloat(simParams.bpDiastolic);
-    const cholesterol = parseFloat(simParams.cholesterol);
-    const insulin = parseFloat(simParams.insulin);
-    const smoking = simParams.smoking === 'yes';
-    const alcoholHigh = simParams.alcohol === 'high';
-    const alcoholMod = simParams.alcohol === 'moderate';
-    const sedentary = simParams.physicalActivity === 'sedentary';
+    const age = parseFloat(simParams?.age) || 45;
+    const bmi = parseFloat(simParams?.bmi) || 24;
+    const glucose = parseFloat(simParams?.glucose) || 90;
+    const systolic = parseFloat(simParams?.bpSystolic) || 120;
+    const diastolic = parseFloat(simParams?.bpDiastolic) || 80;
+    const cholesterol = parseFloat(simParams?.cholesterol) || 180;
+    const insulin = parseFloat(simParams?.insulin) || 10;
+    const smoking = simParams?.smoking === 'yes';
+    const alcoholHigh = simParams?.alcohol === 'high';
+    const alcoholMod = simParams?.alcohol === 'moderate';
+    const sedentary = simParams?.physicalActivity === 'sedentary';
 
     const zDiab = -5.0 + 0.048*(glucose - 90) + 0.075*(bmi - 24) + 0.025*(age - 35) + 0.020*(insulin - 8) + 0.012*(systolic - 120);
-    const diabProb = Math.min(99, Math.max(2, Math.round(100 / (1 + Math.exp(-zDiab)))));
+    const diabProb = Math.min(99, Math.max(2, Math.round(100 / (1 + Math.exp(-zDiab))))) || 5;
 
     const zHeart = -5.2 + 0.040*(systolic - 120) + 0.022*(cholesterol - 180) + 0.035*(age - 40) + (smoking ? 0.75 : 0) + 0.050*(bmi - 25) + (sedentary ? 0.4 : 0);
-    const heartProb = Math.min(99, Math.max(2, Math.round(100 / (1 + Math.exp(-zHeart)))));
+    const heartProb = Math.min(99, Math.max(2, Math.round(100 / (1 + Math.exp(-zHeart))))) || 5;
 
     const zKidney = -5.4 + 0.045*(systolic - 120) + 0.025*(glucose - 90) + 0.040*(age - 40) + 0.035*(bmi - 25) + 0.020*(diastolic - 75);
-    const kidneyProb = Math.min(99, Math.max(2, Math.round(100 / (1 + Math.exp(-zKidney)))));
+    const kidneyProb = Math.min(99, Math.max(2, Math.round(100 / (1 + Math.exp(-zKidney))))) || 5;
 
     const zLiver = -4.8 + (alcoholHigh ? 1.2 : alcoholMod ? 0.4 : 0) + 0.065*(bmi - 25) + 0.018*(cholesterol - 180) + 0.015*(glucose - 90) + 0.020*(age - 35);
-    const liverProb = Math.min(99, Math.max(2, Math.round(100 / (1 + Math.exp(-zLiver)))));
+    const liverProb = Math.min(99, Math.max(2, Math.round(100 / (1 + Math.exp(-zLiver))))) || 5;
 
     const maxRisk = Math.max(diabProb, heartProb, kidneyProb, liverProb);
-    const score = Math.min(98, Math.max(5, Math.round(100 - (maxRisk * 0.65 + (diabProb + heartProb + kidneyProb + liverProb)/4 * 0.35))));
+    let score = Math.min(98, Math.max(5, Math.round(100 - (maxRisk * 0.65 + (diabProb + heartProb + kidneyProb + liverProb)/4 * 0.35))));
+    if (!Number.isFinite(score)) score = 85;
 
     return {
-      risks: { diabetes: diabProb, heartDisease: heartProb, kidneyDisease: kidneyProb, liverDisease: liverProb },
+      risks: {
+        diabetes: Number.isFinite(diabProb) ? diabProb : 10,
+        heartDisease: Number.isFinite(heartProb) ? heartProb : 10,
+        kidneyDisease: Number.isFinite(kidneyProb) ? kidneyProb : 10,
+        liverDisease: Number.isFinite(liverProb) ? liverProb : 10
+      },
       overallScore: score
     };
   }, [simParams]);
