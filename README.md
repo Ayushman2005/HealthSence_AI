@@ -17,6 +17,11 @@ In addition to multi-disease predictive risk scoring, HealthSence AI features an
   - Parses uploaded PDF/text medical lab reports to extract key physiological biomarkers (glucose, blood pressure, cholesterol, insulin, BMI).
   - Determines primary clinical diagnosis and severity ratings.
   - Automatically generates targeted pharmaceutical prescription recommendations (drug name, dosage, frequency, therapeutic purpose, and clinical precautions) alongside lifestyle interventions.
+- **Pharmacology & Drug Safety Portal (OpenFDA, RxNorm & DailyMed)**:
+  - **Live Multi-Drug Interaction (DDI) Matrix Engine**: Evaluates pairwise prescription combinations via NLM RxNav for severe/contraindicated interactions and clinical mechanisms.
+  - **Federal Drug Monograph Explorer**: Queries OpenFDA drug labeling for boxed warnings, indications, contraindications, and real-world FAERS adverse reaction surveillance data.
+  - **DailyMed SPL & NDC Package Verification**: Links directly to official NIH DailyMed structured product labels and FDA National Drug Code packaging.
+  - **Automated Prescription Verification**: 1-click verification of extracted lab report prescriptions with instant safety scoring and warning alerts.
 - **Automated Health Score & Clinical Explanations**:
   - Computes an overall composite **Health Score (15–100)** and confidence index.
   - Highlights specific clinical risk drivers (e.g., elevated fasting glucose, blood pressure, BMI).

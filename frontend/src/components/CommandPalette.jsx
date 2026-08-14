@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Search, HeartPulse, Stethoscope, Bot, FileText, ClipboardList, 
-  TrendingUp, Settings, ShieldAlert, Zap, Cpu, ArrowRight, X, Command
+  TrendingUp, Settings, ShieldAlert, Zap, Cpu, ArrowRight, X, Command, Pill
 } from 'lucide-react';
 import { soundFX } from '../utils/audioFX';
 
@@ -54,6 +54,14 @@ export default function CommandPalette({
       icon: FileText,
       category: 'Document Analysis',
       action: () => setCurrentTab('upload_report')
+    },
+    {
+      id: 'pharma_portal',
+      title: 'Rx & Drug Safety Portal (OpenFDA & RxNorm)',
+      subtitle: 'Multi-drug interaction checker, FDA warnings, & DailyMed monographs',
+      icon: Pill,
+      category: 'Pharmacology',
+      action: () => setCurrentTab('pharma_portal')
     },
     {
       id: 'chatbot',

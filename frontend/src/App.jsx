@@ -15,6 +15,7 @@ import Wizard from './components/Wizard';
 import SymptomChecker from './components/SymptomChecker';
 import HealthChatbot from './components/HealthChatbot';
 import MedicalReport from './components/MedicalReport';
+import DrugSafetyPortal from './components/DrugSafetyPortal';
 import Results from './components/Results';
 import History from './components/History';
 import Insights from './components/Insights';
@@ -1269,6 +1270,13 @@ export default function App() {
             showToast={showToast}
             setCurrentTab={setCurrentTab}
             authToken={authToken}
+          />
+        )}
+
+        {currentTab === 'pharma_portal' && (
+          <DrugSafetyPortal
+            showToast={showToast}
+            setCurrentTab={setCurrentTab}
           />
         )}
 

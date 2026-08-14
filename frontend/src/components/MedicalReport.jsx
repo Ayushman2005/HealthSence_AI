@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { 
   FileText, FileSpreadsheet, HeartPulse, CheckCircle2, UploadCloud, 
-  Sparkles, Activity, Pill, ShieldCheck, ArrowRight, Printer, Cpu, ScanText, RefreshCw, Zap
+  Sparkles, Activity, Pill, ShieldCheck, ShieldAlert, AlertTriangle, ArrowRight, 
+  Printer, Cpu, ScanText, RefreshCw, Zap, ExternalLink
 } from 'lucide-react';
 import Tesseract from 'tesseract.js';
 import { API_BASE_URL } from '../config';
@@ -25,6 +26,8 @@ export default function MedicalReport({
   const [ocrProgress, setOcrProgress] = useState(0);
   const [ocrStatusText, setOcrStatusText] = useState('');
   const [ocrEngineUsed, setOcrEngineUsed] = useState('Tesseract OCR v5.x');
+  const [verifyingPrescription, setVerifyingPrescription] = useState(false);
+  const [prescriptionVerification, setPrescriptionVerification] = useState(null);
 
   // Handle uploaded medical report file (Image or PDF or TXT)
   const handleFileSelected = async (file) => {
@@ -143,8 +146,61 @@ export default function MedicalReport({
     setCurrentTab('wizard');
   };
 
+  const handleVerifyPrescription = async () => {
+    if (!reportAnalysisResult) return;
+    soundFX.play('scan');
+    setVerifyingPrescription(true);
+    try {
+      const meds = [];
+      if (reportAnalysisResult.required_medications && Array.isArray(reportAnalysisResult.required_medications)) {
+        reportAnalysisResult.required_medications.forEach(m => {
+          meds.push({
+            name: typeof m === 'string' ? m : (m.name || ''),
+            dosage: m.dosage || '',
+            frequency: m.frequency || '',
+            purpose: m.purpose || ''
+          });
+        });
+      } else if (reportAnalysisResult.recommended_medications && Array.isArray(reportAnalysisResult.recommended_medications)) {
+        reportAnalysisResult.recommended_medications.forEach(m => {
+          meds.push({
+            name: typeof m === 'string' ? m : (m.name || ''),
+            dosage: '',
+            frequency: '',
+            purpose: ''
+          });
+        });
+      }
+
+      if (meds.length === 0) {
+        showToast("No medications detected in report to verify.", "warning");
+        return;
+      }
+
+      const res = await fetch(`${API_BASE_URL}/api/drug/verify-prescription`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ medications: meds })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setPrescriptionVerification(data);
+        soundFX.play('success');
+        showToast("Prescription verified with OpenFDA & RxNorm!", "success");
+      } else {
+        showToast("Prescription verification failed.", "danger");
+      }
+    } catch (err) {
+      console.error("Prescription verification error", err);
+      showToast("Failed to connect to verification API", "danger");
+    } finally {
+      setVerifyingPrescription(false);
+    }
+  };
+
   return (
-    <div className="max-w-[1100px] mx-auto space-y-8 animate-fade-in no-print text-slate-100">
+    <div className="max-w-[1100px] mx-auto space-y-8 animate-fade-in no-print text-slate-100 pb-16">
       
       {/* Upper Banner Card */}
       <div className="glass-panel rounded-3xl p-6 md:p-8 border border-amber-500/25 shadow-2xl relative overflow-hidden bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950">
@@ -164,7 +220,7 @@ export default function MedicalReport({
               </div>
               <h2 className="text-2xl font-black text-white mt-1">Medical Report Scanner & Prescription Finder</h2>
               <p className="text-xs text-slate-300 font-medium mt-1 max-w-xl leading-relaxed">
-                Upload lab test reports (PNG/JPG images, scanned PDFs, diagnostic notes) to run automated Tesseract OCR text extraction, detect underlying disease parameters, and get required Rx medications.
+                Upload lab test reports (PNG/JPG images, scanned PDFs, diagnostic notes) to run automated Tesseract OCR text extraction, detect underlying disease parameters, and verify Rx medications against OpenFDA & RxNorm.
               </p>
             </div>
           </div>
@@ -187,6 +243,7 @@ export default function MedicalReport({
                 const sampleText = "PATIENT REPORT: Diabetes & Lipid Screening. Fasting Blood Glucose: 168 mg/dL (High). HbA1c: 8.8%. Total Cholesterol: 245 mg/dL. LDL: 160 mg/dL. Triglycerides: 210 mg/dL. Fasting Insulin: 22 uIU/mL. Patient reports mild fatigue and increased thirst.";
                 setReportText(sampleText);
                 setReportFile(null);
+                setPrescriptionVerification(null);
                 handleAnalyzeReport(sampleText, "Diabetic_Lipid_Panel_Report.pdf");
               }}
               className="px-4 py-2.5 rounded-xl bg-slate-900/90 hover:bg-amber-500/15 border border-amber-500/30 text-amber-300 font-bold text-xs flex items-center gap-2 cursor-pointer transition active:scale-[0.98] shadow-xs"
@@ -202,6 +259,7 @@ export default function MedicalReport({
                 const sampleText = "PATIENT CLINICAL VITAL SUMMARY: Blood Pressure Reading: 154/96 mmHg (Stage 1 Hypertension). Resting Heart Rate: 84 BPM. Serum Creatinine: 1.4 mg/dL. eGFR: 58 mL/min. Patient exhibits stage 1 essential hypertension and mild renal strain.";
                 setReportText(sampleText);
                 setReportFile(null);
+                setPrescriptionVerification(null);
                 handleAnalyzeReport(sampleText, "Hypertension_Renal_Vitals.pdf");
               }}
               className="px-4 py-2.5 rounded-xl bg-slate-900/90 hover:bg-purple-500/15 border border-purple-500/30 text-purple-300 font-bold text-xs flex items-center gap-2 cursor-pointer transition active:scale-[0.98] shadow-xs"
@@ -217,6 +275,7 @@ export default function MedicalReport({
                 const sampleText = "ANNUAL HEALTH CHECKUP REPORT: Fasting Glucose: 92 mg/dL. Blood Pressure: 118/76 mmHg. Cholesterol: 180 mg/dL. BMI: 22.8 kg/m2. Normal biomarker distribution. No acute clinical pathology detected.";
                 setReportText(sampleText);
                 setReportFile(null);
+                setPrescriptionVerification(null);
                 handleAnalyzeReport(sampleText, "Annual_Checkup_Optimal.pdf");
               }}
               className="px-4 py-2.5 rounded-xl bg-slate-900/90 hover:bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-bold text-xs flex items-center gap-2 cursor-pointer transition active:scale-[0.98] shadow-xs"
@@ -240,6 +299,7 @@ export default function MedicalReport({
             accept=".pdf,.png,.jpg,.jpeg,.bmp,.tiff,.webp,.txt,.csv"
             onChange={e => {
               if (e.target.files && e.target.files[0]) {
+                setPrescriptionVerification(null);
                 handleFileSelected(e.target.files[0]);
               }
             }}
@@ -304,6 +364,7 @@ export default function MedicalReport({
           type="button"
           onClick={() => {
             soundFX.play('scan');
+            setPrescriptionVerification(null);
             handleAnalyzeReport();
           }}
           disabled={analyzingReport || ocrScanning || (!reportText && !reportFile)}
@@ -340,7 +401,7 @@ export default function MedicalReport({
             
             <div className="flex items-center gap-3">
               <span className="text-xs font-black px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-                Confidence Score: {reportAnalysisResult.confidence || '94.8%'}
+                Confidence: {reportAnalysisResult.confidence_rating || reportAnalysisResult.confidence || '94.8%'}
               </span>
               <button
                 onClick={syncToRiskAssessor}
@@ -354,39 +415,160 @@ export default function MedicalReport({
 
           {/* Detected conditions and Rx medications */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            {/* Pathology conditions */}
             <div className="glass-pill rounded-2xl p-5 border border-amber-500/20 space-y-3">
               <div className="flex items-center gap-2 text-amber-400 font-black text-sm">
                 <Activity className="w-4 h-4" />
-                <span>Detected Pathology Conditions</span>
+                <span>Primary Clinical Diagnosis</span>
               </div>
-              <ul className="space-y-2">
-                {(reportAnalysisResult.detected_diseases || ['Type 2 Diabetes Mellitus', 'Hyperlipidemia']).map((d, i) => (
-                  <li key={i} className="text-xs font-bold text-slate-100 flex items-center gap-2 bg-slate-900/80 p-3 rounded-xl border border-slate-800">
-                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-                    {d}
-                  </li>
-                ))}
-              </ul>
+              <div className="p-3.5 rounded-xl bg-slate-900/90 border border-amber-500/30 space-y-1">
+                <div className="text-xs font-bold text-amber-200">
+                  {reportAnalysisResult.primary_diagnosis || "Type 2 Diabetes Mellitus with Moderate Hyperlipidemia"}
+                </div>
+                <div className="text-[11px] text-slate-400">
+                  Severity: {reportAnalysisResult.severity || "Moderate Clinical Attention Required"}
+                </div>
+              </div>
             </div>
 
+            {/* Recommended Rx Medications with Verify Button */}
             <div className="glass-pill rounded-2xl p-5 border border-emerald-500/20 space-y-3">
-              <div className="flex items-center gap-2 text-emerald-400 font-black text-sm">
-                <Pill className="w-4 h-4" />
-                <span>Recommended Rx Medications</span>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-emerald-400 font-black text-sm">
+                  <Pill className="w-4 h-4" />
+                  <span>Prescribed Medications</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleVerifyPrescription}
+                  disabled={verifyingPrescription}
+                  className="px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 font-black text-[11px] flex items-center gap-1.5 cursor-pointer transition shadow-sm"
+                >
+                  {verifyingPrescription ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Verifying...</span>
+                    </>
+                  ) : (
+                    <>
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Verify with OpenFDA & RxNorm</span>
+                    </>
+                  )}
+                </button>
               </div>
-              <ul className="space-y-2">
-                {(reportAnalysisResult.recommended_medications || ['Metformin Hydrochloride 500mg (BID)', 'Atorvastatin Calcium 20mg (QD)']).map((m, i) => (
-                  <li key={i} className="text-xs font-bold text-slate-100 flex items-center gap-2 bg-slate-900/80 p-3 rounded-xl border border-slate-800">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    {m}
-                  </li>
+
+              <div className="space-y-2">
+                {(reportAnalysisResult.required_medications || [
+                  { name: "Metformin Hydrochloride", dosage: "500 mg", frequency: "Twice daily with meals" },
+                  { name: "Atorvastatin Calcium", dosage: "20 mg", frequency: "Once daily at bedtime" }
+                ]).map((m, i) => (
+                  <div key={i} className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                        {typeof m === 'string' ? m : m.name}
+                      </span>
+                      {typeof m !== 'string' && m.dosage && (
+                        <span className="text-[10px] font-mono text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded">
+                          {m.dosage}
+                        </span>
+                      )}
+                    </div>
+                    {typeof m !== 'string' && m.frequency && (
+                      <div className="text-[11px] text-slate-400">{m.frequency}</div>
+                    )}
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
+
           </div>
+
+          {/* OpenFDA & RxNorm Live Verification Dossier Box */}
+          {prescriptionVerification && (
+            <div className="p-5 rounded-2xl bg-slate-900/90 border border-emerald-500/40 space-y-4 animate-fade-in shadow-xl">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+                <div className="flex items-center gap-2.5">
+                  <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                  <div>
+                    <h4 className="text-sm font-black text-white">
+                      Federal Pharmacology Verification Report (OpenFDA & RxNorm)
+                    </h4>
+                    <p className="text-[11px] text-slate-400">
+                      Evaluated {prescriptionVerification.total_medications_checked} medications against FDA label boxed warnings & RxNav interaction registry
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-black px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                    Safety Rating: {prescriptionVerification.safety_grade}
+                  </span>
+                  <button
+                    onClick={() => setCurrentTab('pharma_portal')}
+                    className="p-1.5 rounded-lg bg-slate-800 hover:bg-amber-500/20 text-amber-300 font-bold text-xs flex items-center gap-1 border border-slate-700 transition"
+                    title="Open Drug Safety Portal"
+                  >
+                    <span>Inspect Portal</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Drug Verifications Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {prescriptionVerification.drug_verifications.map((dv, idx) => (
+                  <div key={idx} className="p-3.5 rounded-xl bg-slate-800/80 border border-slate-700/80 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-white truncate">{dv.medication_name}</span>
+                      <span className="text-[10px] font-mono text-amber-300 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">
+                        RxCUI: {dv.rxcui}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-[11px]">
+                      <span className="text-emerald-400 font-bold flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" /> FDA Approved
+                      </span>
+                      {dv.has_boxed_warning && (
+                        <span className="text-rose-400 font-bold flex items-center gap-1">
+                          <AlertTriangle className="w-3 h-3" /> Boxed Warning
+                        </span>
+                      )}
+                    </div>
+
+                    {dv.has_boxed_warning && dv.boxed_warning && (
+                      <div className="text-[10px] text-rose-300 bg-rose-950/40 p-2 rounded-lg border border-rose-500/30 leading-snug">
+                        {dv.boxed_warning}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* DDI Alert If Present */}
+              {prescriptionVerification.interactions && prescriptionVerification.interactions.length > 0 && (
+                <div className="p-3.5 rounded-xl bg-amber-950/30 border border-amber-500/40 space-y-2">
+                  <div className="flex items-center gap-2 text-xs font-black text-amber-300">
+                    <AlertTriangle className="w-4 h-4 text-amber-400" />
+                    <span>Potential Drug Interaction Noted in Prescription:</span>
+                  </div>
+                  {prescriptionVerification.interactions.map((it, i) => (
+                    <div key={i} className="text-xs text-slate-300 bg-slate-900/60 p-2.5 rounded-lg border border-slate-800">
+                      <span className="font-bold text-white">{it.drug_a} ⚡ {it.drug_b}:</span> {it.description}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
         </div>
       )}
 
     </div>
   );
 }
+

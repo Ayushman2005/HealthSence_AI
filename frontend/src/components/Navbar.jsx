@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Menu, X, LayoutDashboard, HeartPulse, Stethoscope, Bot, FileText, 
   ClipboardList, TrendingUp, Settings, ShieldAlert, LogOut, 
-  User, Zap, ChevronDown, Cpu, Sparkles, Activity, Search, Volume2, VolumeX, Command
+  User, Zap, ChevronDown, Cpu, Sparkles, Activity, Search, Volume2, VolumeX, Command, Pill
 } from 'lucide-react';
 import { soundFX } from '../utils/audioFX';
 
@@ -42,6 +42,7 @@ export default function Navbar({
     { id: 'symptom_checker', label: 'Symptom Checker', icon: Stethoscope },
     { id: 'chatbot', label: 'AI Healthbot', icon: Bot, badge: '24/7' },
     { id: 'upload_report', label: 'Report Analyzer', icon: FileText, badge: 'OCR' },
+    { id: 'pharma_portal', label: 'Rx & Drug Safety', icon: Pill, badge: 'FDA' },
     { id: 'history', label: 'Medical History', icon: ClipboardList, protected: true },
     { id: 'insights', label: 'Health Analytics', icon: TrendingUp, protected: true },
     { id: 'account', label: 'My Account', icon: Settings, protected: true },
