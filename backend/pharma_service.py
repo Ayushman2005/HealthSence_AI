@@ -53,6 +53,15 @@ def _fetch_json(url: str, timeout: int = 6) -> Optional[Dict[str, Any]]:
     return None
 
 
+def _as_list(value: Any) -> List[Any]:
+    """Normalize API payloads that sometimes return a single dict instead of a list."""
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return value
+    return [value]
+
+
 # ---------------------------------------------------------------------------
 # 1. RxNorm REST API (National Library of Medicine - NLM)
 # ---------------------------------------------------------------------------
@@ -71,8 +80,10 @@ def search_rxnorm_drugs(term: str) -> List[Dict[str, Any]]:
 
     results = []
     if data and "approximateGroup" in data:
-        candidates = data["approximateGroup"].get("candidate", [])
+        candidates = _as_list(data["approximateGroup"].get("candidate", []))
         for item in candidates:
+            if not isinstance(item, dict):
+                continue
             rxcui = item.get("rxcui")
             score = item.get("score")
             if rxcui:
@@ -88,9 +99,13 @@ def search_rxnorm_drugs(term: str) -> List[Dict[str, Any]]:
         direct_url = f"https://rxnav.nlm.nih.gov/REST/drugs.json?name={encoded_term}"
         direct_data = _fetch_json(direct_url)
         if direct_data and "drugGroup" in direct_data:
-            concept_groups = direct_data["drugGroup"].get("conceptGroup", [])
+            concept_groups = _as_list(direct_data["drugGroup"].get("conceptGroup", []))
             for cg in concept_groups:
-                for concept in cg.get("conceptProperties", []):
+                if not isinstance(cg, dict):
+                    continue
+                for concept in _as_list(cg.get("conceptProperties", [])):
+                    if not isinstance(concept, dict):
+                        continue
                     results.append({
                         "rxcui": str(concept.get("rxcui")),
                         "name": concept.get("name"),
@@ -112,8 +127,10 @@ def get_rxnorm_properties(rxcui: str) -> Dict[str, Any]:
     data = _fetch_json(url)
     properties = {}
     if data and "propConceptGroup" in data:
-        prop_list = data["propConceptGroup"].get("propConcept", [])
+        prop_list = _as_list(data["propConceptGroup"].get("propConcept", []))
         for p in prop_list:
+            if not isinstance(p, dict):
+                continue
             properties[p.get("propName", "")] = p.get("propValue", "")
     return properties
 
