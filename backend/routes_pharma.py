@@ -33,18 +33,6 @@ async def search_drugs(q: str = Query(..., min_length=2, description="Drug brand
     """
     try:
         results = pharma_service.search_rxnorm_drugs(q)
-        # If RxNorm returns nothing, attempt OpenFDA search to get brand names
-        if not results:
-            fda_data = pharma_service.get_openfda_drug_label(q)
-            if fda_data:
-                for b_name in fda_data.get("brand_names", [q.title()]):
-                    results.append({
-                        "rxcui": "",
-                        "name": b_name,
-                        "score": "100",
-                        "source": "OpenFDA"
-                    })
-
         return {
             "success": True,
             "query": q,
@@ -62,29 +50,16 @@ async def get_drug_details(
     rxcui: Optional[str] = Query(None, description="Optional RxNorm CUI")
 ):
     """
-    Retrieve comprehensive clinical pharmacology intelligence:
-    - OpenFDA: Boxed Warnings, Indications, Contraindications, Adverse Reactions, Dosage
-    - OpenFDA FAERS: Real-world adverse event frequency report
+    Retrieve clinical pharmacology intelligence from the supported sources:
     - DailyMed: Official SPL monographs and NDC packaging codes
     - RxNorm: Standardized identifiers and clinical properties
     """
     try:
         clean_name = pharma_service.re_clean_drug_name(name)
-        
-        # 1. OpenFDA Drug Label
-        fda_label = pharma_service.get_openfda_drug_label(clean_name)
-        
-        # 2. OpenFDA FAERS Adverse Events
-        faers_events = pharma_service.get_openfda_adverse_events(clean_name)
-        
-        # 3. OpenFDA Drug Recalls
-        recalls = pharma_service.get_openfda_recalls(clean_name)
 
-        # 4. DailyMed SPL Monographs & NDC Packaging
         dailymed_spls = pharma_service.get_dailymed_spls(clean_name)
         dailymed_ndcs = pharma_service.get_dailymed_ndcs(clean_name)
 
-        # 5. RxNorm Properties
         resolved_rxcui = rxcui
         if not resolved_rxcui:
             rx_results = pharma_service.search_rxnorm_drugs(clean_name)
@@ -93,24 +68,10 @@ async def get_drug_details(
 
         rxnorm_props = pharma_service.get_rxnorm_properties(resolved_rxcui) if resolved_rxcui else {}
 
-        # Fallback enrichment if live APIs returned sparse data
         lower_name = clean_name.lower()
+        fallback = None
         if lower_name in pharma_service.CLINICAL_FALLBACK_DRUGS:
             fallback = pharma_service.CLINICAL_FALLBACK_DRUGS[lower_name]
-            if not fda_label:
-                fda_label = {
-                    "brand_names": fallback.get("brand_names", [name.title()]),
-                    "generic_names": [fallback.get("name", name.title())],
-                    "product_type": "HUMAN PRESCRIPTION DRUG",
-                    "route": "ORAL",
-                    "has_boxed_warning": bool(fallback.get("boxed_warning")),
-                    "boxed_warning": fallback.get("boxed_warning"),
-                    "indications_and_usage": fallback.get("indications"),
-                    "contraindications": fallback.get("contraindications"),
-                    "warnings_and_precautions": "Clinical monitoring recommended for glycemic and renal biomarkers.",
-                    "dosage_and_administration": "As prescribed by physician.",
-                    "adverse_reactions": ", ".join(fallback.get("adverse_reactions", []))
-                }
             if not resolved_rxcui:
                 resolved_rxcui = fallback.get("rxcui")
 
@@ -119,14 +80,15 @@ async def get_drug_details(
             "drug_name": name,
             "cleaned_name": clean_name,
             "rxcui": resolved_rxcui,
-            "openfda": fda_label,
-            "faers_adverse_events": faers_events,
-            "recalls": recalls,
+            "openfda": None,
+            "faers_adverse_events": [],
+            "recalls": [],
             "dailymed": {
                 "monographs": dailymed_spls,
                 "ndcs": dailymed_ndcs
             },
-            "rxnorm_properties": rxnorm_props
+            "rxnorm_properties": rxnorm_props,
+            "fallback_clinical_info": fallback
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve drug details: {str(e)}")
@@ -197,9 +159,9 @@ async def check_interactions(payload: InteractionCheckRequest):
 async def verify_prescription(payload: PrescriptionVerificationRequest):
     """
     Automated verification of a full medical report prescription list:
-    1. Checks each medication against OpenFDA Boxed Warnings & Recalls.
-    2. Runs pairwise Drug-to-Drug Interaction (DDI) check across all medications via RxNorm.
-    3. Provides safety rating and clinical precautions.
+    1. Resolves each medication via RxNorm.
+    2. Runs pairwise Drug-to-Drug Interaction (DDI) checks across all medications.
+    3. Provides a safety rating and clinical precautions.
     """
     try:
         medications = payload.medications
@@ -212,18 +174,11 @@ async def verify_prescription(payload: PrescriptionVerificationRequest):
                 "interactions": []
             }
 
-        drug_names = [m.name for m in medications]
         drug_verifications = []
         rxcuis_to_check = []
 
         for med in medications:
             clean = pharma_service.re_clean_drug_name(med.name)
-            
-            # FDA info
-            fda_data = pharma_service.get_openfda_drug_label(clean)
-            recalls = pharma_service.get_openfda_recalls(clean)
-            
-            # Resolve RxCUI
             rx_search = pharma_service.search_rxnorm_drugs(clean)
             cui = rx_search[0].get("rxcui") if rx_search else None
             if not cui and clean.lower() in pharma_service.CLINICAL_FALLBACK_DRUGS:
@@ -232,15 +187,9 @@ async def verify_prescription(payload: PrescriptionVerificationRequest):
             if cui:
                 rxcuis_to_check.append(cui)
 
-            has_boxed = False
-            boxed_warning_text = None
-            if fda_data:
-                has_boxed = fda_data.get("has_boxed_warning", False)
-                boxed_warning_text = fda_data.get("boxed_warning")
-            elif clean.lower() in pharma_service.CLINICAL_FALLBACK_DRUGS:
-                fb = pharma_service.CLINICAL_FALLBACK_DRUGS[clean.lower()]
-                has_boxed = bool(fb.get("boxed_warning"))
-                boxed_warning_text = fb.get("boxed_warning")
+            fallback = pharma_service.CLINICAL_FALLBACK_DRUGS.get(clean.lower())
+            has_boxed = bool(fallback and fallback.get("boxed_warning"))
+            boxed_warning_text = fallback.get("boxed_warning") if fallback else None
 
             drug_verifications.append({
                 "medication_name": med.name,
@@ -248,14 +197,13 @@ async def verify_prescription(payload: PrescriptionVerificationRequest):
                 "dosage": med.dosage,
                 "frequency": med.frequency,
                 "rxcui": cui or "Pending NLM Match",
-                "fda_approved": bool(fda_data or clean.lower() in pharma_service.CLINICAL_FALLBACK_DRUGS),
+                "fda_approved": bool(clean.lower() in pharma_service.CLINICAL_FALLBACK_DRUGS),
                 "has_boxed_warning": has_boxed,
                 "boxed_warning": boxed_warning_text,
-                "active_recalls_count": len(recalls),
-                "indications": fda_data.get("indications_and_usage") if fda_data else med.purpose
+                "active_recalls_count": 0,
+                "indications": fallback.get("indications") if fallback else med.purpose
             })
 
-        # Pairwise DDI evaluation
         interactions = []
         if len(rxcuis_to_check) >= 2:
             interactions = pharma_service.check_rxnorm_drug_interactions(rxcuis_to_check)

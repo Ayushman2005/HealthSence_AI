@@ -57,8 +57,8 @@ export default function CommandPalette({
     },
     {
       id: 'pharma_portal',
-      title: 'Rx & Drug Safety Portal (OpenFDA & RxNorm)',
-      subtitle: 'Multi-drug interaction checker, FDA warnings, & DailyMed monographs',
+      title: 'Rx & Drug Safety Portal (RxNorm + DailyMed)',
+      subtitle: 'Multi-drug interaction checker and DailyMed monographs',
       icon: Pill,
       category: 'Pharmacology',
       action: () => setCurrentTab('pharma_portal')

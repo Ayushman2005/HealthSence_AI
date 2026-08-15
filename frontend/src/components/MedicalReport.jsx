@@ -187,7 +187,7 @@ export default function MedicalReport({
       if (res.ok && data.success) {
         setPrescriptionVerification(data);
         soundFX.play('success');
-        showToast("Prescription verified with OpenFDA & RxNorm!", "success");
+        showToast("Prescription verified with RxNorm!", "success");
       } else {
         showToast("Prescription verification failed.", "danger");
       }
@@ -220,7 +220,7 @@ export default function MedicalReport({
               </div>
               <h2 className="text-2xl font-black text-white mt-1">Medical Report Scanner & Prescription Finder</h2>
               <p className="text-xs text-slate-300 font-medium mt-1 max-w-xl leading-relaxed">
-                Upload lab test reports (PNG/JPG images, scanned PDFs, diagnostic notes) to run automated Tesseract OCR text extraction, detect underlying disease parameters, and verify Rx medications against OpenFDA & RxNorm.
+                Upload lab test reports (PNG/JPG images, scanned PDFs, diagnostic notes) to run automated Tesseract OCR text extraction, detect underlying disease parameters, and verify Rx medications against RxNorm.
               </p>
             </div>
           </div>
@@ -453,7 +453,7 @@ export default function MedicalReport({
                   ) : (
                     <>
                       <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>Verify with OpenFDA & RxNorm</span>
+                      <span>Verify with RxNorm</span>
                     </>
                   )}
                 </button>
@@ -486,7 +486,7 @@ export default function MedicalReport({
 
           </div>
 
-          {/* OpenFDA & RxNorm Live Verification Dossier Box */}
+          {/* RxNorm Live Verification Dossier Box */}
           {prescriptionVerification && (
             <div className="p-5 rounded-2xl bg-slate-900/90 border border-emerald-500/40 space-y-4 animate-fade-in shadow-xl">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
@@ -494,10 +494,10 @@ export default function MedicalReport({
                   <ShieldCheck className="w-5 h-5 text-emerald-400" />
                   <div>
                     <h4 className="text-sm font-black text-white">
-                      Federal Pharmacology Verification Report (OpenFDA & RxNorm)
+                      Pharmacology Verification Report (RxNorm)
                     </h4>
                     <p className="text-[11px] text-slate-400">
-                      Evaluated {prescriptionVerification.total_medications_checked} medications against FDA label boxed warnings & RxNav interaction registry
+                      Evaluated {prescriptionVerification.total_medications_checked} medications against RxNav interaction registry and clinical alert rules
                     </p>
                   </div>
                 </div>

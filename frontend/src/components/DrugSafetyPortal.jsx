@@ -30,7 +30,7 @@ export default function DrugSafetyPortal({ showToast, setCurrentTab }) {
     loadDrugDetails('Metformin', '6809');
   }, []);
 
-  // Search drugs via backend proxy to RxNorm / OpenFDA
+  // Search drugs via backend proxy to RxNorm
   const handleSearchDrugs = async (queryToSearch = null) => {
     const q = queryToSearch !== null ? queryToSearch : searchQuery;
     if (!q || q.trim().length < 2) {
@@ -45,7 +45,7 @@ export default function DrugSafetyPortal({ showToast, setCurrentTab }) {
       if (res.ok && data.success) {
         setSearchResults(data.results || []);
         if (data.results && data.results.length > 0) {
-          showToast(`Found ${data.results.length} normalized drug matches from RxNorm & OpenFDA`, "success");
+          showToast(`Found ${data.results.length} normalized drug matches from RxNorm`, "success");
         } else {
           showToast("No exact matches found. You can still inspect clinical monographs.", "primary");
         }
@@ -168,17 +168,17 @@ export default function DrugSafetyPortal({ showToast, setCurrentTab }) {
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5 text-amber-400" /> OpenFDA + RxNorm + DailyMed
+                  <ShieldCheck className="w-3.5 h-3.5 text-amber-400" /> RxNorm + DailyMed
                 </span>
                 <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Live Federal Pharmacology Data
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Live Pharmacology Data
                 </span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-black text-white mt-1.5">
                 Pharmacology & Drug Safety Intelligence
               </h2>
               <p className="text-xs sm:text-sm text-slate-300 font-medium mt-1 max-w-2xl leading-relaxed">
-                Real-time drug-to-drug interaction (DDI) surveillance, FDA black-box warnings, FAERS adverse reaction frequencies, and official DailyMed clinical monographs.
+                Real-time drug-to-drug interaction (DDI) surveillance and official DailyMed clinical monographs for verified RxNorm medication lookups.
               </p>
             </div>
           </div>
@@ -504,10 +504,10 @@ export default function DrugSafetyPortal({ showToast, setCurrentTab }) {
             <div>
               <h3 className="text-lg font-black text-white flex items-center gap-2">
                 <Search className="w-5 h-5 text-amber-400" />
-                <span>Search RxNorm & OpenFDA Drug Monograph Database</span>
+                <span>Search RxNorm Drug Monograph Database</span>
               </h3>
               <p className="text-xs text-slate-400 font-medium mt-0.5">
-                Query FDA official labels, boxed warnings, indications, FAERS adverse events, and DailyMed monographs.
+                Query RxNorm identifiers and official DailyMed monographs.
               </p>
             </div>
 
@@ -580,8 +580,8 @@ export default function DrugSafetyPortal({ showToast, setCurrentTab }) {
           {loadingDetails && (
             <div className="glass-panel rounded-3xl p-12 text-center space-y-3 animate-fade-in">
               <RefreshCw className="w-8 h-8 text-amber-400 animate-spin mx-auto" />
-              <h4 className="text-base font-black text-white">Fetching Official FDA & RxNorm Monograph...</h4>
-              <p className="text-xs text-slate-400">Aggregating OpenFDA label data, FAERS adverse event counts, and DailyMed SPL entries</p>
+              <h4 className="text-base font-black text-white">Fetching Official RxNorm & DailyMed Monograph...</h4>
+              <p className="text-xs text-slate-400">Aggregating RxNorm metadata and DailyMed SPL entries</p>
             </div>
           )}
 
@@ -635,15 +635,15 @@ export default function DrugSafetyPortal({ showToast, setCurrentTab }) {
                 </div>
               </div>
 
-              {/* FDA Boxed Warning Alert Banner (If Any) */}
-              {selectedDrugDetails.openfda?.has_boxed_warning && (
+              {/* Clinical safety note banner */}
+              {selectedDrugDetails.fallback_clinical_info?.boxed_warning && (
                 <div className="p-5 rounded-2xl bg-rose-950/30 border-2 border-rose-500/50 space-y-2 shadow-lg shadow-rose-950/20">
                   <div className="flex items-center gap-2 text-rose-400 font-black text-xs sm:text-sm uppercase tracking-wider">
                     <ShieldAlert className="w-5 h-5" />
-                    <span>FDA Black Box Warning (Highest Safety Precaution)</span>
+                    <span>Clinical Safety Warning</span>
                   </div>
                   <p className="text-xs sm:text-sm text-rose-200 font-medium leading-relaxed">
-                    {selectedDrugDetails.openfda.boxed_warning}
+                    {selectedDrugDetails.fallback_clinical_info.boxed_warning}
                   </p>
                 </div>
               )}
@@ -655,10 +655,10 @@ export default function DrugSafetyPortal({ showToast, setCurrentTab }) {
                 <div className="p-6 rounded-2xl bg-slate-900/70 border border-slate-800 space-y-3">
                   <div className="flex items-center gap-2 text-emerald-400 font-black text-sm">
                     <CheckCircle2 className="w-4 h-4" />
-                    <span>FDA Indications & Clinical Usage</span>
+                    <span>Clinical Indications & Usage</span>
                   </div>
                   <p className="text-xs text-slate-200 font-medium leading-relaxed">
-                    {selectedDrugDetails.openfda?.indications_and_usage || "Approved for the targeted therapeutic management of metabolic and cardiovascular dysfunctions as indicated in clinical trial registries."}
+                    {selectedDrugDetails.fallback_clinical_info?.indications || "Approved for the targeted therapeutic management of metabolic and cardiovascular dysfunctions as indicated in clinical trial registries."}
                   </p>
                 </div>
 
@@ -669,33 +669,26 @@ export default function DrugSafetyPortal({ showToast, setCurrentTab }) {
                     <span>Contraindications & Precautions</span>
                   </div>
                   <p className="text-xs text-slate-200 font-medium leading-relaxed">
-                    {selectedDrugDetails.openfda?.contraindications || selectedDrugDetails.openfda?.warnings_and_precautions || "Patient hypersensitivity, acute renal or hepatic impairment, and concurrent contraindicated drug combinations."}
+                    {selectedDrugDetails.fallback_clinical_info?.contraindications || "Patient hypersensitivity, acute renal or hepatic impairment, and concurrent contraindicated drug combinations."}
                   </p>
                 </div>
 
               </div>
 
-              {/* FAERS Real-World Adverse Event Frequency Breakdown */}
-              {selectedDrugDetails.faers_adverse_events && selectedDrugDetails.faers_adverse_events.length > 0 && (
+              {/* Safety note fallback section */}
+              {selectedDrugDetails.fallback_clinical_info?.adverse_reactions && (
                 <div className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-white font-black text-sm">
                       <Activity className="w-4 h-4 text-amber-400" />
-                      <span>FDA FAERS Real-World Adverse Reaction Surveillance Reports</span>
+                      <span>Common Adverse Reactions</span>
                     </div>
-                    <span className="text-[10px] font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded">
-                      Source: openFDA FAERS API
-                    </span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                    {selectedDrugDetails.faers_adverse_events.map((ev, i) => (
+                    {selectedDrugDetails.fallback_clinical_info.adverse_reactions.map((reaction, i) => (
                       <div key={i} className="p-3 rounded-xl bg-slate-800/80 border border-slate-700/60 space-y-1">
-                        <div className="text-xs font-bold text-slate-200 truncate">{ev.reaction}</div>
-                        <div className="flex items-center justify-between text-[11px]">
-                          <span className="text-slate-400">FAERS Reports:</span>
-                          <span className="font-mono font-bold text-amber-400">{ev.report_count.toLocaleString()}</span>
-                        </div>
+                        <div className="text-xs font-bold text-slate-200">{reaction}</div>
                       </div>
                     ))}
                   </div>
