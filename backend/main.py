@@ -19,11 +19,9 @@ import routes_pharma
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup tasks
     init_db()
     load_ml_assets()
     yield
-    # Shutdown tasks (if any)
 
 app = FastAPI(
     title="Health Risk AI API",
@@ -32,7 +30,6 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Enable CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -41,7 +38,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Custom exception handler for consistent {"error": "message"} responses
 @app.exception_handler(HTTPException)
 async def custom_http_exception_handler(request: Request, exc: HTTPException):
     return JSONResponse(
@@ -49,7 +45,6 @@ async def custom_http_exception_handler(request: Request, exc: HTTPException):
         content={"error": exc.detail}
     )
 
-# Root Health Check Endpoints
 @app.get('/')
 @app.get('/api')
 @app.get('/api/health')
@@ -62,7 +57,6 @@ async def root_health_check():
         "database_mode": DB_MODE
     }
 
-# Include Modular Routers
 app.include_router(routes_auth.router)
 app.include_router(routes_predict.router)
 app.include_router(routes_symptom.router)
