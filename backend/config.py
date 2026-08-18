@@ -4,7 +4,6 @@ import sys
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODELS_DIR = os.path.join(BASE_DIR, "models")
 
-# Load environment variables from .env
 def load_dotenv():
     env_path = os.path.join(BASE_DIR, ".env")
     if os.path.exists(env_path):
