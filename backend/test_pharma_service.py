@@ -4,45 +4,28 @@ import pharma_service
 
 
 class PharmaServiceRxNormParserTests(unittest.TestCase):
-    def test_search_rxnorm_drugs_handles_single_dict_concept_group(self):
-        sample = {
-            "drugGroup": {
-                "conceptGroup": {
-                    "tty": "SBD",
-                    "conceptProperties": {
-                        "rxcui": "596928",
-                        "name": "duloxetine 20 MG Delayed Release Oral Capsule [Cymbalta]",
-                        "synonym": "Cymbalta 20 MG Delayed Release Oral Capsule",
-                        "tty": "SBD",
-                    },
-                }
-            }
-        }
+    def test_search_rxnorm_drugs_uses_local_registry_without_rxnav_or_rxcui(self):
+        pharma_service._fetch_json = lambda url, timeout=6: None
 
-        pharma_service._fetch_json = lambda url, timeout=6: sample if "drugs.json" in url else None
-
-        results = pharma_service.search_rxnorm_drugs("duloxetine")
+        results = pharma_service.search_rxnorm_drugs("metformin")
 
         self.assertEqual(len(results), 1)
-        self.assertEqual(results[0]["rxcui"], "596928")
-        self.assertEqual(results[0]["name"], "duloxetine 20 MG Delayed Release Oral Capsule [Cymbalta]")
-        self.assertEqual(results[0]["source"], "RxNorm")
+        self.assertNotIn("rxcui", results[0])
+        self.assertEqual(results[0]["name"], "Metformin Hydrochloride")
+        self.assertEqual(results[0]["source"], "Local Clinical Registry")
 
-    def test_get_rxnorm_properties_handles_single_dict_prop_concept(self):
-        sample = {
-            "propConceptGroup": {
-                "propConcept": {
-                    "propName": "NAME",
-                    "propValue": "duloxetine",
-                }
-            }
-        }
+    def test_get_rxnorm_properties_returns_local_registry_data(self):
+        properties = pharma_service.get_rxnorm_properties("metformin")
 
-        pharma_service._fetch_json = lambda url, timeout=6: sample if "allProperties" in url else None
+        self.assertEqual(properties["NAME"], "Metformin Hydrochloride")
+        self.assertIn("Biguanide", properties["CLASS"])
 
-        properties = pharma_service.get_rxnorm_properties("596928")
+    def test_check_rxnorm_drug_interactions_uses_local_rules(self):
+        interactions = pharma_service.check_rxnorm_drug_interactions(["lisinopril", "losartan"])
 
-        self.assertEqual(properties["NAME"], "duloxetine")
+        self.assertTrue(interactions)
+        self.assertEqual(interactions[0]["severity_level"], "high")
+        self.assertEqual(interactions[0]["source"], "Local Clinical Guideline Reference")
 
 
 if __name__ == "__main__":

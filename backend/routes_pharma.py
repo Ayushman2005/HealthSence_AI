@@ -10,7 +10,6 @@ router = APIRouter(prefix="/api/drug", tags=["Pharmacology & Drug Safety"])
 
 class InteractionCheckRequest(BaseModel):
     drugs: Optional[List[str]] = []
-    rxcuis: Optional[List[str]] = []
 
 
 class MedicationItem(BaseModel):
@@ -28,9 +27,7 @@ class PrescriptionVerificationRequest(BaseModel):
 @router.get("/search")
 @router.get("/search/")
 async def search_drugs(q: str = Query(..., min_length=2, description="Drug brand or generic name")):
-    """
-    Search across RxNorm for normalized drug concept names and RxCUIs.
-    """
+    """Search the local clinical drug registry without external drug APIs."""
     try:
         results = pharma_service.search_rxnorm_drugs(q)
         return {
@@ -45,41 +42,25 @@ async def search_drugs(q: str = Query(..., min_length=2, description="Drug brand
 
 @router.get("/details")
 @router.get("/details/")
-async def get_drug_details(
-    name: str = Query(..., min_length=2, description="Drug name"),
-    rxcui: Optional[str] = Query(None, description="Optional RxNorm CUI")
-):
-    """
-    Retrieve clinical pharmacology intelligence from the supported sources:
-    - DailyMed: Official SPL monographs and NDC packaging codes
-    - RxNorm: Standardized identifiers and clinical properties
-    """
+async def get_drug_details(name: str = Query(..., min_length=2, description="Drug name")):
+    """Retrieve local clinical pharmacology intelligence without external drug APIs."""
     try:
         clean_name = pharma_service.re_clean_drug_name(name)
 
         dailymed_spls = pharma_service.get_dailymed_spls(clean_name)
         dailymed_ndcs = pharma_service.get_dailymed_ndcs(clean_name)
 
-        resolved_rxcui = rxcui
-        if not resolved_rxcui:
-            rx_results = pharma_service.search_rxnorm_drugs(clean_name)
-            if rx_results and rx_results[0].get("rxcui"):
-                resolved_rxcui = rx_results[0]["rxcui"]
-
-        rxnorm_props = pharma_service.get_rxnorm_properties(resolved_rxcui) if resolved_rxcui else {}
+        local_properties = pharma_service.get_rxnorm_properties(clean_name) if clean_name else {}
 
         lower_name = clean_name.lower()
         fallback = None
         if lower_name in pharma_service.CLINICAL_FALLBACK_DRUGS:
             fallback = pharma_service.CLINICAL_FALLBACK_DRUGS[lower_name]
-            if not resolved_rxcui:
-                resolved_rxcui = fallback.get("rxcui")
 
         return {
             "success": True,
             "drug_name": name,
             "cleaned_name": clean_name,
-            "rxcui": resolved_rxcui,
             "openfda": None,
             "faers_adverse_events": [],
             "recalls": [],
@@ -87,7 +68,7 @@ async def get_drug_details(
                 "monographs": dailymed_spls,
                 "ndcs": dailymed_ndcs
             },
-            "rxnorm_properties": rxnorm_props,
+            "local_properties": local_properties,
             "fallback_clinical_info": fallback
         }
     except Exception as e:
@@ -97,38 +78,29 @@ async def get_drug_details(
 @router.post("/check-interactions")
 @router.post("/check-interactions/")
 async def check_interactions(payload: InteractionCheckRequest):
-    """
-    Evaluate multi-drug combinations for adverse Drug-to-Drug Interactions (DDI)
-    using the NLM RxNorm Interaction API.
-    """
+    """Evaluate multi-drug combinations for adverse DDI risk using the local clinical rules only."""
     try:
-        rxcuis = list(payload.rxcuis or [])
         resolved_drugs = []
+        known_drugs = []
 
-        # If drug names provided without RxCUIs, resolve each to RxCUI
         for drug in (payload.drugs or []):
             if not drug or not drug.strip():
                 continue
             clean = pharma_service.re_clean_drug_name(drug)
-            rx_search = pharma_service.search_rxnorm_drugs(clean)
-            cui = None
-            if rx_search and rx_search[0].get("rxcui"):
-                cui = rx_search[0]["rxcui"]
+            lookup = pharma_service.search_rxnorm_drugs(clean)
+            if lookup:
+                known_drugs.append(clean)
             elif clean.lower() in pharma_service.CLINICAL_FALLBACK_DRUGS:
-                cui = pharma_service.CLINICAL_FALLBACK_DRUGS[clean.lower()].get("rxcui")
-            
-            if cui and cui not in rxcuis:
-                rxcuis.append(cui)
+                known_drugs.append(clean)
             resolved_drugs.append({
                 "input_name": drug,
                 "clean_name": clean,
-                "rxcui": cui or "Unmatched"
+                "matched": bool(lookup or clean.lower() in pharma_service.CLINICAL_FALLBACK_DRUGS)
             })
 
         interactions = []
-        if len(rxcuis) >= 2:
-            valid_rxcuis = [c for c in rxcuis if c and c != "Unmatched"]
-            interactions = pharma_service.check_rxnorm_drug_interactions(valid_rxcuis)
+        if len(known_drugs) >= 2:
+            interactions = pharma_service.check_rxnorm_drug_interactions(known_drugs)
 
         # Classify overall risk level
         has_high = any(i.get("severity_level") == "high" for i in interactions)
@@ -157,12 +129,7 @@ async def check_interactions(payload: InteractionCheckRequest):
 @router.post("/verify-prescription")
 @router.post("/verify-prescription/")
 async def verify_prescription(payload: PrescriptionVerificationRequest):
-    """
-    Automated verification of a full medical report prescription list:
-    1. Resolves each medication via RxNorm.
-    2. Runs pairwise Drug-to-Drug Interaction (DDI) checks across all medications.
-    3. Provides a safety rating and clinical precautions.
-    """
+    """Automated verification of a full medication list using the local clinical safety registry only."""
     try:
         medications = payload.medications
         if not medications:
@@ -175,17 +142,13 @@ async def verify_prescription(payload: PrescriptionVerificationRequest):
             }
 
         drug_verifications = []
-        rxcuis_to_check = []
+        checked_names = []
 
         for med in medications:
             clean = pharma_service.re_clean_drug_name(med.name)
-            rx_search = pharma_service.search_rxnorm_drugs(clean)
-            cui = rx_search[0].get("rxcui") if rx_search else None
-            if not cui and clean.lower() in pharma_service.CLINICAL_FALLBACK_DRUGS:
-                cui = pharma_service.CLINICAL_FALLBACK_DRUGS[clean.lower()].get("rxcui")
-
-            if cui:
-                rxcuis_to_check.append(cui)
+            has_match = bool(pharma_service.search_rxnorm_drugs(clean) or clean.lower() in pharma_service.CLINICAL_FALLBACK_DRUGS)
+            if has_match:
+                checked_names.append(clean)
 
             fallback = pharma_service.CLINICAL_FALLBACK_DRUGS.get(clean.lower())
             has_boxed = bool(fallback and fallback.get("boxed_warning"))
@@ -196,7 +159,7 @@ async def verify_prescription(payload: PrescriptionVerificationRequest):
                 "cleaned_name": clean,
                 "dosage": med.dosage,
                 "frequency": med.frequency,
-                "rxcui": cui or "Pending NLM Match",
+                "matched_locally": has_match,
                 "fda_approved": bool(clean.lower() in pharma_service.CLINICAL_FALLBACK_DRUGS),
                 "has_boxed_warning": has_boxed,
                 "boxed_warning": boxed_warning_text,
@@ -205,8 +168,8 @@ async def verify_prescription(payload: PrescriptionVerificationRequest):
             })
 
         interactions = []
-        if len(rxcuis_to_check) >= 2:
-            interactions = pharma_service.check_rxnorm_drug_interactions(rxcuis_to_check)
+        if len(checked_names) >= 2:
+            interactions = pharma_service.check_rxnorm_drug_interactions(checked_names)
 
         has_high_ddi = any(i.get("severity_level") == "high" for i in interactions)
         has_mod_ddi = any(i.get("severity_level") == "moderate" for i in interactions)

@@ -187,7 +187,7 @@ export default function MedicalReport({
       if (res.ok && data.success) {
         setPrescriptionVerification(data);
         soundFX.play('success');
-        showToast("Prescription verified with RxNorm!", "success");
+        showToast("Prescription verified with local clinical rules!", "success");
       } else {
         showToast("Prescription verification failed.", "danger");
       }
@@ -220,7 +220,7 @@ export default function MedicalReport({
               </div>
               <h2 className="text-2xl font-black text-white mt-1">Medical Report Scanner & Prescription Finder</h2>
               <p className="text-xs text-slate-300 font-medium mt-1 max-w-xl leading-relaxed">
-                Upload lab test reports (PNG/JPG images, scanned PDFs, diagnostic notes) to run automated Tesseract OCR text extraction, detect underlying disease parameters, and verify Rx medications against RxNorm.
+                Upload lab test reports (PNG/JPG images, scanned PDFs, diagnostic notes) to run automated Tesseract OCR text extraction, detect underlying disease parameters, and verify medications against local clinical rules.
               </p>
             </div>
           </div>
@@ -453,7 +453,7 @@ export default function MedicalReport({
                   ) : (
                     <>
                       <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>Verify with RxNorm</span>
+                      <span>Verify with Local Rules</span>
                     </>
                   )}
                 </button>
@@ -494,10 +494,10 @@ export default function MedicalReport({
                   <ShieldCheck className="w-5 h-5 text-emerald-400" />
                   <div>
                     <h4 className="text-sm font-black text-white">
-                      Pharmacology Verification Report (RxNorm)
+                      Pharmacology Verification Report
                     </h4>
                     <p className="text-[11px] text-slate-400">
-                      Evaluated {prescriptionVerification.total_medications_checked} medications against RxNav interaction registry and clinical alert rules
+                      Evaluated {prescriptionVerification.total_medications_checked} medications against local clinical interaction rules and safety alerts
                     </p>
                   </div>
                 </div>
@@ -524,7 +524,7 @@ export default function MedicalReport({
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-white truncate">{dv.medication_name}</span>
                       <span className="text-[10px] font-mono text-amber-300 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">
-                        RxCUI: {dv.rxcui}
+                        Local match
                       </span>
                     </div>
 

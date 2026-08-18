@@ -30,7 +30,7 @@ export default function DrugSafetyPortal({ showToast, setCurrentTab }) {
     loadDrugDetails('Metformin', '6809');
   }, []);
 
-  // Search drugs via backend proxy to RxNorm
+  // Search drugs via backend proxy to the local clinical registry
   const handleSearchDrugs = async (queryToSearch = null) => {
     const q = queryToSearch !== null ? queryToSearch : searchQuery;
     if (!q || q.trim().length < 2) {
@@ -45,7 +45,7 @@ export default function DrugSafetyPortal({ showToast, setCurrentTab }) {
       if (res.ok && data.success) {
         setSearchResults(data.results || []);
         if (data.results && data.results.length > 0) {
-          showToast(`Found ${data.results.length} normalized drug matches from RxNorm`, "success");
+          showToast(`Found ${data.results.length} local drug matches`, "success");
         } else {
           showToast("No exact matches found. You can still inspect clinical monographs.", "primary");
         }
@@ -114,7 +114,7 @@ export default function DrugSafetyPortal({ showToast, setCurrentTab }) {
       }
     } catch (err) {
       console.error("DDI check error", err);
-      showToast("Failed to connect to RxNorm Interaction Service", "danger");
+      showToast("Failed to connect to the local interaction service", "danger");
     } finally {
       setCheckingDdi(false);
     }
@@ -168,7 +168,7 @@ export default function DrugSafetyPortal({ showToast, setCurrentTab }) {
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5 text-amber-400" /> RxNorm + DailyMed
+                  <ShieldCheck className="w-3.5 h-3.5 text-amber-400" /> Local Clinical + DailyMed
                 </span>
                 <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Live Pharmacology Data
@@ -178,7 +178,7 @@ export default function DrugSafetyPortal({ showToast, setCurrentTab }) {
                 Pharmacology & Drug Safety Intelligence
               </h2>
               <p className="text-xs sm:text-sm text-slate-300 font-medium mt-1 max-w-2xl leading-relaxed">
-                Real-time drug-to-drug interaction (DDI) surveillance and official DailyMed clinical monographs for verified RxNorm medication lookups.
+                Real-time drug-to-drug interaction (DDI) surveillance and DailyMed-style clinical monographs for locally verified medications.
               </p>
             </div>
           </div>
@@ -298,7 +298,7 @@ export default function DrugSafetyPortal({ showToast, setCurrentTab }) {
                 {checkingDdi ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin" />
-                    <span>Analyzing RxNav Interaction Matrix...</span>
+                    <span>Analyzing Local Clinical Interaction Matrix...</span>
                   </>
                 ) : (
                   <>
@@ -377,14 +377,14 @@ export default function DrugSafetyPortal({ showToast, setCurrentTab }) {
                       <h4 className="text-xl font-black text-white">{ddiResults.overall_status}</h4>
                     </div>
                     <p className="text-xs text-slate-400 font-medium mt-0.5">
-                      Evaluated {ddiResults.evaluated_drugs_count} medications against NLM RxNav Drug Interaction API • {ddiResults.interactions_count} pairwise interaction(s) found
+                      Evaluated {ddiResults.evaluated_drugs_count} medications against the local clinical interaction registry • {ddiResults.interactions_count} pairwise interaction(s) found
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-black px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-slate-300">
-                    Source: NLM RxNav & DrugBank High-Priority
+                    Source: Local Clinical Guideline Reference
                   </span>
                 </div>
               </div>
@@ -392,18 +392,18 @@ export default function DrugSafetyPortal({ showToast, setCurrentTab }) {
               {/* Resolved Identifiers Matrix */}
               <div className="space-y-2">
                 <label className="text-[11px] font-black uppercase tracking-wider text-slate-400">
-                  RxNorm Standard Concept Identifiers (RxCUI):
+                  Local Medication Matches:
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {ddiResults.resolved_drugs.map((d, i) => (
                     <div key={i} className="p-3 rounded-2xl bg-slate-900/60 border border-slate-800 flex items-center justify-between">
                       <div className="truncate">
                         <div className="text-xs font-bold text-white truncate">{d.input_name}</div>
-                        <div className="text-[10px] text-slate-400 font-mono">RxCUI: {d.rxcui}</div>
+                        <div className="text-[10px] text-slate-400">Matched locally</div>
                       </div>
                       <button
                         onClick={() => {
-                          loadDrugDetails(d.clean_name, d.rxcui !== 'Unmatched' ? d.rxcui : null);
+                          loadDrugDetails(d.clean_name);
                           setActiveSubTab('drug_explorer');
                         }}
                         className="p-1.5 rounded-lg bg-slate-800 hover:bg-amber-500/20 text-amber-400 transition"
@@ -482,7 +482,7 @@ export default function DrugSafetyPortal({ showToast, setCurrentTab }) {
                   </div>
                   <h5 className="font-black text-base text-emerald-300">No Documented High-Risk DDIs Detected</h5>
                   <p className="text-xs text-slate-300 max-w-lg mx-auto">
-                    Based on current NLM RxNav interaction registries, no major severe drug-to-drug interactions were identified between this combination. Always consult your attending physician before altering dosage.
+                    Based on current local clinical safety rules, no major severe drug-to-drug interactions were identified between this combination. Always consult your attending physician before altering dosage.
                   </p>
                 </div>
               )}
@@ -504,10 +504,10 @@ export default function DrugSafetyPortal({ showToast, setCurrentTab }) {
             <div>
               <h3 className="text-lg font-black text-white flex items-center gap-2">
                 <Search className="w-5 h-5 text-amber-400" />
-                <span>Search RxNorm Drug Monograph Database</span>
+                <span>Search Local Drug Monograph Database</span>
               </h3>
               <p className="text-xs text-slate-400 font-medium mt-0.5">
-                Query RxNorm identifiers and official DailyMed monographs.
+                Query locally indexed medication profiles and clinical monographs.
               </p>
             </div>
 
@@ -558,17 +558,15 @@ export default function DrugSafetyPortal({ showToast, setCurrentTab }) {
                     <button
                       key={idx}
                       onClick={() => {
-                        loadDrugDetails(item.name, item.rxcui);
+                        loadDrugDetails(item.name);
                       }}
                       className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-amber-500/20 border border-slate-700 hover:border-amber-500/40 text-left transition cursor-pointer text-xs flex items-center gap-2"
                     >
                       <Pill className="w-3.5 h-3.5 text-amber-400" />
                       <span className="font-bold text-white">{item.name}</span>
-                      {item.rxcui && (
-                        <span className="text-[10px] text-slate-400 font-mono bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">
-                          CUI: {item.rxcui}
-                        </span>
-                      )}
+                      <span className="text-[10px] text-slate-400 font-mono bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">
+                        local match
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -580,8 +578,8 @@ export default function DrugSafetyPortal({ showToast, setCurrentTab }) {
           {loadingDetails && (
             <div className="glass-panel rounded-3xl p-12 text-center space-y-3 animate-fade-in">
               <RefreshCw className="w-8 h-8 text-amber-400 animate-spin mx-auto" />
-              <h4 className="text-base font-black text-white">Fetching Official RxNorm & DailyMed Monograph...</h4>
-              <p className="text-xs text-slate-400">Aggregating RxNorm metadata and DailyMed SPL entries</p>
+              <h4 className="text-base font-black text-white">Fetching Local Clinical Monograph...</h4>
+              <p className="text-xs text-slate-400">Aggregating local medication metadata and reference labels</p>
             </div>
           )}
 
@@ -599,11 +597,6 @@ export default function DrugSafetyPortal({ showToast, setCurrentTab }) {
                       <span className="text-xs font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                         {selectedDrugDetails.openfda?.product_type || "Prescription Drug"}
                       </span>
-                      {selectedDrugDetails.rxcui && (
-                        <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-slate-800 text-amber-300 border border-slate-700">
-                          RxCUI: {selectedDrugDetails.rxcui}
-                        </span>
-                      )}
                     </div>
                     <h3 className="text-2xl sm:text-3xl font-black text-white mt-1">
                       {selectedDrugDetails.drug_name}

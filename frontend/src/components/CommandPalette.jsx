@@ -57,7 +57,7 @@ export default function CommandPalette({
     },
     {
       id: 'pharma_portal',
-      title: 'Rx & Drug Safety Portal (RxNorm + DailyMed)',
+      title: 'Drug Safety Portal (Local Clinical + DailyMed)',
       subtitle: 'Multi-drug interaction checker and DailyMed monographs',
       icon: Pill,
       category: 'Pharmacology',

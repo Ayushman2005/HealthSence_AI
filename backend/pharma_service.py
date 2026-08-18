@@ -62,174 +62,104 @@ def _as_list(value: Any) -> List[Any]:
     return [value]
 
 
-# ---------------------------------------------------------------------------
-# 1. RxNorm REST API (National Library of Medicine - NLM)
-# ---------------------------------------------------------------------------
+def _lookup_drug_record(query: str) -> Optional[Dict[str, Any]]:
+    """Resolve a known medication against the local clinical registry by name or brand alias."""
+    if not query:
+        return None
 
-def search_rxnorm_drugs(term: str) -> List[Dict[str, Any]]:
-    """
-    Search RxNorm for normalized drug names, spelling suggestions, and RxCUIs.
-    API: https://rxnav.nlm.nih.gov/REST/approximateTerm.json?term=...
-    """
+    candidate = re_clean_drug_name(query).lower()
+    if not candidate:
+        return None
+
+    for key, value in CLINICAL_FALLBACK_DRUGS.items():
+        record_name = re_clean_drug_name(str(value.get("name") or key)).lower()
+        aliases = {record_name, str(key).lower()}
+        aliases.update(str(alias).lower() for alias in value.get("brand_names", []))
+        alias_strings = {alias.replace("-", " ") for alias in aliases}
+        if candidate in aliases or candidate.replace("-", " ") in alias_strings:
+            return value
+        if any(alias.startswith(candidate) or candidate.startswith(alias) for alias in aliases):
+            return value
+    return None
+
+
+def _local_drug_matches(term: str) -> List[Dict[str, Any]]:
+    """Resolve names against the project's local clinical drug registry without any external drug APIs."""
     if not term or len(term.strip()) < 2:
         return []
 
-    encoded_term = urllib.parse.quote(term.strip())
-    url = f"https://rxnav.nlm.nih.gov/REST/approximateTerm.json?term={encoded_term}&maxEntries=6"
-    data = _fetch_json(url)
-
-    results = []
-    if data and "approximateGroup" in data:
-        candidates = _as_list(data["approximateGroup"].get("candidate", []))
-        for item in candidates:
-            if not isinstance(item, dict):
-                continue
-            rxcui = item.get("rxcui")
-            score = item.get("score")
-            if rxcui:
-                results.append({
-                    "rxcui": str(rxcui),
-                    "name": item.get("name") or term.title(),
-                    "score": score,
-                    "source": "RxNorm"
-                })
-
-    # Fallback to direct name search if approximate search didn't yield candidates
-    if not results:
-        direct_url = f"https://rxnav.nlm.nih.gov/REST/drugs.json?name={encoded_term}"
-        direct_data = _fetch_json(direct_url)
-        if direct_data and "drugGroup" in direct_data:
-            concept_groups = _as_list(direct_data["drugGroup"].get("conceptGroup", []))
-            for cg in concept_groups:
-                if not isinstance(cg, dict):
-                    continue
-                for concept in _as_list(cg.get("conceptProperties", [])):
-                    if not isinstance(concept, dict):
-                        continue
-                    results.append({
-                        "rxcui": str(concept.get("rxcui")),
-                        "name": concept.get("name"),
-                        "synonym": concept.get("synonym"),
-                        "tty": concept.get("tty"),
-                        "source": "RxNorm"
-                    })
-                    if len(results) >= 6:
-                        break
-
-    return results
-
-
-def get_rxnorm_properties(rxcui: str) -> Dict[str, Any]:
-    """Fetch official properties & brand/generic relations for a specific RxCUI."""
-    if not rxcui:
-        return {}
-    url = f"https://rxnav.nlm.nih.gov/REST/rxcui/{rxcui}/allProperties.json?prop=all"
-    data = _fetch_json(url)
-    properties = {}
-    if data and "propConceptGroup" in data:
-        prop_list = _as_list(data["propConceptGroup"].get("propConcept", []))
-        for p in prop_list:
-            if not isinstance(p, dict):
-                continue
-            properties[p.get("propName", "")] = p.get("propValue", "")
-    return properties
-
-
-def check_rxnorm_drug_interactions(rxcuis: List[str]) -> List[Dict[str, Any]]:
-    """
-    Check pairwise Drug-to-Drug Interactions (DDI) via RxNav Interaction API.
-    API: https://rxnav.nlm.nih.gov/REST/interaction/list.json?rxcuis=...
-    """
-    if not rxcuis or len(rxcuis) < 2:
+    cleaned = re_clean_drug_name(term).lower()
+    if not cleaned:
         return []
 
-    rxcui_str = "+".join(rxcuis)
-    url = f"https://rxnav.nlm.nih.gov/REST/interaction/list.json?rxcuis={rxcui_str}"
-    data = _fetch_json(url)
+    matches: List[Dict[str, Any]] = []
+    seen = set()
+    for key, value in CLINICAL_FALLBACK_DRUGS.items():
+        entry_name = str(key).lower()
+        brand_names = [str(brand).lower() for brand in value.get("brand_names", [])]
+        aliases = {entry_name, str(value.get("name", "")).lower(), *brand_names}
+        normalized_aliases = {alias.replace("-", " ") for alias in aliases}
+        if cleaned in aliases or cleaned.replace("-", " ") in normalized_aliases:
+            item = {
+                "name": value.get("name") or key.title(),
+                "source": "Local Clinical Registry",
+                "class": value.get("class"),
+                "brand_names": value.get("brand_names", [])
+            }
+            key_id = item["name"].lower()
+            if key_id not in seen:
+                matches.append(item)
+                seen.add(key_id)
 
-    interactions = []
-    if data and "fullInteractionTypeGroup" in data:
-        for group in data["fullInteractionTypeGroup"]:
-            source_name = group.get("sourceName", "NLM RxNav")
-            for itype in group.get("fullInteractionType", []):
-                comment = itype.get("comment", "")
-                min_concepts = itype.get("minConcept", [])
-                
-                drug_a = min_concepts[0].get("name", "Drug A") if len(min_concepts) > 0 else "Drug A"
-                drug_b = min_concepts[1].get("name", "Drug B") if len(min_concepts) > 1 else "Drug B"
-                rxcui_a = min_concepts[0].get("rxcui", "") if len(min_concepts) > 0 else ""
-                rxcui_b = min_concepts[1].get("rxcui", "") if len(min_concepts) > 1 else ""
+    if matches:
+        return matches
 
-                for ipair in itype.get("interactionPair", []):
-                    desc = ipair.get("description", comment or "Clinical drug interaction detected.")
-                    severity = ipair.get("severity", "N/A")
-                    
-                    # Deduce severity level if N/A
-                    desc_lower = desc.lower()
-                    if any(w in desc_lower for w in ["fatal", "severe", "contraindicated", "avoid combination", "toxicity", "life-threatening"]):
-                        normalized_severity = "High Risk / Severe"
-                        severity_level = "high"
-                    elif any(w in desc_lower for w in ["moderate", "monitor", "caution", "dosage adjustment", "increase", "decrease"]):
-                        normalized_severity = "Moderate Clinical Precaution"
-                        severity_level = "moderate"
-                    else:
-                        normalized_severity = "Minor / Informational"
-                        severity_level = "low"
+    normalized = cleaned.replace("-", " ")
+    for key, value in CLINICAL_FALLBACK_DRUGS.items():
+        candidate = str(key).lower().replace("-", " ")
+        if candidate.startswith(normalized) or normalized.startswith(candidate):
+            item = {
+                "name": value.get("name") or key.title(),
+                "source": "Local Clinical Registry",
+                "class": value.get("class"),
+                "brand_names": value.get("brand_names", [])
+            }
+            key_id = item["name"].lower()
+            if key_id not in seen:
+                matches.append(item)
+                seen.add(key_id)
 
-                    interactions.append({
-                        "drug_a": drug_a,
-                        "drug_b": drug_b,
-                        "rxcui_a": rxcui_a,
-                        "rxcui_b": rxcui_b,
-                        "description": desc,
-                        "severity": normalized_severity,
-                        "severity_level": severity_level,
-                        "source": source_name
-                    })
+    return matches
 
-    # If NLM list didn't yield full pairs, enrich with clinical high-priority DDI dictionary
-    for cui in rxcuis:
-        if len(interactions) >= 5:
-            break
-        # Query individual interaction if needed
-        indiv_url = f"https://rxnav.nlm.nih.gov/REST/interaction/interaction.json?rxcui={cui}&sources=ONCHigh"
-        indiv_data = _fetch_json(indiv_url)
-        if indiv_data and "interactionTypeGroup" in indiv_data:
-            for itg in indiv_data["interactionTypeGroup"]:
-                for it in itg.get("interactionType", []):
-                    for ip in it.get("interactionPair", []):
-                        concepts = ip.get("interactionConcept", [])
-                        if len(concepts) >= 2:
-                            c1 = concepts[0].get("minConceptItem", {}).get("name", "")
-                            c2 = concepts[1].get("minConceptItem", {}).get("name", "")
-                            desc = ip.get("description", "")
-                            # Check if the other interacting drug is in our requested rxcuis
-                            c2_rxcui = concepts[1].get("minConceptItem", {}).get("rxcui", "")
-                            if c2_rxcui in rxcuis and not any(i["rxcui_a"] == cui and i["rxcui_b"] == c2_rxcui for i in interactions):
-                                interactions.append({
-                                    "drug_a": c1,
-                                    "drug_b": c2,
-                                    "rxcui_a": cui,
-                                    "rxcui_b": c2_rxcui,
-                                    "description": desc,
-                                    "severity": "High Risk / Severe" if "severe" in desc.lower() else "Moderate Clinical Precaution",
-                                    "severity_level": "high" if "severe" in desc.lower() else "moderate",
-                                    "source": "NLM ONCHigh"
-                                })
 
-    # High-Priority Clinical Rules Fallback
-    RXCUI_MAP = {
-        "11289": "warfarin",
-        "1191": "aspirin",
-        "5640": "ibuprofen",
-        "29046": "lisinopril",
-        "5224": "losartan",
-        "9997": "spironolactone",
-        "6809": "metformin",
-        "83367": "atorvastatin",
-        "21212": "clarithromycin",
-        "4603": "furosemide"
+def search_rxnorm_drugs(term: str) -> List[Dict[str, Any]]:
+    """Search the local clinical registry for known drug names without RxCUI or external calls."""
+    return _local_drug_matches(term)
+
+
+def get_rxnorm_properties(drug_name: str) -> Dict[str, Any]:
+    """Return local clinical properties for a known drug name without any RxNorm identifier dependency."""
+    if not drug_name:
+        return {}
+
+    record = _lookup_drug_record(drug_name)
+    if record is None:
+        return {}
+
+    return {
+        "NAME": record.get("name", ""),
+        "CLASS": record.get("class", ""),
+        "BRAND_NAMES": ", ".join(record.get("brand_names", [])),
+        "INDICATIONS": record.get("indications", ""),
+        "BOXED_WARNING": record.get("boxed_warning") or "",
+        "CONTRAINDICATIONS": record.get("contraindications", "")
     }
+
+
+def check_rxnorm_drug_interactions(drug_names: List[str]) -> List[Dict[str, Any]]:
+    """Evaluate known clinical drug interactions using the local registry only."""
+    if not drug_names or len(drug_names) < 2:
+        return []
 
     KNOWN_DDI_RULES = [
         (("warfarin", "aspirin"), "High Risk / Severe", "high", "Concurrent anticoagulant and antiplatelet therapy significantly increases risk of major gastrointestinal and systemic bleeding."),
@@ -240,29 +170,30 @@ def check_rxnorm_drug_interactions(rxcuis: List[str]) -> List[Dict[str, Any]]:
         (("metformin", "furosemide"), "Moderate Clinical Precaution", "moderate", "Furosemide increases Metformin blood levels while Metformin decreases Furosemide clearance.")
     ]
 
-    # Convert rxcuis / names to normalized tokens
     normalized_tokens = set()
-    for r in rxcuis:
-        r_str = str(r).strip()
-        normalized_tokens.add(r_str.lower())
-        if r_str in RXCUI_MAP:
-            normalized_tokens.add(RXCUI_MAP[r_str])
-        clean = re_clean_drug_name(r_str).lower()
-        if clean:
-            normalized_tokens.add(clean)
+    for candidate in drug_names:
+        if not candidate:
+            continue
+        text = str(candidate).strip()
+        record = _lookup_drug_record(text)
+        if record is not None:
+            normalized_tokens.add(re_clean_drug_name(record.get("name") or text).lower())
+            continue
+        cleaned = re_clean_drug_name(text).lower()
+        if cleaned:
+            normalized_tokens.add(cleaned)
 
+    interactions = []
     for pair_names, sev_label, sev_lvl, desc in KNOWN_DDI_RULES:
         if pair_names[0] in normalized_tokens and pair_names[1] in normalized_tokens:
             if not any(pair_names[0] in i.get("drug_a", "").lower() and pair_names[1] in i.get("drug_b", "").lower() for i in interactions):
                 interactions.append({
                     "drug_a": pair_names[0].title(),
                     "drug_b": pair_names[1].title(),
-                    "rxcui_a": CLINICAL_FALLBACK_DRUGS.get(pair_names[0], {}).get("rxcui", ""),
-                    "rxcui_b": CLINICAL_FALLBACK_DRUGS.get(pair_names[1], {}).get("rxcui", ""),
                     "description": desc,
                     "severity": sev_label,
                     "severity_level": sev_lvl,
-                    "source": "FDA & NLM Clinical Guideline Reference"
+                    "source": "Local Clinical Guideline Reference"
                 })
 
     return interactions
@@ -273,58 +204,31 @@ def check_rxnorm_drug_interactions(rxcuis: List[str]) -> List[Dict[str, Any]]:
 # ---------------------------------------------------------------------------
 
 def get_dailymed_spls(drug_name: str) -> List[Dict[str, Any]]:
-    """
-    Fetch DailyMed Structured Product Label (SPL) entries and official monograph URLs.
-    API: https://dailymed.nlm.nih.gov/dailymed/services/v2/spls.json?drug_name=...
-    """
-    clean_name = re_clean_drug_name(drug_name)
-    if not clean_name:
+    """Return local monograph metadata instead of calling a public drug API."""
+    record = _lookup_drug_record(drug_name)
+    if not record:
         return []
 
-    encoded = urllib.parse.quote(clean_name)
-    url = f"https://dailymed.nlm.nih.gov/dailymed/services/v2/spls.json?drug_name={encoded}&page=1&pagesize=4"
-    data = _fetch_json(url)
-
-    spl_list = []
-    if data and "data" in data:
-        for item in data["data"]:
-            setid = item.get("setid")
-            title = item.get("title", f"{drug_name.title()} Monograph")
-            published_date = item.get("published_date")
-            spl_list.append({
-                "setid": setid,
-                "title": _truncate_text(title, 120),
-                "published_date": published_date,
-                "dailymed_url": f"https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid={setid}" if setid else None
-            })
-
-    return spl_list
+    return [{
+        "setid": "local-reference",
+        "title": _truncate_text(f"{record.get('name', 'Medication')} Local Clinical Monograph", 120),
+        "published_date": "Local clinical reference",
+        "dailymed_url": None
+    }]
 
 
 def get_dailymed_ndcs(drug_name: str) -> List[Dict[str, Any]]:
-    """
-    Fetch DailyMed National Drug Codes (NDCs) and packaging specifications.
-    API: https://dailymed.nlm.nih.gov/dailymed/services/v2/ndcs.json?drug_name=...
-    """
-    clean_name = re_clean_drug_name(drug_name)
-    if not clean_name:
+    """Return local package reference metadata instead of calling a third-party drug API."""
+    record = _lookup_drug_record(drug_name)
+    if not record:
         return []
 
-    encoded = urllib.parse.quote(clean_name)
-    url = f"https://dailymed.nlm.nih.gov/dailymed/services/v2/ndcs.json?drug_name={encoded}&page=1&pagesize=5"
-    data = _fetch_json(url)
-
-    ndc_list = []
-    if data and "data" in data:
-        for item in data["data"]:
-            ndc_list.append({
-                "ndc": item.get("ndc"),
-                "package_description": item.get("package_description"),
-                "dosage_form": item.get("dosage_form"),
-                "route": item.get("route")
-            })
-
-    return ndc_list
+    return [{
+        "ndc": "Local reference",
+        "package_description": "Clinical reference only; no external drug registry API is used.",
+        "dosage_form": record.get("class", "Medication"),
+        "route": "Clinical use per provider assessment"
+    }]
 
 
 # ---------------------------------------------------------------------------
@@ -358,7 +262,6 @@ def _truncate_text(text: Optional[str], max_len: int = 300) -> Optional[str]:
 
 CLINICAL_FALLBACK_DRUGS = {
     "metformin": {
-        "rxcui": "6809",
         "name": "Metformin Hydrochloride",
         "class": "Biguanide / Antihyperglycemic Agent",
         "brand_names": ["Glucophage", "Fortamet", "Glumetza"],
@@ -368,7 +271,6 @@ CLINICAL_FALLBACK_DRUGS = {
         "adverse_reactions": ["Diarrhea", "Nausea/Vomiting", "Flatulence", "Asthenia", "Abdominal discomfort"]
     },
     "lisinopril": {
-        "rxcui": "29046",
         "name": "Lisinopril",
         "class": "Angiotensin-Converting Enzyme (ACE) Inhibitor",
         "brand_names": ["Prinivil", "Zestril", "Qbrelis"],
@@ -378,7 +280,6 @@ CLINICAL_FALLBACK_DRUGS = {
         "adverse_reactions": ["Persistent dry cough", "Dizziness", "Headache", "Hyperkalemia", "Hypotension"]
     },
     "atorvastatin": {
-        "rxcui": "83367",
         "name": "Atorvastatin Calcium",
         "class": "HMG-CoA Reductase Inhibitor (Statin)",
         "brand_names": ["Lipitor"],
