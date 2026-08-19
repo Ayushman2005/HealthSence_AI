@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  Inbox, HeartPulse, FileText, ClipboardList, AlertOctagon, 
+  Inbox, HeartPulse, ClipboardList, AlertOctagon, 
   Stethoscope, Sparkles, ArrowRight, Activity, TrendingUp, ShieldCheck,
   Zap, Sliders, RefreshCw, Volume2, VolumeX, Eye, Info, ChevronDown, 
   CheckCircle2, AlertTriangle, ShieldAlert, Cpu, Heart, Droplets, Wind, Brain
@@ -277,7 +277,7 @@ export default function Dashboard({
           </div>
           <h3 className="font-extrabold text-2xl text-white">No assessments found</h3>
           <p className="text-sm text-slate-300 font-medium max-w-md leading-relaxed">
-            Enter patient biometrics in the clinical wizard or upload a medical lab report to run your first diagnostic assessment.
+            Enter patient biometrics in the clinical wizard to compute your first diagnostic assessment.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 mt-2">
             <button 
@@ -292,11 +292,11 @@ export default function Dashboard({
             <button 
               onClick={() => {
                 soundFX.play('click');
-                setCurrentTab('upload_report');
+                setCurrentTab('symptom_checker');
               }}
               className="btn-magnetic bg-slate-800/90 hover:bg-slate-750 text-amber-400 border border-amber-500/30 font-extrabold py-3.5 px-7 rounded-2xl inline-flex items-center justify-center gap-2.5 cursor-pointer shadow-md transition text-sm hover:border-amber-400"
             >
-              <FileText className="w-5 h-5 text-amber-500" /> Scan Medical Lab Report
+              <Stethoscope className="w-5 h-5 text-amber-500" /> Check Symptoms & Triage
             </button>
           </div>
         </div>

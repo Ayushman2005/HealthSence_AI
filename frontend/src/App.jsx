@@ -14,8 +14,6 @@ import Dashboard from './components/Dashboard';
 import Wizard from './components/Wizard';
 import SymptomChecker from './components/SymptomChecker';
 import HealthChatbot from './components/HealthChatbot';
-import MedicalReport from './components/MedicalReport';
-import DrugSafetyPortal from './components/DrugSafetyPortal';
 import Results from './components/Results';
 import History from './components/History';
 import Insights from './components/Insights';
@@ -115,25 +113,18 @@ export default function App() {
   const [analyzingSymptom, setAnalyzingSymptom] = useState(false);
   const [symptomResult, setSymptomResult] = useState(null);
 
-  // Report Upload state
-  const [reportText, setReportText] = useState('');
-  const [reportFile, setReportFile] = useState(null);
-  const [analyzingReport, setAnalyzingReport] = useState(false);
-  const [reportAnalysisProgress, setReportAnalysisProgress] = useState(0);
-  const [reportAnalysisResult, setReportAnalysisResult] = useState(null);
-
   // Chatbot state
   const [chatMessages, setChatMessages] = useState([
     {
       id: 1,
       sender: 'ai',
       category: 'Welcome & System Ready',
-      text: 'Hello! I am **HealthBot AI**, your 24/7 clinical AI medical assistant. Ask me anything about disease prevention, blood pressure, diabetes, biomarkers, symptoms, medications, or healthy lifestyle guidelines.',
+      text: 'Hello! I am **HealthBot AI**, your 24/7 clinical AI health assistant. Ask me anything about disease prevention, blood pressure, diabetes, biomarkers, symptoms, exercise, or healthy nutrition guidelines.',
       suggested_prompts: [
         'How to lower fasting blood sugar?',
         'What are normal blood pressure ranges?',
         'What causes stomach ache after meals?',
-        'How does Metformin work?'
+        'How much exercise is recommended weekly?'
       ],
       time: 'Just now'
     }
@@ -550,54 +541,6 @@ export default function App() {
       showToast("Failed to connect to symptom checker service", "danger");
     } finally {
       setAnalyzingSymptom(false);
-    }
-  };
-
-  // Medical Report Scanner API handler
-  const handleAnalyzeReport = async (overrideText = null, overrideFileName = null) => {
-    const textToAnalyze = overrideText !== null ? overrideText : reportText;
-    const fileNameToUse = overrideFileName || (reportFile ? reportFile.name : "Medical_Lab_Report_2026.pdf");
-    
-    setAnalyzingReport(true);
-    setReportAnalysisProgress(15);
-    
-    const interval = setInterval(() => {
-      setReportAnalysisProgress(prev => {
-        if (prev >= 85) return 85;
-        return prev + 20;
-      });
-    }, 250);
-
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/analyze-report`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${authToken}`
-        },
-        body: JSON.stringify({
-          report_text: textToAnalyze,
-          file_name: fileNameToUse
-        })
-      });
-
-      const data = await res.json();
-      clearInterval(interval);
-      setReportAnalysisProgress(100);
-      
-      setTimeout(() => {
-        setAnalyzingReport(false);
-        if (res.ok && data.success) {
-          setReportAnalysisResult(data);
-          showToast("Medical report scanned! Disease and required medications detected.", "success");
-        } else {
-          showToast(data.detail || "Report analysis failed", "danger");
-        }
-      }, 350);
-    } catch (err) {
-      clearInterval(interval);
-      setAnalyzingReport(false);
-      showToast("Failed to connect to report analysis backend", "danger");
     }
   };
 
@@ -1188,8 +1131,6 @@ export default function App() {
               {currentTab === 'wizard' && 'Clinical Diagnostics Wizard'}
               {currentTab === 'symptom_checker' && 'AI Symptom Checker & Clinical Triage'}
               {currentTab === 'chatbot' && 'HealthBot AI Clinical Assistant'}
-              {currentTab === 'upload_report' && 'Medical Report & Rx AI Diagnostic Engine'}
-              {currentTab === 'pharma_portal' && 'Rx Pharmacology & Drug Safety Portal'}
               {currentTab === 'results' && 'Diagnostic Risk Evaluation'}
               {currentTab === 'history' && 'Audit History Log'}
               {currentTab === 'insights' && 'Chronological Health Insights'}
@@ -1200,9 +1141,7 @@ export default function App() {
               {currentTab === 'dashboard' && 'Precision predictive metrics and diagnostic profiles.'}
               {currentTab === 'wizard' && 'Record biomarkers to calculate diagnostic health risk evaluations.'}
               {currentTab === 'symptom_checker' && 'Analyze physical symptoms (stomach ache, headache, fever, chest pain) to receive instant clinical triage & specialist advice.'}
-              {currentTab === 'chatbot' && '24/7 Conversational AI assistant answering medical, disease, medication, dietary, and lifestyle questions.'}
-              {currentTab === 'upload_report' && 'Upload medical lab reports to detect underlying diseases and receive required Rx medications.'}
-              {currentTab === 'pharma_portal' && 'Multi-drug interaction analysis, DailyMed clinical monographs, and dosage safety warnings.'}
+              {currentTab === 'chatbot' && '24/7 Conversational AI assistant answering medical, disease, dietary, and lifestyle questions.'}
               {currentTab === 'results' && 'Patient diagnostic probability report.'}
               {currentTab === 'history' && 'Query, review, and manage past risk summaries.'}
               {currentTab === 'insights' && 'Chart vital sign shifts and health index progressions.'}
@@ -1270,30 +1209,6 @@ export default function App() {
             chatLoading={chatLoading}
             handleSendChatMessage={handleSendChatMessage}
             userProfile={userProfile}
-          />
-        )}
-
-        {currentTab === 'upload_report' && (
-          <MedicalReport
-            reportText={reportText}
-            setReportText={setReportText}
-            reportFile={reportFile}
-            setReportFile={setReportFile}
-            analyzingReport={analyzingReport}
-            reportAnalysisProgress={reportAnalysisProgress}
-            reportAnalysisResult={reportAnalysisResult}
-            handleAnalyzeReport={handleAnalyzeReport}
-            setFormData={setFormData}
-            showToast={showToast}
-            setCurrentTab={setCurrentTab}
-            authToken={authToken}
-          />
-        )}
-
-        {currentTab === 'pharma_portal' && (
-          <DrugSafetyPortal
-            showToast={showToast}
-            setCurrentTab={setCurrentTab}
           />
         )}
 

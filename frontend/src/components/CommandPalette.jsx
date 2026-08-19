@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  Search, HeartPulse, Stethoscope, Bot, FileText, ClipboardList, 
-  TrendingUp, Settings, ShieldAlert, Zap, Cpu, ArrowRight, X, Command, Pill
+  Search, HeartPulse, Stethoscope, Bot, ClipboardList, 
+  TrendingUp, Settings, ShieldAlert, Zap, Cpu, ArrowRight, X, Command
 } from 'lucide-react';
 import { soundFX } from '../utils/audioFX';
 
@@ -46,22 +46,6 @@ export default function CommandPalette({
       icon: Stethoscope,
       category: 'Clinical Intelligence',
       action: () => setCurrentTab('symptom_checker')
-    },
-    {
-      id: 'upload_report',
-      title: 'Scan Medical Lab Report (OCR)',
-      subtitle: 'Extract clinical biomarkers from PDF & lab reports',
-      icon: FileText,
-      category: 'Document Analysis',
-      action: () => setCurrentTab('upload_report')
-    },
-    {
-      id: 'pharma_portal',
-      title: 'Drug Safety Portal (Local Clinical + DailyMed)',
-      subtitle: 'Multi-drug interaction checker and DailyMed monographs',
-      icon: Pill,
-      category: 'Pharmacology',
-      action: () => setCurrentTab('pharma_portal')
     },
     {
       id: 'chatbot',

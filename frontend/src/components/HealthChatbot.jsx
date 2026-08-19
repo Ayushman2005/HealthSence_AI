@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Bot, RefreshCw, User, Stethoscope, Send, Sparkles, Mic, MicOff, 
-  Volume2, VolumeX, Copy, Check, Heart, Droplets, Pill, ShieldAlert
+  Volume2, VolumeX, Copy, Check, Heart, Droplets, ShieldAlert, Activity
 } from 'lucide-react';
 import { soundFX } from '../utils/audioFX';
 
@@ -24,7 +24,7 @@ export default function HealthChatbot({
     { id: 'all', label: '🌟 All Prompts' },
     { id: 'cardio', label: '🫀 Heart & BP', icon: Heart },
     { id: 'diabetes', label: '🩸 Glucose & Diabetes', icon: Droplets },
-    { id: 'pharma', label: '💊 Rx & Medications', icon: Pill },
+    { id: 'fitness', label: '🏃 Fitness & Vitals', icon: Activity },
     { id: 'diet', label: '🥗 Diet & Lifestyle', icon: Sparkles },
     { id: 'triage', label: '🚨 Emergency FAQs', icon: ShieldAlert }
   ];
@@ -33,11 +33,11 @@ export default function HealthChatbot({
     { cat: 'diabetes', label: '🩸 How to lower fasting blood sugar naturally?', prompt: 'How can I lower my fasting blood glucose levels through diet, exercise, and hydration?' },
     { cat: 'cardio', label: '🫀 What are normal blood pressure ranges by age?', prompt: 'What are the current AHA guideline blood pressure stages for adults?' },
     { cat: 'cardio', label: '🧪 What is an ideal LDL & HDL cholesterol level?', prompt: 'What is the recommended LDL and HDL cholesterol target for cardiovascular health?' },
-    { cat: 'pharma', label: '💊 How does Metformin work and what are side effects?', prompt: 'What is Metformin used for, how does it improve insulin sensitivity, and what are its side effects?' },
+    { cat: 'fitness', label: '🏃 How much aerobic exercise is needed for heart health?', prompt: 'What is the recommended weekly duration of moderate-to-vigorous cardio exercise?' },
     { cat: 'diet', label: '🥗 What is the DASH diet protocol for hypertension?', prompt: 'Explain the DASH diet eating plan and daily sodium limits for lowering blood pressure.' },
     { cat: 'triage', label: '🚨 Red-flag symptoms for stroke or heart attack?', prompt: 'What are the warning signs of stroke (FAST) and acute myocardial infarction?' },
     { cat: 'diabetes', label: '🍰 What is HbA1c and how often should it be tested?', prompt: 'What does the HbA1c test measure and what are the pre-diabetic and diabetic thresholds?' },
-    { cat: 'cardio', label: '🏃 How much aerobic exercise is needed for heart health?', prompt: 'What is the recommended weekly duration of moderate-to-vigorous cardio exercise?' }
+    { cat: 'fitness', label: '😴 How does sleep duration impact blood pressure & metabolic risk?', prompt: 'How does getting less than 6 hours of sleep affect insulin resistance and blood pressure?' }
   ];
 
   const filteredPrompts = activeCategoryTab === 'all'
@@ -151,7 +151,7 @@ export default function HealthChatbot({
               </div>
               <h2 className="text-2xl font-black text-white mt-1">HealthBot AI Clinical Assistant</h2>
               <p className="text-xs text-slate-300 font-medium mt-1 max-w-2xl leading-relaxed">
-                Ask questions regarding disease prevention, fasting blood sugar, blood pressure targets, cholesterol, symptoms, medications, or dietary guidelines. Supports voice input & audio readouts.
+                Ask questions regarding disease prevention, fasting blood sugar, blood pressure targets, cholesterol, symptoms, or dietary and lifestyle guidelines. Supports voice input & audio readouts.
               </p>
             </div>
           </div>
@@ -165,7 +165,7 @@ export default function HealthChatbot({
                   id: Date.now(),
                   sender: 'ai',
                   category: 'Welcome & System Ready',
-                  text: 'Hello! I am **HealthBot AI**, your 24/7 clinical AI medical assistant. Ask me anything about disease prevention, blood pressure, diabetes, biomarkers, symptoms, medications, or healthy lifestyle guidelines.',
+                  text: 'Hello! I am **HealthBot AI**, your 24/7 clinical AI health assistant. Ask me anything about disease prevention, blood pressure, diabetes, biomarkers, symptoms, exercise, or healthy nutrition guidelines.',
                   suggested_prompts: [
                     'How to lower fasting blood sugar?',
                     'What are normal blood pressure ranges?',

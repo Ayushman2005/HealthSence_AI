@@ -13,9 +13,7 @@ import routes_auth
 import routes_predict
 import routes_symptom
 import routes_chatbot
-import routes_report
 import routes_admin
-import routes_pharma
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -61,9 +59,7 @@ app.include_router(routes_auth.router)
 app.include_router(routes_predict.router)
 app.include_router(routes_symptom.router)
 app.include_router(routes_chatbot.router)
-app.include_router(routes_report.router)
 app.include_router(routes_admin.router)
-app.include_router(routes_pharma.router)
 
 if __name__ == '__main__':
     import uvicorn
