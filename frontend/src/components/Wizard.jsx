@@ -1,5 +1,6 @@
-import React from 'react';
-import { ArrowLeft, ArrowRight, Activity, Check, HeartPulse, ShieldAlert, Sparkles } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { ArrowLeft, ArrowRight, Activity, Check, HeartPulse, Sparkles, User, Flame, Sliders, Cpu } from 'lucide-react';
+import { soundFX } from '../utils/audioFX';
 
 export default function Wizard({
   wizardStep,
@@ -14,31 +15,74 @@ export default function Wizard({
   handleNextStep
 }) {
 
+  // Preset Patient Profiles for 1-click clinical testing
+  const presets = [
+    {
+      name: '🏃 25yo Athletic Runner',
+      data: {
+        name: 'Alex Rivera', age: 25, gender: 'male', height: 178, weight: 70,
+        smoking: 'no', alcohol: 'low', physicalActivity: 'active', sleepDuration: 8,
+        bpSystolic: 112, bpDiastolic: 74, cholesterol: 165, glucose: 84, insulin: 5, heartRate: 54,
+        algorithm: 'auto'
+      }
+    },
+    {
+      name: '💼 45yo Sedentary (Pre-Diabetic)',
+      data: {
+        name: 'David Miller', age: 45, gender: 'male', height: 175, weight: 88,
+        smoking: 'no', alcohol: 'moderate', physicalActivity: 'sedentary', sleepDuration: 6,
+        bpSystolic: 136, bpDiastolic: 88, cholesterol: 228, glucose: 118, insulin: 16, heartRate: 78,
+        algorithm: 'auto'
+      }
+    },
+    {
+      name: '🚨 60yo Hypertensive Alert',
+      data: {
+        name: 'Elena Rostova', age: 60, gender: 'female', height: 162, weight: 82,
+        smoking: 'yes', alcohol: 'moderate', physicalActivity: 'sedentary', sleepDuration: 5.5,
+        bpSystolic: 164, bpDiastolic: 102, cholesterol: 265, glucose: 155, insulin: 28, heartRate: 92,
+        algorithm: 'auto'
+      }
+    }
+  ];
+
+  const applyPreset = (p) => {
+    soundFX.play('switch');
+    setFormData(prev => ({ ...prev, ...p.data }));
+  };
+
   // Real-time calculated live risk preview values
-  const livePreview = React.useMemo(() => {
+  const livePreview = useMemo(() => {
     const age = parseInt(formData.age) || 35;
     const bmiVal = parseFloat(calculatedBMI) || 22;
     const sys = parseInt(formData.bpSystolic) || 120;
+    const dia = parseInt(formData.bpDiastolic) || 80;
     const glu = parseInt(formData.glucose) || 90;
 
-    let sysStatus = 'Normal BP';
-    let sysColor = 'text-emerald-500 bg-emerald-500/10 border-emerald-500/30';
-    if (sys >= 140) {
+    let sysStatus = 'Normal Blood Pressure';
+    let sysColor = 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30';
+    if (sys >= 180 || dia >= 120) {
+      sysStatus = 'Hypertensive Crisis';
+      sysColor = 'text-rose-400 bg-rose-500/15 border-rose-500/40 animate-pulse';
+    } else if (sys >= 140 || dia >= 90) {
       sysStatus = 'Hypertension Stage 2';
-      sysColor = 'text-rose-500 bg-rose-500/10 border-rose-500/30';
-    } else if (sys >= 130) {
+      sysColor = 'text-rose-400 bg-rose-500/10 border-rose-500/30';
+    } else if (sys >= 130 || dia >= 80) {
       sysStatus = 'Hypertension Stage 1';
-      sysColor = 'text-amber-500 bg-amber-500/10 border-amber-500/30';
+      sysColor = 'text-amber-400 bg-amber-500/10 border-amber-500/30';
+    } else if (sys >= 120 && dia < 80) {
+      sysStatus = 'Elevated Blood Pressure';
+      sysColor = 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30';
     }
 
     let gluStatus = 'Normal Fasting Glucose';
-    let gluColor = 'text-emerald-500 bg-emerald-500/10 border-emerald-500/30';
+    let gluColor = 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30';
     if (glu >= 126) {
-      gluStatus = 'Diabetic Range';
-      gluColor = 'text-rose-500 bg-rose-500/10 border-rose-500/30';
+      gluStatus = 'Diabetic Range (ADA)';
+      gluColor = 'text-rose-400 bg-rose-500/10 border-rose-500/30';
     } else if (glu >= 100) {
-      gluStatus = 'Pre-Diabetic Range';
-      gluColor = 'text-amber-500 bg-amber-500/10 border-amber-500/30';
+      gluStatus = 'Pre-Diabetic Range (ADA)';
+      gluColor = 'text-amber-400 bg-amber-500/10 border-amber-500/30';
     }
 
     return { sysStatus, sysColor, gluStatus, gluColor, age, bmiVal };
@@ -47,11 +91,31 @@ export default function Wizard({
   return (
     <div className="max-w-[1250px] mx-auto animate-fade-in no-print space-y-8">
       
+      {/* Quick Test Presets Bar */}
+      <div className="glass-panel rounded-2xl p-4 border border-amber-500/25 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
+        <div className="flex items-center gap-2 text-xs font-black text-amber-400 uppercase tracking-wider">
+          <Flame className="w-4 h-4 text-amber-400 animate-pulse" />
+          <span>Quick Patient Presets:</span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {presets.map((p, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => applyPreset(p)}
+              className="px-3.5 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-amber-500/30 hover:border-amber-400 text-slate-200 text-xs font-bold transition cursor-pointer shadow-xs hover:scale-105"
+            >
+              {p.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Step navigation nodes */}
       <div className="flex justify-between items-center relative mb-8 px-6 max-w-[850px] mx-auto">
-        <div className="absolute top-[24px] left-8 right-8 h-1 bg-slate-200 dark:bg-slate-800 z-0 rounded-full"></div>
+        <div className="absolute top-[24px] left-8 right-8 h-1 bg-slate-800 z-0 rounded-full"></div>
         <div 
-          className="absolute top-[24px] left-8 h-1 bg-gradient-to-r from-amber-500 to-yellow-500 z-10 transition-all duration-500 rounded-full shadow-xs shadow-amber-500/50"
+          className="absolute top-[24px] left-8 h-1 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 z-10 transition-all duration-500 rounded-full shadow-md shadow-amber-500/50"
           style={{ width: `${((wizardStep - 1) / 2) * 85}%` }}
         ></div>
 
@@ -66,12 +130,12 @@ export default function Wizard({
                 ? 'bg-gradient-to-tr from-amber-500 to-yellow-500 text-white border-amber-400 shadow-lg shadow-amber-500/35 ring-4 ring-amber-500/20 scale-110'
                 : wizardStep > item.step
                   ? 'bg-emerald-500 text-white border-emerald-500 shadow-md shadow-emerald-500/20'
-                  : 'bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700'
+                  : 'bg-slate-900 text-slate-500 border-slate-700'
             }`}>
               {wizardStep > item.step ? <Check className="w-6 h-6 stroke-[3]" /> : item.step}
             </div>
             <span className={`text-xs font-black transition-all ${
-              wizardStep === item.step ? 'text-amber-600 dark:text-amber-400' : 'text-slate-500 dark:text-slate-400'
+              wizardStep === item.step ? 'text-amber-400' : 'text-slate-400'
             }`}>{item.label}</span>
           </div>
         ))}
@@ -88,13 +152,13 @@ export default function Wizard({
             {wizardStep === 1 && (
               <div className="space-y-6 animate-fade-in">
                 <div className="border-b border-amber-500/10 pb-4">
-                  <h3 className="font-black text-xl text-slate-900 dark:text-white">Personal Patient Details</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Record baseline identity metrics for reference in clinical risk records.</p>
+                  <h3 className="font-black text-xl text-white">Personal Patient Details</h3>
+                  <p className="text-xs text-slate-400 mt-1 font-medium">Record baseline identity metrics for reference in clinical risk records.</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs font-extrabold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Patient Full Name</label>
+                    <label className="text-xs font-extrabold text-slate-300 uppercase tracking-wider">Patient Full Name</label>
                     <input 
                       type="text" 
                       placeholder="e.g. Sarah Connor"
@@ -108,7 +172,7 @@ export default function Wizard({
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs font-extrabold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Patient Age</label>
+                    <label className="text-xs font-extrabold text-slate-300 uppercase tracking-wider">Patient Age</label>
                     <input 
                       type="number" 
                       placeholder="e.g. 40"
@@ -122,7 +186,7 @@ export default function Wizard({
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs font-extrabold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Gender</label>
+                    <label className="text-xs font-extrabold text-slate-300 uppercase tracking-wider">Gender</label>
                     <div className="flex gap-3">
                       {['male', 'female', 'other'].map(g => (
                         <label key={g} className="flex-1 relative cursor-pointer">
@@ -130,10 +194,13 @@ export default function Wizard({
                             type="radio" 
                             name="gender" 
                             checked={formData.gender === g}
-                            onChange={() => setFormData(prev => ({ ...prev, gender: g }))}
+                            onChange={() => {
+                              soundFX.play('click');
+                              setFormData(prev => ({ ...prev, gender: g }));
+                            }}
                             className="sr-only peer"
                           />
-                          <div className="w-full text-center py-3 bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 peer-checked:border-amber-500 peer-checked:bg-amber-500/10 peer-checked:text-amber-500 text-xs font-black rounded-2xl transition shadow-xs">
+                          <div className="w-full text-center py-3 bg-slate-800/80 border border-slate-700 peer-checked:border-amber-500 peer-checked:bg-amber-500/10 peer-checked:text-amber-400 text-xs font-black rounded-2xl transition shadow-xs">
                             {g.toUpperCase()}
                           </div>
                         </label>
@@ -143,7 +210,7 @@ export default function Wizard({
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div className="flex flex-col gap-2">
-                      <label className="text-xs font-extrabold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Height (cm)</label>
+                      <label className="text-xs font-extrabold text-slate-300 uppercase tracking-wider">Height (cm)</label>
                       <input 
                         type="number" 
                         placeholder="e.g. 170"
@@ -156,7 +223,7 @@ export default function Wizard({
                       {errors.height && <span className="text-[10px] font-bold text-rose-500">{errors.height}</span>}
                     </div>
                     <div className="flex flex-col gap-2">
-                      <label className="text-xs font-extrabold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Weight (kg)</label>
+                      <label className="text-xs font-extrabold text-slate-300 uppercase tracking-wider">Weight (kg)</label>
                       <input 
                         type="number" 
                         placeholder="e.g. 68"
@@ -171,11 +238,11 @@ export default function Wizard({
                   </div>
 
                   {/* Dynamic BMI Card */}
-                  <div className="md:col-span-2 glass-panel rounded-2xl p-5 flex justify-between items-center border-amber-500/20">
+                  <div className="md:col-span-2 glass-panel rounded-2xl p-5 flex justify-between items-center border-amber-500/20 bg-slate-900/60">
                     <div>
-                      <h4 className="text-xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Calculated BMI Index (WHO)</h4>
-                      <div className="text-3xl font-black text-slate-900 dark:text-white flex items-baseline gap-1">
-                        {calculatedBMI || '--'} <span className="text-xs font-bold text-slate-500">kg/m²</span>
+                      <h4 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-1">Calculated BMI Index (WHO)</h4>
+                      <div className="text-3xl font-black text-white flex items-baseline gap-1">
+                        {calculatedBMI || '--'} <span className="text-xs font-bold text-slate-400">kg/m²</span>
                       </div>
                     </div>
                     <span className={`text-xs font-black px-3.5 py-1.5 rounded-full border ${bmiDetails.color}`}>
@@ -190,14 +257,14 @@ export default function Wizard({
             {wizardStep === 2 && (
               <div className="space-y-6 animate-fade-in">
                 <div className="border-b border-amber-500/10 pb-4">
-                  <h3 className="font-black text-xl text-slate-900 dark:text-white">Lifestyle & Social Habits</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Record behavioral indicators that affect baseline physiological strain values.</p>
+                  <h3 className="font-black text-xl text-white">Lifestyle & Social Habits</h3>
+                  <p className="text-xs text-slate-400 mt-1 font-medium">Record behavioral indicators that affect baseline physiological strain values.</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs font-extrabold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Tobacco Smoking</label>
+                    <label className="text-xs font-extrabold text-slate-300 uppercase tracking-wider">Tobacco Smoking</label>
                     <div className="flex gap-3">
                       {['no', 'yes'].map(opt => (
                         <label key={opt} className="flex-1 relative cursor-pointer">
@@ -205,10 +272,13 @@ export default function Wizard({
                             type="radio" 
                             name="smoking" 
                             checked={formData.smoking === opt}
-                            onChange={() => setFormData(prev => ({ ...prev, smoking: opt }))}
+                            onChange={() => {
+                              soundFX.play('click');
+                              setFormData(prev => ({ ...prev, smoking: opt }));
+                            }}
                             className="sr-only peer"
                           />
-                          <div className="w-full text-center py-3 bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 peer-checked:border-amber-500 peer-checked:bg-amber-500/10 peer-checked:text-amber-500 text-xs font-black rounded-2xl transition shadow-xs">
+                          <div className="w-full text-center py-3 bg-slate-800/80 border border-slate-700 peer-checked:border-amber-500 peer-checked:bg-amber-500/10 peer-checked:text-amber-400 text-xs font-black rounded-2xl transition shadow-xs">
                             {opt === 'no' ? 'NON-SMOKER' : 'ACTIVE SMOKER'}
                           </div>
                         </label>
@@ -217,7 +287,7 @@ export default function Wizard({
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs font-extrabold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Alcohol Consumption</label>
+                    <label className="text-xs font-extrabold text-slate-300 uppercase tracking-wider">Alcohol Consumption</label>
                     <div className="flex gap-2">
                       {[
                         { value: 'low', label: 'LIGHT' },
@@ -229,10 +299,13 @@ export default function Wizard({
                             type="radio" 
                             name="alcohol" 
                             checked={formData.alcohol === item.value}
-                            onChange={() => setFormData(prev => ({ ...prev, alcohol: item.value }))}
+                            onChange={() => {
+                              soundFX.play('click');
+                              setFormData(prev => ({ ...prev, alcohol: item.value }));
+                            }}
                             className="sr-only peer"
                           />
-                          <div className="w-full text-center py-3 bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 peer-checked:border-amber-500 peer-checked:bg-amber-500/10 peer-checked:text-amber-500 text-xs font-black rounded-2xl transition shadow-xs">
+                          <div className="w-full text-center py-3 bg-slate-800/80 border border-slate-700 peer-checked:border-amber-500 peer-checked:bg-amber-500/10 peer-checked:text-amber-400 text-xs font-black rounded-2xl transition shadow-xs">
                             {item.label}
                           </div>
                         </label>
@@ -241,7 +314,7 @@ export default function Wizard({
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs font-extrabold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Physical Activity</label>
+                    <label className="text-xs font-extrabold text-slate-300 uppercase tracking-wider">Physical Activity</label>
                     <div className="flex gap-2">
                       {['sedentary', 'moderate', 'active'].map(opt => (
                         <label key={opt} className="flex-1 relative cursor-pointer">
@@ -249,10 +322,13 @@ export default function Wizard({
                             type="radio" 
                             name="activity" 
                             checked={formData.physicalActivity === opt}
-                            onChange={() => setFormData(prev => ({ ...prev, physicalActivity: opt }))}
+                            onChange={() => {
+                              soundFX.play('click');
+                              setFormData(prev => ({ ...prev, physicalActivity: opt }));
+                            }}
                             className="sr-only peer"
                           />
-                          <div className="w-full text-center py-3 bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 peer-checked:border-amber-500 peer-checked:bg-amber-500/10 peer-checked:text-amber-500 text-xs font-black rounded-2xl transition shadow-xs">
+                          <div className="w-full text-center py-3 bg-slate-800/80 border border-slate-700 peer-checked:border-amber-500 peer-checked:bg-amber-500/10 peer-checked:text-amber-400 text-xs font-black rounded-2xl transition shadow-xs">
                             {opt.toUpperCase()}
                           </div>
                         </label>
@@ -261,9 +337,9 @@ export default function Wizard({
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <div className="flex justify-between items-center text-xs font-extrabold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
+                    <div className="flex justify-between items-center text-xs font-extrabold text-slate-300 uppercase tracking-wider">
                       <label htmlFor="sleepDurationInput">Sleep Duration</label>
-                      <span className="text-amber-500 font-black text-sm">{formData.sleepDuration || 7} hrs/day</span>
+                      <span className="text-amber-400 font-black text-sm">{formData.sleepDuration || 7} hrs/day</span>
                     </div>
                     <div className="flex items-center gap-3 mt-1">
                       <input 
@@ -283,8 +359,11 @@ export default function Wizard({
                         max="16" 
                         step="0.5"
                         value={formData.sleepDuration || 7}
-                        onChange={e => setFormData(prev => ({ ...prev, sleepDuration: parseFloat(e.target.value) }))}
-                        className="flex-1 h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                        onChange={e => {
+                          soundFX.play('slider');
+                          setFormData(prev => ({ ...prev, sleepDuration: parseFloat(e.target.value) }));
+                        }}
+                        className="flex-1 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
                       />
                     </div>
                   </div>
@@ -297,8 +376,8 @@ export default function Wizard({
             {wizardStep === 3 && (
               <div className="space-y-6 animate-fade-in">
                 <div className="border-b border-amber-500/10 pb-4">
-                  <h3 className="font-black text-xl text-slate-900 dark:text-white">Clinical Vital Signs & Lab Biomarkers</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Specify laboratory vital values for precision clinical risk evaluation.</p>
+                  <h3 className="font-black text-xl text-white">Clinical Vital Signs & Lab Biomarkers</h3>
+                  <p className="text-xs text-slate-400 mt-1 font-medium">Specify laboratory vital values for precision clinical risk evaluation.</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -312,8 +391,8 @@ export default function Wizard({
                   ].map(item => {
                     const statusInfo = getBiomarkerStatus(item.key, formData[item.key] || item.min);
                     return (
-                      <div key={item.key} className="flex flex-col gap-3 bg-white/70 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700 hover:border-amber-500/40 rounded-2xl p-4.5 transition-all duration-300 shadow-xs">
-                        <div className="flex justify-between items-center text-xs font-extrabold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
+                      <div key={item.key} className="flex flex-col gap-3 bg-slate-850 border border-slate-750 hover:border-amber-500/40 rounded-2xl p-4.5 transition-all duration-300 shadow-xs">
+                        <div className="flex justify-between items-center text-xs font-extrabold text-slate-300 uppercase tracking-wider">
                           <span className="truncate max-w-[200px] sm:max-w-none">{item.label}</span>
                           <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md border shrink-0 ${statusInfo.color}`}>
                             {statusInfo.label}
@@ -329,7 +408,7 @@ export default function Wizard({
                               const val = e.target.value === '' ? '' : parseInt(e.target.value);
                               setFormData(prev => ({ ...prev, [item.key]: val }));
                             }}
-                            className="w-24 px-3 py-2 glass-input rounded-xl text-sm font-black text-amber-500 text-center outline-none shadow-xs shrink-0"
+                            className="w-24 px-3 py-2 glass-input rounded-xl text-sm font-black text-amber-400 text-center outline-none shadow-xs shrink-0"
                             placeholder={item.min.toString()}
                           />
                           <input 
@@ -337,14 +416,53 @@ export default function Wizard({
                             min={item.min} 
                             max={item.max}
                             value={formData[item.key] || item.min}
-                            onChange={e => setFormData(prev => ({ ...prev, [item.key]: parseInt(e.target.value) || item.min }))}
-                            className="flex-1 h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                            onChange={e => {
+                              soundFX.play('slider');
+                              setFormData(prev => ({ ...prev, [item.key]: parseInt(e.target.value) || item.min }));
+                            }}
+                            className="flex-1 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
                           />
                         </div>
                       </div>
                     );
                   })}
                 </div>
+
+                {/* Algorithm Selection */}
+                <div className="pt-3 border-t border-slate-800">
+                  <label className="text-xs font-extrabold text-slate-300 uppercase tracking-wider block mb-2 flex items-center gap-1.5">
+                    <Cpu className="w-4 h-4 text-amber-400" />
+                    <span>Select Predictive Model Algorithm</span>
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {[
+                      { id: 'auto', name: 'Auto Ensemble', badge: 'Recommended' },
+                      { id: 'xgboost', name: 'XGBoost', badge: 'High Accuracy' },
+                      { id: 'random_forest', name: 'Random Forest', badge: 'Robust' },
+                      { id: 'logistic_regression', name: 'Logistic Regression', badge: 'Linear' },
+                      { id: 'lightgbm', name: 'LightGBM', badge: 'Fast Tree' },
+                      { id: 'gradient_boosting', name: 'Gradient Boosting', badge: 'Ensemble' }
+                    ].map(alg => (
+                      <button
+                        key={alg.id}
+                        type="button"
+                        onClick={() => {
+                          soundFX.play('click');
+                          setFormData(prev => ({ ...prev, algorithm: alg.id }));
+                        }}
+                        className={`p-2.5 rounded-xl text-left border transition cursor-pointer ${
+                          formData.algorithm === alg.id 
+                            ? 'bg-amber-500/15 border-amber-400 text-white shadow-xs'
+                            : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
+                        }`}
+                      >
+                        <div className="font-black text-xs">{alg.name}</div>
+                        <div className="text-[9px] text-amber-400/80 font-bold mt-0.5">{alg.badge}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
               </div>
             )}
 
@@ -352,12 +470,15 @@ export default function Wizard({
             <div className="flex justify-between items-center pt-6 border-t border-amber-500/10">
               <button 
                 type="button"
-                onClick={() => setWizardStep(prev => prev - 1)}
+                onClick={() => {
+                  soundFX.play('click');
+                  setWizardStep(prev => prev - 1);
+                }}
                 disabled={wizardStep === 1 || predicting}
                 className={`py-3 px-5 rounded-2xl border font-bold text-sm inline-flex items-center gap-2 cursor-pointer transition ${
                   wizardStep === 1 
                     ? 'opacity-0 pointer-events-none' 
-                    : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-amber-500/10'
+                    : 'border-slate-700 text-slate-300 hover:bg-amber-500/10'
                 }`}
               >
                 <ArrowLeft className="w-4 h-4" /> Previous Step
@@ -365,7 +486,10 @@ export default function Wizard({
               
               <button 
                 type="button"
-                onClick={handleNextStep}
+                onClick={() => {
+                  soundFX.play('click');
+                  handleNextStep();
+                }}
                 disabled={predicting}
                 className="btn-magnetic bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 disabled:opacity-50 text-white py-3 px-7 rounded-2xl font-black text-sm inline-flex items-center gap-2.5 cursor-pointer shadow-lg shadow-amber-500/30"
               >
@@ -394,11 +518,11 @@ export default function Wizard({
         {/* Right Column: Live Real-time Assessor Indicator Card */}
         <div className="lg:col-span-4 glass-panel rounded-3xl p-6 border-amber-500/20 sticky top-24 space-y-6">
           <div className="flex items-center justify-between border-b border-amber-500/10 pb-4">
-            <h3 className="font-black text-base text-slate-900 dark:text-white flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-amber-500 animate-pulse" />
+            <h3 className="font-black text-base text-white flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-amber-400 animate-pulse" />
               <span>Live Diagnostic Assessor</span>
             </h3>
-            <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20">
+            <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
               Real-Time
             </span>
           </div>
@@ -407,46 +531,46 @@ export default function Wizard({
             {/* Live BMI gauge */}
             <div className="glass-pill rounded-2xl p-4 space-y-2 border-amber-500/20">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Patient BMI</span>
+                <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Patient BMI</span>
                 <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full border ${bmiDetails.color}`}>
                   {bmiDetails.text}
                 </span>
               </div>
-              <div className="text-2xl font-black text-slate-900 dark:text-white flex items-baseline gap-1">
-                {calculatedBMI || '22.0'} <span className="text-xs font-normal text-slate-500">kg/m²</span>
+              <div className="text-2xl font-black text-white flex items-baseline gap-1">
+                {calculatedBMI || '22.0'} <span className="text-xs font-normal text-slate-400">kg/m²</span>
               </div>
             </div>
 
             {/* Live BP Category */}
             <div className="glass-pill rounded-2xl p-4 space-y-2 border-amber-500/20">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Blood Pressure</span>
+                <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Blood Pressure</span>
                 <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full border ${livePreview.sysColor}`}>
                   {livePreview.sysStatus}
                 </span>
               </div>
-              <div className="text-lg font-black text-slate-900 dark:text-white">
-                {formData.bpSystolic || 120} / {formData.bpDiastolic || 80} <span className="text-xs font-normal text-slate-500">mmHg</span>
+              <div className="text-lg font-black text-white">
+                {formData.bpSystolic || 120} / {formData.bpDiastolic || 80} <span className="text-xs font-normal text-slate-400">mmHg</span>
               </div>
             </div>
 
             {/* Live Fasting Glucose */}
             <div className="glass-pill rounded-2xl p-4 space-y-2 border-amber-500/20">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Fasting Glucose</span>
+                <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Fasting Glucose</span>
                 <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full border ${livePreview.gluColor}`}>
                   {livePreview.gluStatus}
                 </span>
               </div>
-              <div className="text-lg font-black text-slate-900 dark:text-white">
-                {formData.glucose || 90} <span className="text-xs font-normal text-slate-500">mg/dL</span>
+              <div className="text-lg font-black text-white">
+                {formData.glucose || 90} <span className="text-xs font-normal text-slate-400">mg/dL</span>
               </div>
             </div>
           </div>
 
           <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 flex gap-3 items-start">
-            <HeartPulse className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-            <p className="text-xs text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
+            <HeartPulse className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+            <p className="text-xs text-slate-300 font-medium leading-relaxed">
               Biomarkers are securely analyzed using precision clinical health algorithms for multi-organ risk prediction.
             </p>
           </div>

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { 
   Stethoscope, Search, Activity, Pill, ShieldAlert, AlertOctagon, 
-  AlertTriangle, CheckCircle2, CheckCircle, ArrowRight, Zap, Sparkles, User
+  AlertTriangle, CheckCircle2, CheckCircle, ArrowRight, Zap, Sparkles, User,
+  Brain, Heart, Droplets, Wind, ShieldCheck, Bot
 } from 'lucide-react';
 import { soundFX } from '../utils/audioFX';
 
@@ -25,12 +26,12 @@ export default function SymptomChecker({
   const [activeRegion, setActiveRegion] = useState('all');
 
   const bodyRegions = [
-    { id: 'all', label: 'All Symptoms', icon: '🌐' },
-    { id: 'head', label: 'Head & Neuro', icon: '🧠', symptoms: ['Headache', 'Dizziness', 'Sore Throat'] },
-    { id: 'chest', label: 'Chest & Cardio', icon: '🫀', symptoms: ['Chest Pain', 'Shortness of Breath', 'Cough'] },
-    { id: 'abdomen', label: 'Abdomen & GI', icon: '🤢', symptoms: ['Stomach ache', 'Nausea', 'Fever / Chills'] },
-    { id: 'spine', label: 'Spine & Renal', icon: '🪵', symptoms: ['Lower Back Pain', 'Fatigue'] },
-    { id: 'limbs', label: 'Joints & Limbs', icon: '🦴', symptoms: ['Joint Pain', 'Fatigue'] }
+    { id: 'all', label: 'All Symptoms', icon: '🌐', count: 14 },
+    { id: 'head', label: 'Head & Neuro', icon: '🧠', count: 4, symptoms: ['Headache', 'Dizziness', 'Sore Throat', 'Vision Blur'] },
+    { id: 'chest', label: 'Chest & Cardio', icon: '🫀', count: 4, symptoms: ['Chest Pain', 'Shortness of Breath', 'Palpitations', 'Cough'] },
+    { id: 'abdomen', label: 'Abdomen & GI', icon: '🤢', count: 4, symptoms: ['Stomach ache', 'Nausea', 'Acid Reflux', 'Fever / Chills'] },
+    { id: 'spine', label: 'Spine & Renal', icon: '🪵', count: 2, symptoms: ['Lower Back Pain', 'Flank Pain'] },
+    { id: 'limbs', label: 'Joints & Limbs', icon: '🦴', count: 2, symptoms: ['Joint Pain', 'Leg Swelling (Edema)'] }
   ];
 
   const presetSymptoms = [
@@ -45,7 +46,11 @@ export default function SymptomChecker({
     { label: 'Fatigue', icon: '🥱', region: 'all' },
     { label: 'Joint Pain', icon: '🦴', region: 'limbs' },
     { label: 'Lower Back Pain', icon: '🪵', region: 'spine' },
-    { label: 'Dizziness', icon: '💫', region: 'head' }
+    { label: 'Dizziness', icon: '💫', region: 'head' },
+    { label: 'Palpitations', icon: '💓', region: 'chest' },
+    { label: 'Acid Reflux', icon: '🔥', region: 'abdomen' },
+    { label: 'Leg Swelling (Edema)', icon: '🦶', region: 'limbs' },
+    { label: 'Flank Pain', icon: '🩻', region: 'spine' }
   ];
 
   const displayedSymptoms = activeRegion === 'all' 
@@ -72,10 +77,10 @@ export default function SymptomChecker({
               <Stethoscope className="w-7 h-7" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">AI Clinical Triage</span>
                 <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Multi-Symptom Analysis
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Multi-Symptom Differential Engine
                 </span>
               </div>
               <h2 className="text-2xl font-black text-white mt-1">Symptom Checker & Clinical Triage Engine</h2>
@@ -181,7 +186,7 @@ export default function SymptomChecker({
                       setSymptomInput('');
                     }
                   }}
-                  placeholder="e.g. Acid reflux, stiff neck, ear pain..."
+                  placeholder="e.g. Acid reflux, stiff neck, ear pain, burning sensation..."
                   className="flex-1 px-4 py-3 glass-input rounded-2xl outline-none text-xs font-bold text-white placeholder:text-slate-500 shadow-inner"
                 />
                 <button
@@ -246,7 +251,10 @@ export default function SymptomChecker({
                 </label>
                 <select
                   value={symptomDuration}
-                  onChange={e => setSymptomDuration(e.target.value)}
+                  onChange={e => {
+                    soundFX.play('click');
+                    setSymptomDuration(e.target.value);
+                  }}
                   className="w-full px-3 py-3 glass-input rounded-2xl text-xs font-extrabold text-white outline-none cursor-pointer"
                 >
                   <option value="Today" className="bg-slate-900 text-white">Today (Acute)</option>
@@ -262,7 +270,10 @@ export default function SymptomChecker({
                 </label>
                 <select
                   value={symptomSeverity}
-                  onChange={e => setSymptomSeverity(e.target.value)}
+                  onChange={e => {
+                    soundFX.play('click');
+                    setSymptomSeverity(e.target.value);
+                  }}
                   className="w-full px-3 py-3 glass-input rounded-2xl text-xs font-extrabold text-white outline-none cursor-pointer"
                 >
                   <option value="Mild" className="bg-slate-900 text-white">Mild (Noticeable)</option>
@@ -313,7 +324,7 @@ export default function SymptomChecker({
               }`}>
                 <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-lg ${
                   symptomResult.badge_color === 'red'
-                    ? 'bg-rose-600 text-white'
+                    ? 'bg-rose-600 text-white animate-pulse'
                     : symptomResult.badge_color === 'amber'
                     ? 'bg-amber-600 text-white'
                     : 'bg-emerald-600 text-white'
@@ -330,7 +341,7 @@ export default function SymptomChecker({
                 <div>
                   <span className="text-[10px] font-black uppercase tracking-widest block opacity-75">Clinical Triage Assessment</span>
                   <h4 className="font-black text-base mt-0.5 text-white">{symptomResult.urgency_title}</h4>
-                  <div className="mt-2 flex items-center gap-2 text-xs font-bold">
+                  <div className="mt-2 flex items-center gap-2 text-xs font-bold flex-wrap">
                     <span className="px-2.5 py-1 bg-slate-900/90 rounded-xl border border-slate-700 text-slate-200">
                       Recommended Specialist: <strong className="text-amber-400">{symptomResult.specialist}</strong>
                     </span>
@@ -390,10 +401,20 @@ export default function SymptomChecker({
                     resetWizard();
                     setCurrentTab('wizard');
                   }}
-                  className="w-full btn-magnetic py-3.5 px-4 bg-slate-900 hover:bg-slate-800 text-white border border-amber-500/30 rounded-2xl font-black text-xs flex items-center justify-center gap-2 shadow-md cursor-pointer"
+                  className="w-full btn-magnetic py-3.5 px-4 bg-gradient-to-r from-amber-500 to-yellow-500 text-white rounded-2xl font-black text-xs flex items-center justify-center gap-2 shadow-md cursor-pointer"
                 >
-                  <span>Run Full Disease Risk Wizard</span>
-                  <ArrowRight className="w-4 h-4 text-amber-400" />
+                  <span>Run Full Disease Risk Assessor</span>
+                  <ArrowRight className="w-4 h-4 text-white" />
+                </button>
+                <button
+                  onClick={() => {
+                    soundFX.play('click');
+                    setCurrentTab('chatbot');
+                  }}
+                  className="w-full sm:w-auto py-3.5 px-5 bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-500/30 rounded-2xl font-bold text-xs flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Bot className="w-4 h-4" />
+                  <span>Ask AI HealthBot</span>
                 </button>
               </div>
 

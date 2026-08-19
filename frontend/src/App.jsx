@@ -21,6 +21,7 @@ import History from './components/History';
 import Insights from './components/Insights';
 import Account from './components/Account';
 import AdminPortal from './components/AdminPortal';
+import CommandPalette from './components/CommandPalette';
 import { API_BASE_URL } from './config';
 
 
@@ -140,6 +141,19 @@ export default function App() {
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
   const [isChatWidgetOpen, setIsChatWidgetOpen] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+
+  // Global keyboard shortcut for Command Palette (Ctrl+K / Cmd+K)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Toasts notification state
   const [toasts, setToasts] = useState([]);
@@ -437,7 +451,7 @@ export default function App() {
     } catch (err) {
       setProfileError("Cannot reach authentication server");
       showToast("Server unreachable", "danger");
-    } fontally: {
+    } finally {
       setProfileLoading(false);
     }
   };
@@ -1160,6 +1174,7 @@ export default function App() {
         authToken={authToken}
         handleLogout={handleLogout}
         setShowSimulatorModal={setShowSimulatorModal}
+        setIsCommandPaletteOpen={setIsCommandPaletteOpen}
       />
 
       {/* Main Container */}
@@ -1174,6 +1189,7 @@ export default function App() {
               {currentTab === 'symptom_checker' && 'AI Symptom Checker & Clinical Triage'}
               {currentTab === 'chatbot' && 'HealthBot AI Clinical Assistant'}
               {currentTab === 'upload_report' && 'Medical Report & Rx AI Diagnostic Engine'}
+              {currentTab === 'pharma_portal' && 'Rx Pharmacology & Drug Safety Portal'}
               {currentTab === 'results' && 'Diagnostic Risk Evaluation'}
               {currentTab === 'history' && 'Audit History Log'}
               {currentTab === 'insights' && 'Chronological Health Insights'}
@@ -1186,6 +1202,7 @@ export default function App() {
               {currentTab === 'symptom_checker' && 'Analyze physical symptoms (stomach ache, headache, fever, chest pain) to receive instant clinical triage & specialist advice.'}
               {currentTab === 'chatbot' && '24/7 Conversational AI assistant answering medical, disease, medication, dietary, and lifestyle questions.'}
               {currentTab === 'upload_report' && 'Upload medical lab reports to detect underlying diseases and receive required Rx medications.'}
+              {currentTab === 'pharma_portal' && 'Multi-drug interaction analysis, DailyMed clinical monographs, and dosage safety warnings.'}
               {currentTab === 'results' && 'Patient diagnostic probability report.'}
               {currentTab === 'history' && 'Query, review, and manage past risk summaries.'}
               {currentTab === 'insights' && 'Chart vital sign shifts and health index progressions.'}
@@ -1359,6 +1376,16 @@ export default function App() {
 
       {/* Toast Notifications */}
       <ToastContainer toasts={toasts} />
+
+      {/* Command Palette (Ctrl+K) */}
+      <CommandPalette
+        isOpen={isCommandPaletteOpen}
+        setIsOpen={setIsCommandPaletteOpen}
+        setCurrentTab={setCurrentTab}
+        setShowSimulatorModal={setShowSimulatorModal}
+        userProfile={userProfile}
+        resetWizard={resetWizard}
+      />
 
       {/* Simulator Modal */}
       <SimulatorModal

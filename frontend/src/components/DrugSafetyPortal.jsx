@@ -2,13 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { 
   Pill, ShieldAlert, ShieldCheck, AlertTriangle, Search, Activity, 
   Sparkles, Layers, FileText, ExternalLink, RefreshCw, CheckCircle2, 
-  Zap, Info, Plus, X, Stethoscope, ArrowRight, HeartPulse, ChevronRight,
-  TrendingDown, BookmarkCheck
+  Zap, Plus, X, ArrowRight
 } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import { soundFX } from '../utils/audioFX';
 
-export default function DrugSafetyPortal({ showToast, setCurrentTab }) {
+export default function DrugSafetyPortal({ showToast, setCurrentTab: _setCurrentTab }) {
   const [activeSubTab, setActiveSubTab] = useState('interaction_checker'); // 'interaction_checker' | 'drug_explorer'
   
   // Search & Explorer State
