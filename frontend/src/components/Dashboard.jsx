@@ -1,837 +1,384 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
-  Inbox, HeartPulse, ClipboardList, AlertOctagon, 
-  Stethoscope, Sparkles, ArrowRight, Activity, TrendingUp, ShieldCheck,
-  Zap, Sliders, RefreshCw, Volume2, VolumeX, Eye, Info, ChevronDown, 
-  CheckCircle2, AlertTriangle, ShieldAlert, Cpu, Heart, Droplets, Wind, Brain
+  HeartPulse, Stethoscope, Bot, ArrowRight, Activity, 
+  ShieldCheck, AlertTriangle, Zap, CheckCircle2, TrendingUp,
+  Droplet, Sliders, RefreshCw, Eye
 } from 'lucide-react';
-import { Radar, Line } from 'react-chartjs-2';
 import { soundFX } from '../utils/audioFX';
 
 export default function Dashboard({
   assessments,
   activeUser,
   latestAssessment,
-  overviewRadarData,
-  overviewTrendData,
-  getScoreBadgeStyles,
+  overviewRadarData: _overviewRadarData,
+  overviewTrendData: _overviewTrendData,
+  getScoreBadgeStyles: _getScoreBadgeStyles,
   setCurrentTab,
-  setShowSimulatorModal
+  setShowSimulatorModal: _setShowSimulatorModal
 }) {
-  // Live Biometric Recalibration Knobs
-  const [quickSystolic, setQuickSystolic] = useState(latestAssessment?.medical?.bpSystolic || 120);
-  const [quickDiastolic, setQuickDiastolic] = useState(latestAssessment?.medical?.bpDiastolic || 80);
-  const [quickGlucose, setQuickGlucose] = useState(latestAssessment?.medical?.glucose || 95);
-  const [quickCholesterol, setQuickCholesterol] = useState(latestAssessment?.medical?.cholesterol || 180);
-  const [quickBMI, setQuickBMI] = useState(latestAssessment?.personal?.bmi || 23.5);
-  const [quickSleep, setQuickSleep] = useState(latestAssessment?.lifestyle?.sleepDuration || 7);
+  // Simple quick-slider simulator states
+  const [sliderBP, setSliderBP] = useState(latestAssessment?.medical?.bpSystolic || 120);
+  const [sliderChol, setSliderChol] = useState(latestAssessment?.medical?.cholesterol || 180);
+  const [sliderSleep, setSliderSleep] = useState(latestAssessment?.lifestyle?.sleepDuration || 7.5);
 
-  // Sync with latest assessment whenever it changes
-  useEffect(() => {
-    if (latestAssessment) {
-      setQuickSystolic(latestAssessment.medical?.bpSystolic || 120);
-      setQuickDiastolic(latestAssessment.medical?.bpDiastolic || 80);
-      setQuickGlucose(latestAssessment.medical?.glucose || 95);
-      setQuickCholesterol(latestAssessment.medical?.cholesterol || 180);
-      setQuickBMI(latestAssessment.personal?.bmi || 23.5);
-      setQuickSleep(latestAssessment.lifestyle?.sleepDuration || 7);
-    }
-  }, [latestAssessment]);
+  const baseScore = latestAssessment?.results?.overallScore || 85;
+  const baseHeartRisk = latestAssessment?.results?.risks?.heartDisease ?? latestAssessment?.results?.risks?.heart ?? 6;
 
-  // Interactive ECG Rhythm Monitor state
-  const [ecgRhythm, setEcgRhythm] = useState('normal'); // 'normal' | 'athletic' | 'elevated' | 'tachy'
-  const [isHeartSoundActive, setIsHeartSoundActive] = useState(false);
-  const [selectedOrganDetail, setSelectedOrganDetail] = useState(null);
+  // Real-time projected score based on quick sliders
+  const liveProjectedScore = useMemo(() => {
+    const bpDiff = (120 - sliderBP) * 0.3;
+    const cholDiff = (180 - sliderChol) * 0.15;
+    const sleepDiff = (sliderSleep - 7) * 1.5;
+    return Math.min(99, Math.max(20, Math.round(baseScore + bpDiff + cholDiff + sleepDiff)));
+  }, [baseScore, sliderBP, sliderChol, sliderSleep]);
 
-  // AI Voice Synthesis state
-  const [isSpeaking, setIsSpeaking] = useState(false);
+  const liveProjectedRisk = useMemo(() => {
+    const bpDiff = (sliderBP - 120) * 0.35;
+    const cholDiff = (sliderChol - 180) * 0.2;
+    return Math.min(95, Math.max(3, Math.round(baseHeartRisk + bpDiff + cholDiff)));
+  }, [baseHeartRisk, sliderBP, sliderChol]);
 
-  // ECG Rhythm parameters
-  const rhythmConfig = {
-    normal: { bpm: 72, label: 'Normal Sinus Rhythm', color: '#f59e0b', strokeSpeed: '3.2s' },
-    athletic: { bpm: 54, label: 'Sinus Bradycardia (Athletic)', color: '#10b981', strokeSpeed: '4.5s' },
-    elevated: { bpm: 98, label: 'Elevated Sinus Rhythm', color: '#f59e0b', strokeSpeed: '2.4s' },
-    tachy: { bpm: 115, label: 'Sinus Tachycardia (Alert)', color: '#ef4444', strokeSpeed: '1.8s' },
-  };
-
-  const activeRhythm = rhythmConfig[ecgRhythm] || rhythmConfig.normal;
-
-  // Heartbeat sound interval
-  useEffect(() => {
-    if (!isHeartSoundActive) return;
-    const intervalMs = Math.round((60 / activeRhythm.bpm) * 1000);
-    const timer = setInterval(() => {
-      soundFX.play('heartbeat');
-    }, intervalMs);
-    return () => clearInterval(timer);
-  }, [isHeartSoundActive, activeRhythm.bpm]);
-
-  // Dynamic live score simulation calculation based on knobs
-  const dynamicMetrics = useMemo(() => {
-    let base = latestAssessment?.results?.overallScore || 85;
-    const bpDelta = (120 - quickSystolic) * 0.28 + (80 - quickDiastolic) * 0.16;
-    const cholDelta = (180 - quickCholesterol) * 0.16;
-    const gluDelta = (90 - quickGlucose) * 0.18;
-    const bmiDelta = (23.5 - quickBMI) * 0.8;
-    const sleepDelta = (quickSleep - 7) * 1.5;
-
-    const computedScore = Math.min(99, Math.max(15, Math.round(base + bpDelta + cholDelta + gluDelta + bmiDelta + sleepDelta)));
-
-    // Recompute Cardiovascular Risk Dimensions dynamically
-    const heartOverallRisk = Math.min(98, Math.max(4, Math.round(
-      (latestAssessment?.results?.risks?.heartDisease || 15) + (quickSystolic - 120)*0.38 + (quickCholesterol - 180)*0.20 + (quickBMI - 23.5)*0.85
-    )));
-
-    const cadRisk = Math.min(98, Math.max(4, Math.round(
-      (latestAssessment?.results?.risks?.coronaryArtery || 12) + (quickCholesterol - 180)*0.28 + (quickSystolic - 120)*0.25
-    )));
-
-    const hypRisk = Math.min(98, Math.max(4, Math.round(
-      (latestAssessment?.results?.risks?.hypertensiveHeart || 14) + (quickSystolic - 120)*0.45 + (quickDiastolic - 80)*0.30
-    )));
-
-    const athRisk = Math.min(98, Math.max(3, Math.round(
-      (latestAssessment?.results?.risks?.atherosclerosis || 10) + (quickCholesterol - 180)*0.24 + (quickBMI - 23.5)*0.9
-    )));
-
-    const rhythmRisk = Math.min(98, Math.max(3, Math.round(
-      (latestAssessment?.results?.risks?.arrhythmia || 8) + (quickSleep < 6 ? 16 : 0) + (quickSystolic > 140 ? 12 : 0)
-    )));
-
-    const metabolicCardioRisk = Math.min(98, Math.max(4, Math.round(
-      (latestAssessment?.results?.risks?.cardioMetabolic || 10) + (quickGlucose - 90)*0.35 + (quickBMI - 23.5)*1.1
-    )));
-
-    return {
-      score: computedScore,
-      scoreDelta: computedScore - base,
-      heartOverallRisk,
-      cadRisk,
-      hypRisk,
-      athRisk,
-      rhythmRisk,
-      metabolicCardioRisk
-    };
-  }, [latestAssessment, quickSystolic, quickDiastolic, quickGlucose, quickCholesterol, quickBMI, quickSleep]);
-
-  // 6-Pillar Cardiovascular Diagnostic Matrix Definitions
-  const organData = [
+  const vitals = [
     {
-      id: 'heart_overall',
-      name: 'Coronary Perfusion & Myocardium',
-      icon: Heart,
-      risk: dynamicMetrics.heartOverallRisk,
-      vitals: `${quickSystolic}/${quickDiastolic} mmHg`,
-      status: dynamicMetrics.heartOverallRisk < 30 ? 'Optimal Perfusion' : dynamicMetrics.heartOverallRisk < 65 ? 'Elevated Strain' : 'High Cardiac Risk',
-      color: 'from-rose-500 to-pink-600',
-      badgeColor: dynamicMetrics.heartOverallRisk < 30 ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' : dynamicMetrics.heartOverallRisk < 65 ? 'text-amber-400 bg-amber-500/10 border-amber-500/30' : 'text-rose-400 bg-rose-500/10 border-rose-500/30',
-      summary: 'Evaluates myocardial oxygenation, coronary blood supply, left ventricular stroke volume, and ischemic vulnerability.',
-      tests: ['12-Lead Resting ECG', 'High-Sensitivity Troponin', 'Coronary CT Angiography']
+      label: 'Blood Pressure',
+      value: latestAssessment?.medical?.bpSystolic ? `${latestAssessment.medical.bpSystolic} / ${latestAssessment.medical.bpDiastolic} mmHg` : '120 / 80 mmHg',
+      status: (latestAssessment?.medical?.bpSystolic || 120) < 130 ? 'Normal' : 'Elevated',
+      color: (latestAssessment?.medical?.bpSystolic || 120) < 130 ? 'text-emerald-400 bg-emerald-500/10' : 'text-amber-400 bg-amber-500/10',
+      icon: Activity
     },
     {
-      id: 'coronary_artery',
-      name: 'Coronary Artery (CAD) Profile',
-      icon: ShieldAlert,
-      risk: dynamicMetrics.cadRisk,
-      vitals: `${quickCholesterol} mg/dL Chol`,
-      status: dynamicMetrics.cadRisk < 30 ? 'Low Plaque Risk' : dynamicMetrics.cadRisk < 65 ? 'Moderate Plaque' : 'High CAD Risk',
-      color: 'from-amber-500 to-orange-600',
-      badgeColor: dynamicMetrics.cadRisk < 30 ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' : dynamicMetrics.cadRisk < 65 ? 'text-amber-400 bg-amber-500/10 border-amber-500/30' : 'text-rose-400 bg-rose-500/10 border-rose-500/30',
-      summary: 'Assesses coronary artery calcification (CAC), atheroma stenosis, and lumen patency for arterial blood flow.',
-      tests: ['Coronary Artery Calcium (CAC) Scan', 'Apolipoprotein B (ApoB)', 'Lipoprotein(a)']
+      label: 'Total Cholesterol',
+      value: latestAssessment?.medical?.cholesterol ? `${latestAssessment.medical.cholesterol} mg/dL` : '180 mg/dL',
+      status: (latestAssessment?.medical?.cholesterol || 180) < 200 ? 'Desirable' : 'Borderline',
+      color: (latestAssessment?.medical?.cholesterol || 180) < 200 ? 'text-emerald-400 bg-emerald-500/10' : 'text-amber-400 bg-amber-500/10',
+      icon: Droplet
     },
     {
-      id: 'hemodynamics',
-      name: 'Blood Pressure & Hemodynamics',
-      icon: Activity,
-      risk: dynamicMetrics.hypRisk,
-      vitals: `${quickSystolic} Sys / ${quickDiastolic} Dia`,
-      status: dynamicMetrics.hypRisk < 30 ? 'Normal Pressure' : dynamicMetrics.hypRisk < 65 ? 'Stage 1 Elevated' : 'Hypertensive Alert',
-      color: 'from-purple-500 to-indigo-600',
-      badgeColor: dynamicMetrics.hypRisk < 30 ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' : dynamicMetrics.hypRisk < 65 ? 'text-amber-400 bg-amber-500/10 border-amber-500/30' : 'text-rose-400 bg-rose-500/10 border-rose-500/30',
-      summary: 'Tracks systemic vascular resistance, arterial pulse wave velocity, and left ventricular wall shear tension.',
-      tests: ['24-Hour Ambulatory BP Monitor', 'Echocardiogram (EF%)', 'Pulse Wave Velocity']
+      label: 'Fasting Glucose',
+      value: latestAssessment?.medical?.glucose ? `${latestAssessment.medical.glucose} mg/dL` : '92 mg/dL',
+      status: (latestAssessment?.medical?.glucose || 92) < 100 ? 'Normal' : 'Elevated',
+      color: (latestAssessment?.medical?.glucose || 92) < 100 ? 'text-emerald-400 bg-emerald-500/10' : 'text-amber-400 bg-amber-500/10',
+      icon: Zap
     },
     {
-      id: 'atherosclerosis',
-      name: 'Atherosclerosis & Plaque Index',
-      icon: Droplets,
-      risk: dynamicMetrics.athRisk,
-      vitals: `BMI ${quickBMI} • Chol ${quickCholesterol}`,
-      status: dynamicMetrics.athRisk < 30 ? 'Clear Intima' : dynamicMetrics.athRisk < 65 ? 'Borderline Plaque' : 'Atherogenic Alert',
-      color: 'from-orange-500 to-amber-600',
-      badgeColor: dynamicMetrics.athRisk < 30 ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' : dynamicMetrics.athRisk < 65 ? 'text-amber-400 bg-amber-500/10 border-amber-500/30' : 'text-rose-400 bg-rose-500/10 border-rose-500/30',
-      summary: 'Analyzes lipid oxidation, endothelial intima-media thickness, and subclinical atheromatous accumulation.',
-      tests: ['Carotid Intima-Media Thickness (CIMT)', 'Fasting Lipid Panel (LDL-C)', 'hs-CRP Inflammatory Marker']
-    },
-    {
-      id: 'rhythm',
-      name: 'Cardiac Rhythm & Electrophysiology',
-      icon: HeartPulse,
-      risk: dynamicMetrics.rhythmRisk,
-      vitals: `${activeRhythm.bpm} BPM • ${activeRhythm.label.split(' ')[0]}`,
-      status: dynamicMetrics.rhythmRisk < 30 ? 'Sinus Synchrony' : dynamicMetrics.rhythmRisk < 65 ? 'Ectopic Watch' : 'Arrhythmia Caution',
-      color: 'from-teal-500 to-emerald-600',
-      badgeColor: dynamicMetrics.rhythmRisk < 30 ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' : dynamicMetrics.rhythmRisk < 65 ? 'text-amber-400 bg-amber-500/10 border-amber-500/30' : 'text-rose-400 bg-rose-500/10 border-rose-500/30',
-      summary: 'Monitors cardiac sinus rhythm, QT interval stability, ventricular refractory balance, and autonomic electrophysiology.',
-      tests: ['Holter 24h Rhythm Monitor', 'Electrophysiology Study', 'Stress Treadmill ECG']
-    },
-    {
-      id: 'metabolic_vascular',
-      name: 'Cardio-Metabolic Endothelium',
-      icon: Zap,
-      risk: dynamicMetrics.metabolicCardioRisk,
-      vitals: `${quickGlucose} mg/dL Glu • ${quickSleep}h Sleep`,
-      status: dynamicMetrics.metabolicCardioRisk < 30 ? 'Intact Endothelium' : dynamicMetrics.metabolicCardioRisk < 65 ? 'Endothelial Strain' : 'Microvascular Risk',
-      color: 'from-blue-500 to-cyan-600',
-      badgeColor: dynamicMetrics.metabolicCardioRisk < 30 ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' : dynamicMetrics.metabolicCardioRisk < 65 ? 'text-amber-400 bg-amber-500/10 border-amber-500/30' : 'text-rose-400 bg-rose-500/10 border-rose-500/30',
-      summary: 'Assesses glycemic endothelial oxidative stress, microvascular vasodilation capacity, and nitric oxide bio-availability.',
-      tests: ['EndoPAT Endothelial Function Test', 'HbA1c & Microalbuminuria', 'Fasting Insulin & HOMA-IR']
+      label: 'Resting Heart Rate',
+      value: latestAssessment?.medical?.heartRate ? `${latestAssessment.medical.heartRate} BPM` : '72 BPM',
+      status: 'Resting Sinus',
+      color: 'text-emerald-400 bg-emerald-500/10',
+      icon: HeartPulse
     }
   ];
 
-  // Presets for quick recalibration
-  const applyPreset = (type) => {
-    soundFX.play('switch');
-    if (type === 'optimal') {
-      setQuickSystolic(112);
-      setQuickDiastolic(74);
-      setQuickGlucose(86);
-      setQuickCholesterol(165);
-      setQuickBMI(21.8);
-      setQuickSleep(8);
-      setEcgRhythm('athletic');
-    } else if (type === 'prediabetic') {
-      setQuickSystolic(134);
-      setQuickDiastolic(86);
-      setQuickGlucose(118);
-      setQuickCholesterol(225);
-      setQuickBMI(28.4);
-      setQuickSleep(6);
-      setEcgRhythm('elevated');
-    } else if (type === 'hypertensive') {
-      setQuickSystolic(158);
-      setQuickDiastolic(98);
-      setQuickGlucose(145);
-      setQuickCholesterol(260);
-      setQuickBMI(32.1);
-      setQuickSleep(5.5);
-      setEcgRhythm('tachy');
-    } else {
-      // Reset to actual assessment
-      if (latestAssessment) {
-        setQuickSystolic(latestAssessment.medical?.bpSystolic || 120);
-        setQuickDiastolic(latestAssessment.medical?.bpDiastolic || 80);
-        setQuickGlucose(latestAssessment.medical?.glucose || 95);
-        setQuickCholesterol(latestAssessment.medical?.cholesterol || 180);
-        setQuickBMI(latestAssessment.personal?.bmi || 23.5);
-        setQuickSleep(latestAssessment.lifestyle?.sleepDuration || 7);
-      }
-      setEcgRhythm('normal');
-    }
-  };
-
-  // Text-To-Speech Clinical Readout handler
-  const handleVoiceReadout = () => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-
-    if (isSpeaking) {
-      window.speechSynthesis.cancel();
-      setIsSpeaking(false);
-      soundFX.play('voice_end');
-      return;
-    }
-
-    const recommendation = latestAssessment?.results?.recommendations?.immediate?.[0] || 
-      latestAssessment?.results?.recommendations?.lifestyle?.[0] || 
-      `Cardiovascular health score is rated at ${dynamicMetrics.score} out of 100. Key vitals reflect blood pressure of ${quickSystolic} over ${quickDiastolic} mmHg and total cholesterol of ${quickCholesterol} milligrams per deciliter. Coronary and vascular profiles are actively monitored.`;
-
-    const speechText = `HealthSence AI Cardiovascular Diagnostic Summary. Overall cardiovascular health score is ${dynamicMetrics.score} out of 100. Key recommendation: ${recommendation}`;
-
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(speechText);
-    utterance.rate = 1.0;
-    utterance.pitch = 1.0;
-    
-    utterance.onstart = () => {
-      setIsSpeaking(true);
-      soundFX.play('voice_start');
-    };
-    utterance.onend = () => {
-      setIsSpeaking(false);
-      soundFX.play('voice_end');
-    };
-    utterance.onerror = () => {
-      setIsSpeaking(false);
-    };
-
-    window.speechSynthesis.speak(utterance);
-  };
+  const risks = [
+    { label: 'Heart Disease Likelihood (Core ML)', value: latestAssessment?.results?.risks?.heartDisease ?? 5, desc: 'Ensemble probability of cardiovascular events' },
+    { label: 'Coronary Artery Disease (CAD)', value: latestAssessment?.results?.risks?.coronaryArtery ?? 4, desc: 'Arterial stenosis and myocardial perfusion' },
+    { label: 'Hypertensive Heart Strain', value: latestAssessment?.results?.risks?.hypertensiveHeart ?? 4, desc: 'Left ventricular workload & vascular resistance' },
+    { label: 'Atherosclerosis Plaque Index', value: latestAssessment?.results?.risks?.atherosclerosis ?? 4, desc: 'Vascular stiffness & oxidized LDL lipids' },
+    { label: 'Cardiac Rhythm & Stability', value: latestAssessment?.results?.risks?.arrhythmia ?? 3, desc: 'Resting rhythm & autonomic electrophysiology' },
+    { label: 'Cardio-Metabolic Endothelium', value: latestAssessment?.results?.risks?.cardioMetabolic ?? 4, desc: 'Microvascular glycemic & insulin resilience' }
+  ];
 
   return (
-    <div className="space-y-8 animate-fade-in no-print">
-      {assessments.length === 0 ? (
-        <div className="glass-panel rounded-3xl p-12 text-center flex flex-col items-center gap-5 border border-amber-500/20 shadow-2xl">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-amber-500/20 to-yellow-500/20 border border-amber-500/30 text-amber-500 flex items-center justify-center animate-heartbeat shadow-lg shadow-amber-500/20">
-            <Inbox className="w-10 h-10" />
-          </div>
-          <h3 className="font-extrabold text-2xl text-white">No assessments found</h3>
-          <p className="text-sm text-slate-300 font-medium max-w-md leading-relaxed">
-            Enter patient biometrics in the clinical wizard to compute your first diagnostic assessment.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 mt-2">
-            <button 
-              onClick={() => {
-                soundFX.play('click');
-                setCurrentTab('wizard');
-              }}
-              className="btn-magnetic bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white font-extrabold py-3.5 px-7 rounded-2xl inline-flex items-center justify-center gap-2.5 cursor-pointer shadow-lg shadow-amber-500/30 transition text-sm"
-            >
-              <HeartPulse className="w-5 h-5 animate-pulse" /> Start New Risk Assessor
-            </button>
-            <button 
-              onClick={() => {
-                soundFX.play('click');
-                setCurrentTab('symptom_checker');
-              }}
-              className="btn-magnetic bg-slate-800/90 hover:bg-slate-750 text-amber-400 border border-amber-500/30 font-extrabold py-3.5 px-7 rounded-2xl inline-flex items-center justify-center gap-2.5 cursor-pointer shadow-md transition text-sm hover:border-amber-400"
-            >
-              <Stethoscope className="w-5 h-5 text-amber-500" /> Check Symptoms & Triage
-            </button>
-          </div>
-        </div>
-      ) : (
-        <>
-          {/* Animated Clinical ECG Telemetry Hero Strip */}
-          <div className="glass-panel rounded-3xl p-5 sm:p-6 border border-amber-500/25 shadow-xl relative overflow-hidden bg-gradient-to-r from-slate-950 via-slate-900/90 to-slate-950">
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
-              
-              {/* Left Patient Status Tag */}
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-xs">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    Telemetry Synchronized
-                  </span>
-                  <span className="px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 text-[10px] font-black uppercase tracking-wider">
-                    Case: {activeUser || 'Primary Patient'}
-                  </span>
-                  <span className="px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700 text-[10px] font-bold">
-                    {activeRhythm.label}
-                  </span>
-                </div>
-                <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2">
-                  Clinical Diagnostics Command Center
-                </h2>
-              </div>
+    <div className="space-y-6 animate-fade-in no-print text-slate-100 max-w-7xl mx-auto">
+      
+      {/* 1. Main Hero Card: Health Score & Direct Assessment CTA */}
+      <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          
+          {/* Left: Summary & Patient Status */}
+          <div className="space-y-3 max-w-2xl">
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-xs font-bold flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                {latestAssessment ? 'Latest Assessment Verified' : 'Ready for New Assessment'}
+              </span>
+              <span className="text-xs text-slate-400 font-medium">
+                Patient: <strong className="text-white">{activeUser || 'Active Patient'}</strong>
+              </span>
+            </div>
 
-              {/* Center Live Animated ECG Rhythm Wave & Audio Switcher */}
-              <div className="flex items-center gap-3 sm:gap-4 w-full lg:w-auto bg-slate-950/80 border border-amber-500/25 rounded-2xl px-4 py-2.5 shadow-inner">
-                <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    onClick={() => {
-                      soundFX.play('click');
-                      setIsHeartSoundActive(!isHeartSoundActive);
-                    }}
-                    title={isHeartSoundActive ? "Mute Heartbeat Telemetry Audio" : "Listen to Heartbeat Telemetry Audio"}
-                    className="p-1.5 rounded-xl bg-slate-900 border border-amber-500/30 hover:border-amber-400 text-rose-400 hover:text-rose-300 cursor-pointer transition"
-                  >
-                    <HeartPulse className={`w-5 h-5 ${isHeartSoundActive ? 'text-rose-500 animate-heartbeat' : 'text-slate-400'}`} />
-                  </button>
-                  <div className="text-left">
-                    <span className="text-[9px] uppercase tracking-wider text-slate-400 font-bold block">Heart Rate</span>
-                    <span className="text-sm font-black text-white font-mono">{activeRhythm.bpm} BPM</span>
-                  </div>
-                </div>
+            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              {latestAssessment ? 'Cardiovascular Health Overview' : 'Check Your Heart Disease Risk in 2 Minutes'}
+            </h2>
 
-                {/* SVG ECG Waveform */}
-                <div className="w-36 sm:w-56 h-8 overflow-hidden relative">
-                  <svg className="w-full h-full" viewBox="0 0 300 40" preserveAspectRatio="none">
-                    <path
-                      d="M 0,20 L 40,20 L 50,5 L 60,35 L 70,10 L 80,25 L 90,20 L 150,20 L 160,5 L 170,35 L 180,10 L 190,25 L 200,20 L 300,20"
-                      fill="none"
-                      stroke={activeRhythm.color}
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="animate-ecg filter drop-shadow-[0_0_6px_rgba(245,158,11,0.8)]"
-                      style={{ animationDuration: activeRhythm.strokeSpeed }}
-                    />
-                  </svg>
-                </div>
+            <p className="text-sm text-slate-300 font-medium leading-relaxed">
+              {latestAssessment 
+                ? 'Your cardiovascular biomarkers and lifestyle habits indicate optimal heart health with low probability of coronary artery disease.'
+                : 'Evaluate your heart disease risk using 5 calibrated machine learning models. Enter your vitals to receive immediate clinical insights and actionable guidance.'}
+            </p>
 
-                {/* Rhythm Selector Buttons */}
-                <div className="hidden sm:flex items-center gap-1 border-l border-slate-800 pl-3">
-                  {[
-                    { id: 'normal', label: '72', title: 'Normal Sinus 72 BPM' },
-                    { id: 'athletic', label: '54', title: 'Athletic 54 BPM' },
-                    { id: 'elevated', label: '98', title: 'Elevated 98 BPM' },
-                    { id: 'tachy', label: '115', title: 'Tachycardia 115 BPM' }
-                  ].map(r => (
-                    <button
-                      key={r.id}
-                      type="button"
-                      onClick={() => {
-                        soundFX.play('slider');
-                        setEcgRhythm(r.id);
-                      }}
-                      title={r.title}
-                      className={`px-2 py-1 rounded-lg text-[10px] font-mono font-extrabold transition cursor-pointer ${
-                        ecgRhythm === r.id 
-                          ? 'bg-amber-500 text-white shadow-xs' 
-                          : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
-                      }`}
-                    >
-                      {r.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Right Quick Action Button */}
+            {/* CTA Action Buttons */}
+            <div className="flex flex-wrap gap-3 pt-2">
               <button
                 onClick={() => {
-                  soundFX.play('click');
-                  if (setShowSimulatorModal) setShowSimulatorModal(true);
+                  soundFX.play('switch');
+                  setCurrentTab('wizard');
                 }}
-                className="btn-magnetic px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-amber-500/30 cursor-pointer shrink-0"
+                className="px-6 py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs inline-flex items-center gap-2 shadow-lg shadow-amber-500/20 transition cursor-pointer"
               >
-                <Zap className="w-4 h-4 animate-pulse" />
-                <span>Launch Simulator</span>
+                <HeartPulse className="w-4 h-4" />
+                <span>{latestAssessment ? 'Recalculate Heart Risk' : 'Start Heart Risk Check'}</span>
               </button>
 
-            </div>
-          </div>
-
-          {/* Overview Summary KPI Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="glass-panel glass-panel-hover rounded-2xl p-6 flex items-center gap-4 border border-amber-500/20 shadow-lg">
-              <div className="w-14 h-14 bg-amber-500/15 text-amber-400 border border-amber-500/30 rounded-2xl flex items-center justify-center shadow-xs">
-                <ClipboardList className="w-7 h-7" />
-              </div>
-              <div>
-                <h4 className="text-xs uppercase tracking-wider text-slate-400 font-bold mb-1">Evaluations Run</h4>
-                <div className="text-3xl font-black text-white font-mono">
-                  {assessments.filter(a => a.name === activeUser).length || assessments.length}
-                </div>
-              </div>
-            </div>
-            
-            <div className="glass-panel glass-panel-hover rounded-2xl p-6 flex items-center gap-4 border border-rose-500/25 shadow-lg">
-              <div className="w-14 h-14 bg-rose-500/15 text-rose-400 border border-rose-500/30 rounded-2xl flex items-center justify-center shadow-xs">
-                <AlertOctagon className="w-7 h-7" />
-              </div>
-              <div>
-                <h4 className="text-xs uppercase tracking-wider text-slate-400 font-bold mb-1">Critical Cardiac Flags</h4>
-                <div className="text-3xl font-black text-white font-mono">
-                  {[dynamicMetrics.heartOverallRisk, dynamicMetrics.cadRisk, dynamicMetrics.hypRisk, dynamicMetrics.athRisk, dynamicMetrics.rhythmRisk, dynamicMetrics.metabolicCardioRisk].filter(r => r >= 65).length}
-                </div>
-              </div>
-            </div>
-
-            <div className="glass-panel glass-panel-hover rounded-2xl p-6 flex items-center gap-4 border border-emerald-500/25 shadow-lg">
-              <div className="w-14 h-14 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 rounded-2xl flex items-center justify-center shadow-xs">
-                <Stethoscope className="w-7 h-7" />
-              </div>
-              <div>
-                <h4 className="text-xs uppercase tracking-wider text-slate-400 font-bold mb-1">Cardio Diagnostic Status</h4>
-                <div className={`text-xs font-black mt-1 px-3 py-1 rounded-full border text-center ${
-                  [dynamicMetrics.heartOverallRisk, dynamicMetrics.cadRisk, dynamicMetrics.hypRisk, dynamicMetrics.athRisk, dynamicMetrics.rhythmRisk, dynamicMetrics.metabolicCardioRisk].some(r => r >= 65)
-                    ? 'text-rose-300 bg-rose-500/15 border-rose-500/30'
-                    : 'text-emerald-300 bg-emerald-500/15 border-emerald-500/30'
-                }`}>
-                  {[dynamicMetrics.heartOverallRisk, dynamicMetrics.cadRisk, dynamicMetrics.hypRisk, dynamicMetrics.athRisk, dynamicMetrics.rhythmRisk, dynamicMetrics.metabolicCardioRisk].some(r => r >= 65) ? 'Cardiac Attention Flagged' : 'Cardiovascular Synchrony'}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Interactive 6-Pillar Cardiovascular Diagnostic Matrix */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <h3 className="font-extrabold text-lg text-white flex items-center gap-2">
-                <Heart className="w-5 h-5 text-rose-400" />
-                <span>6-Pillar Cardiovascular & Heart Health Matrix</span>
-              </h3>
-              <div className="flex items-center gap-2 text-xs text-slate-400 font-bold">
-                <span>Click any pillar card to inspect cardiology indicators & test recommendations</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-              {organData.map(organ => {
-                const Icon = organ.icon;
-                const isSelected = selectedOrganDetail?.id === organ.id;
-                return (
-                  <div
-                    key={organ.id}
-                    onClick={() => {
-                      soundFX.play('click');
-                      setSelectedOrganDetail(isSelected ? null : organ);
-                    }}
-                    className={`glass-panel rounded-2xl p-4 border transition-all duration-300 relative overflow-hidden cursor-pointer ${
-                      isSelected 
-                        ? 'border-amber-400 shadow-xl shadow-amber-500/25 ring-2 ring-amber-500/30 scale-[1.03] bg-slate-900/90' 
-                        : 'border-amber-500/20 hover:border-amber-500/50 hover:scale-[1.02] shadow-md'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2.5">
-                      <div className="w-9 h-9 rounded-xl bg-slate-900/90 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-xs">
-                        <Icon className="w-4 h-4" />
-                      </div>
-                      <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${organ.badgeColor}`}>
-                        {organ.status}
-                      </span>
-                    </div>
-
-                    <h4 className="font-extrabold text-xs text-white truncate">{organ.name}</h4>
-                    <p className="text-[10px] text-slate-400 font-mono mt-0.5 truncate">{organ.vitals}</p>
-
-                    {/* Risk progress bar */}
-                    <div className="mt-3 space-y-1">
-                      <div className="flex justify-between text-[9px] font-bold">
-                        <span className="text-slate-400">Risk</span>
-                        <span className="text-white font-mono">{organ.risk}%</span>
-                      </div>
-                      <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                        <div 
-                          className={`h-full rounded-full transition-all duration-500 bg-gradient-to-r ${organ.color}`}
-                          style={{ width: `${organ.risk}%` }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Selected Organ Deep-Dive Banner */}
-            {selectedOrganDetail && (
-              <div className="p-5 glass-panel rounded-3xl border border-amber-500/30 shadow-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 animate-modal-spring flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div className="space-y-1.5 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
-                      <Info className="w-4 h-4 text-amber-400" />
-                      <span>{selectedOrganDetail.name} Clinical Protocol</span>
-                    </span>
-                    <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full border ${selectedOrganDetail.badgeColor}`}>
-                      Calculated Risk: {selectedOrganDetail.risk}%
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-300 leading-relaxed font-medium">
-                    {selectedOrganDetail.summary}
-                  </p>
-                  <div className="flex items-center gap-2 pt-1 flex-wrap">
-                    <span className="text-[10px] font-bold text-slate-400">Recommended Panels:</span>
-                    {selectedOrganDetail.tests.map((t, idx) => (
-                      <span key={idx} className="text-[10px] font-bold bg-slate-800 text-amber-300 px-2 py-0.5 rounded-md border border-slate-700">
-                        {t}
-                      </span>
-                    ))}
-                  </div>
-                </div>
+              {latestAssessment && (
                 <button
-                  onClick={() => setSelectedOrganDetail(null)}
-                  className="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold border border-slate-700 cursor-pointer"
+                  onClick={() => {
+                    soundFX.play('switch');
+                    setCurrentTab('results');
+                  }}
+                  className="px-5 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs inline-flex items-center gap-2 border border-slate-700 transition cursor-pointer"
                 >
-                  Close Details
+                  <Eye className="w-4 h-4 text-amber-400" />
+                  <span>View Detailed Report</span>
                 </button>
-              </div>
-            )}
-          </div>
-
-          {/* Dashboard Main Grid */}
-          <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-            
-            {/* Left Column: Health Score Wheel + Live Recalibration Studio */}
-            <div className="glass-panel rounded-3xl p-6 sm:p-8 xl:col-span-4 flex flex-col justify-between border border-amber-500/20 shadow-xl space-y-6">
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="font-black text-lg text-white flex items-center gap-2">
-                    <Activity className="w-5 h-5 text-amber-400" />
-                    <span>Overall Health Score</span>
-                  </h2>
-                  <span className={`text-[11px] font-black uppercase tracking-wider border rounded-full px-3 py-1 ${getScoreBadgeStyles(dynamicMetrics.score).style}`}>
-                    {getScoreBadgeStyles(dynamicMetrics.score).label}
-                  </span>
-                </div>
-
-                {/* Score Circular Wheel */}
-                <div className="flex justify-center py-2">
-                  <div className="circle-progress-container relative w-44 h-44 flex items-center justify-center cursor-pointer group">
-                    <svg className="w-full h-full transform -rotate-90 filter drop-shadow-md" viewBox="0 0 160 160">
-                      <circle className="stroke-slate-800 fill-none" cx="80" cy="80" r="70" strokeWidth="11"></circle>
-                      <circle 
-                        className="transition-all duration-500 ease-out fill-none"
-                        cx="80" 
-                        cy="80" 
-                        r="70" 
-                        strokeWidth="11" 
-                        stroke={getScoreBadgeStyles(dynamicMetrics.score).color}
-                        strokeDasharray={439.8}
-                        strokeDashoffset={439.8 - (439.8 * dynamicMetrics.score) / 100}
-                        strokeLinecap="round"
-                      ></circle>
-                    </svg>
-                    <div className="absolute text-center group-hover:scale-110 transition-transform">
-                      <div className="text-4xl font-black text-white font-mono">{dynamicMetrics.score}</div>
-                      <div className="text-[10px] uppercase tracking-widest text-slate-400 font-extrabold mt-1">Score / 100</div>
-                      {dynamicMetrics.scoreDelta !== 0 && (
-                        <div className={`text-[10px] font-bold ${dynamicMetrics.scoreDelta > 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                          {dynamicMetrics.scoreDelta > 0 ? `+${dynamicMetrics.scoreDelta}` : dynamicMetrics.scoreDelta} vs baseline
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Quick Interactive Biometrics Recalibration Knobs */}
-                <div className="mt-4 p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3">
-                  <div className="flex items-center justify-between text-xs font-bold text-slate-300">
-                    <span className="flex items-center gap-1.5"><Sliders className="w-3.5 h-3.5 text-amber-400" /> Live Recalibration Knobs</span>
-                    <span className="text-amber-400 font-mono text-[10px]">Real-Time Sync</span>
-                  </div>
-
-                  {/* Preset Buttons */}
-                  <div className="grid grid-cols-4 gap-1.5 pb-1">
-                    <button
-                      type="button"
-                      onClick={() => applyPreset('optimal')}
-                      className="p-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[9px] font-bold cursor-pointer"
-                    >
-                      Optimal
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => applyPreset('prediabetic')}
-                      className="p-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[9px] font-bold cursor-pointer"
-                    >
-                      Pre-Diab
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => applyPreset('hypertensive')}
-                      className="p-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-[9px] font-bold cursor-pointer"
-                    >
-                      High BP
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => applyPreset('reset')}
-                      className="p-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-[9px] font-bold cursor-pointer"
-                    >
-                      Reset
-                    </button>
-                  </div>
-
-                  {/* Systolic BP slider */}
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-[11px] font-bold">
-                      <span className="text-slate-400">Systolic Blood Pressure</span>
-                      <span className="text-white font-mono">{quickSystolic} mmHg</span>
-                    </div>
-                    <input 
-                      type="range"
-                      min="90"
-                      max="180"
-                      value={quickSystolic}
-                      onChange={e => {
-                        soundFX.play('slider');
-                        setQuickSystolic(parseInt(e.target.value));
-                      }}
-                      className="w-full cursor-pointer"
-                    />
-                  </div>
-
-                  {/* Fasting Glucose slider */}
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-[11px] font-bold">
-                      <span className="text-slate-400">Fasting Glucose</span>
-                      <span className="text-white font-mono">{quickGlucose} mg/dL</span>
-                    </div>
-                    <input 
-                      type="range"
-                      min="70"
-                      max="220"
-                      value={quickGlucose}
-                      onChange={e => {
-                        soundFX.play('slider');
-                        setQuickGlucose(parseInt(e.target.value));
-                      }}
-                      className="w-full cursor-pointer"
-                    />
-                  </div>
-
-                  {/* Total Cholesterol slider */}
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-[11px] font-bold">
-                      <span className="text-slate-400">Total Cholesterol</span>
-                      <span className="text-white font-mono">{quickCholesterol} mg/dL</span>
-                    </div>
-                    <input 
-                      type="range"
-                      min="130"
-                      max="300"
-                      value={quickCholesterol}
-                      onChange={e => {
-                        soundFX.play('slider');
-                        setQuickCholesterol(parseInt(e.target.value));
-                      }}
-                      className="w-full cursor-pointer"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Clinical Recommendation Card with Voice Readout */}
-              <div className="glass-pill rounded-2xl p-4 flex flex-col gap-3 border border-amber-500/20 bg-amber-500/10">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
-                    <span className="font-extrabold text-xs text-white">Clinical AI Recommendation</span>
-                  </div>
-
-                  {/* TTS Voice Readout Button */}
-                  <button
-                    onClick={handleVoiceReadout}
-                    className="px-2.5 py-1 rounded-xl bg-slate-900 border border-amber-500/30 hover:border-amber-400 text-amber-300 text-[10px] font-black flex items-center gap-1.5 cursor-pointer shadow-xs transition"
-                  >
-                    {isSpeaking ? (
-                      <>
-                        {/* Equalizer Sound Wave Animation */}
-                        <div className="flex items-end gap-0.5 h-3">
-                          <span className="w-1 bg-amber-400 animate-eq-1 rounded-full" />
-                          <span className="w-1 bg-amber-400 animate-eq-2 rounded-full" />
-                          <span className="w-1 bg-amber-400 animate-eq-3 rounded-full" />
-                          <span className="w-1 bg-amber-400 animate-eq-4 rounded-full" />
-                        </div>
-                        <span>Stop Voice</span>
-                      </>
-                    ) : (
-                      <>
-                        <Volume2 className="w-3.5 h-3.5 text-amber-400" />
-                        <span>Listen AI Voice</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                <p className="text-xs text-slate-300 leading-relaxed font-medium">
-                  {latestAssessment?.results?.recommendations?.immediate?.[0] || latestAssessment?.results?.recommendations?.lifestyle?.[0] || 'No critical warnings. Maintain healthy nutrition, regular aerobic exercise, and annual clinical screenings.'}
-                </p>
-              </div>
-            </div>
-
-            {/* Right Column: Graphs */}
-            <div className="xl:col-span-8 space-y-8">
-              
-              {/* Radar Chart */}
-              <div className="glass-panel rounded-3xl p-6 h-[330px] border border-amber-500/20 shadow-xl">
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="font-black text-lg text-white flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-amber-400" />
-                    <span>Patient Organ Risk Profile</span>
-                  </h2>
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-300 bg-amber-500/15 px-3 py-1 rounded-full border border-amber-500/30">
-                    6-Point Biomarker Model
-                  </span>
-                </div>
-                <div className="h-full max-h-[240px] flex justify-center">
-                  {overviewRadarData && (
-                    <Radar 
-                      data={overviewRadarData} 
-                      options={{
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: {
-                          r: {
-                            grid: { color: 'rgba(245, 158, 11, 0.15)' },
-                            angleLines: { color: 'rgba(245, 158, 11, 0.2)' },
-                            ticks: { display: false },
-                            pointLabels: { color: '#cbd5e1', font: { family: 'Plus Jakarta Sans', size: 10, weight: '700' } }
-                          }
-                        }
-                      }} 
-                    />
-                  )}
-                </div>
-              </div>
-
-              {/* Timeline Line Chart */}
-              <div className="glass-panel rounded-3xl p-6 h-[330px] border border-amber-500/20 shadow-xl">
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="font-black text-lg text-white flex items-center gap-2">
-                    <ShieldCheck className="w-5 h-5 text-emerald-400" />
-                    <span>Health Score Progression</span>
-                  </h2>
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-300 bg-emerald-500/15 px-3 py-1 rounded-full border border-emerald-500/30">
-                    Temporal Analytics
-                  </span>
-                </div>
-                <div className="h-full max-h-[240px]">
-                  {overviewTrendData && (
-                    <Line 
-                      data={overviewTrendData} 
-                      options={{
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: {
-                          x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 10, weight: '600' } } },
-                          y: { min: 0, max: 100, grid: { color: 'rgba(245, 158, 11, 0.15)' }, ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 10, weight: '600' } } }
-                        }
-                      }} 
-                    />
-                  )}
-                </div>
-              </div>
-
+              )}
             </div>
           </div>
 
-          {/* Quick Action Navigation Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <button 
+          {/* Right: Clean Heart Score Dial */}
+          <div className="flex flex-col items-center justify-center p-4 bg-slate-950/60 rounded-2xl border border-slate-800/80 min-w-50 shrink-0">
+            <div className="relative w-28 h-28 flex items-center justify-center">
+              <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="42" className="stroke-slate-800" strokeWidth="8" fill="none" />
+                <circle 
+                  cx="50" cy="50" r="42" 
+                  className="stroke-amber-400 transition-all duration-1000" 
+                  strokeWidth="8" 
+                  strokeDasharray="264"
+                  strokeDashoffset={264 - (264 * (latestAssessment?.results?.overallScore || 85)) / 100}
+                  strokeLinecap="round" 
+                  fill="none" 
+                />
+              </svg>
+              <div className="absolute flex flex-col items-center">
+                <span className="text-2xl font-black text-white font-mono">{latestAssessment?.results?.overallScore || 85}</span>
+                <span className="text-[9px] text-slate-400 font-bold uppercase">/ 100 Score</span>
+              </div>
+            </div>
+            <span className="text-xs font-bold text-emerald-400 mt-2">Optimal Heart Health</span>
+          </div>
+
+        </div>
+      </div>
+
+      {/* 2. Core Vitals Grid (4 Clean Metric Cards) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {vitals.map((v, idx) => {
+          const Icon = v.icon;
+          return (
+            <div key={idx} className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4.5 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-400">{v.label}</span>
+                <div className="p-1.5 rounded-lg bg-slate-800 text-amber-400">
+                  <Icon className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="text-lg sm:text-xl font-black text-white font-mono">{v.value}</div>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-block ${v.color}`}>
+                {v.status}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* 3. Middle Section: 6 Cardiovascular Pillars & Interactive Simulation */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        {/* Left: 6 Cardiovascular Risk Dimensions */}
+        <div className="lg:col-span-7 bg-slate-900/80 border border-slate-800 rounded-3xl p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div>
+              <h3 className="font-bold text-base text-white flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                <span>Cardiovascular Risk Dimensions</span>
+              </h3>
+              <p className="text-xs text-slate-400 mt-0.5">Calculated across 5 machine learning models</p>
+            </div>
+            <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+              Low Risk Range
+            </span>
+          </div>
+
+          <div className="space-y-3.5">
+            {risks.map((r, idx) => (
+              <div key={idx} className="space-y-1.5">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="font-bold text-slate-200">{r.label}</span>
+                  <span className="font-black text-emerald-400 font-mono">{r.value}% Risk</span>
+                </div>
+                <div className="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
+                  <div 
+                    className="h-full bg-emerald-400 rounded-full transition-all duration-500" 
+                    style={{ width: `${Math.max(4, r.value)}%` }} 
+                  />
+                </div>
+                <p className="text-[10px] text-slate-400 font-medium">{r.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right: Quick What-If Simulator */}
+        <div className="lg:col-span-5 bg-slate-900/80 border border-slate-800 rounded-3xl p-6 space-y-5 flex flex-col justify-between">
+          <div className="space-y-4">
+            <div className="border-b border-slate-800 pb-3">
+              <h3 className="font-bold text-base text-white flex items-center gap-2">
+                <Sliders className="w-4 h-4 text-amber-400" />
+                <span>Quick "What-If" Habit Simulator</span>
+              </h3>
+              <p className="text-xs text-slate-400 mt-0.5">Adjust habits to see projected heart score changes</p>
+            </div>
+
+            {/* Slider 1: Systolic BP */}
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-xs font-bold">
+                <span className="text-slate-300">Systolic Blood Pressure</span>
+                <span className="text-amber-400 font-mono">{sliderBP} mmHg</span>
+              </div>
+              <input 
+                type="range" min="100" max="180" step="2"
+                value={sliderBP}
+                onChange={e => setSliderBP(parseInt(e.target.value))}
+                className="w-full cursor-pointer accent-amber-400"
+              />
+            </div>
+
+            {/* Slider 2: Cholesterol */}
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-xs font-bold">
+                <span className="text-slate-300">Total Cholesterol</span>
+                <span className="text-amber-400 font-mono">{sliderChol} mg/dL</span>
+              </div>
+              <input 
+                type="range" min="140" max="280" step="5"
+                value={sliderChol}
+                onChange={e => setSliderChol(parseInt(e.target.value))}
+                className="w-full cursor-pointer accent-amber-400"
+              />
+            </div>
+
+            {/* Slider 3: Sleep */}
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-xs font-bold">
+                <span className="text-slate-300">Daily Sleep Duration</span>
+                <span className="text-amber-400 font-mono">{sliderSleep} hrs</span>
+              </div>
+              <input 
+                type="range" min="4" max="10" step="0.5"
+                value={sliderSleep}
+                onChange={e => setSliderSleep(parseFloat(e.target.value))}
+                className="w-full cursor-pointer accent-amber-400"
+              />
+            </div>
+          </div>
+
+          {/* Projected Outcome Box */}
+          <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+            <div className="flex justify-between items-center text-xs font-bold text-slate-300">
+              <span>Projected Heart Score:</span>
+              <span className="text-lg font-black text-amber-400 font-mono">{liveProjectedScore} / 100</span>
+            </div>
+            <div className="flex justify-between items-center text-xs font-bold text-slate-300">
+              <span>Projected Heart Risk:</span>
+              <span className="text-sm font-black text-emerald-400 font-mono">{liveProjectedRisk}%</span>
+            </div>
+            <button
               onClick={() => {
-                soundFX.play('click');
+                soundFX.play('switch');
                 setCurrentTab('wizard');
               }}
-              className="glass-panel glass-panel-hover rounded-3xl p-6 text-left flex items-center justify-between cursor-pointer transition-all border border-amber-500/20 group shadow-lg"
+              className="w-full mt-2 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-850 text-amber-300 text-xs font-bold border border-slate-700 flex items-center justify-center gap-1.5 cursor-pointer transition"
             >
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-amber-500/15 text-amber-400 border border-amber-500/30 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-xs">
-                  <HeartPulse className="w-7 h-7" />
-                </div>
-                <div>
-                  <h4 className="font-black text-white text-base">Perform Health Assessment</h4>
-                  <p className="text-xs text-slate-300 mt-1 font-medium">Input biometrics to calculate precision diagnostic risk predictions.</p>
-                </div>
-              </div>
-              <ArrowRight className="w-5 h-5 text-amber-400 group-hover:translate-x-1.5 transition-transform" />
-            </button>
-
-            <button 
-              onClick={() => {
-                soundFX.play('click');
-                setCurrentTab('history');
-              }}
-              className="glass-panel glass-panel-hover rounded-3xl p-6 text-left flex items-center justify-between cursor-pointer transition-all border border-emerald-500/25 group shadow-lg"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-xs">
-                  <ClipboardList className="w-7 h-7" />
-                </div>
-                <div>
-                  <h4 className="font-black text-white text-base">Browse Audit History</h4>
-                  <p className="text-xs text-slate-300 mt-1 font-medium">Review, filter, and compare past patient risk logs.</p>
-                </div>
-              </div>
-              <ArrowRight className="w-5 h-5 text-emerald-400 group-hover:translate-x-1.5 transition-transform" />
+              <span>Test in Full Assessment</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
-        </>
-      )}
+
+        </div>
+
+      </div>
+
+      {/* 4. 3 Clean Clinical Feature Action Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        
+        {/* Feature 1: Wizard */}
+        <div 
+          onClick={() => {
+            soundFX.play('switch');
+            setCurrentTab('wizard');
+          }}
+          className="bg-slate-900/80 hover:bg-slate-850 border border-slate-800 hover:border-amber-500/40 rounded-3xl p-5 space-y-3 cursor-pointer transition-all hover:scale-[1.01] group"
+        >
+          <div className="w-10 h-10 rounded-2xl bg-amber-500/15 text-amber-400 flex items-center justify-center">
+            <HeartPulse className="w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="font-bold text-sm text-white group-hover:text-amber-400 transition-colors">
+              Risk Assessor Wizard
+            </h4>
+            <p className="text-xs text-slate-400 mt-1">
+              Step-by-step assessment calculating 6 heart risk sub-dimensions with 5 ML models.
+            </p>
+          </div>
+          <div className="text-xs font-bold text-amber-400 flex items-center gap-1 pt-1">
+            <span>Start Assessment</span>
+            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+          </div>
+        </div>
+
+        {/* Feature 2: Symptom Checker */}
+        <div 
+          onClick={() => {
+            soundFX.play('switch');
+            setCurrentTab('symptom_checker');
+          }}
+          className="bg-slate-900/80 hover:bg-slate-850 border border-slate-800 hover:border-yellow-500/40 rounded-3xl p-5 space-y-3 cursor-pointer transition-all hover:scale-[1.01] group"
+        >
+          <div className="w-10 h-10 rounded-2xl bg-yellow-500/15 text-yellow-400 flex items-center justify-center">
+            <Stethoscope className="w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="font-bold text-sm text-white group-hover:text-yellow-400 transition-colors">
+              Symptom Checker & Triage
+            </h4>
+            <p className="text-xs text-slate-400 mt-1">
+              Analyze chest pain, shortness of breath, or fatigue for immediate red-flag detection.
+            </p>
+          </div>
+          <div className="text-xs font-bold text-yellow-400 flex items-center gap-1 pt-1">
+            <span>Check Symptoms</span>
+            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+          </div>
+        </div>
+
+        {/* Feature 3: Cardio AI Assistant */}
+        <div 
+          onClick={() => {
+            soundFX.play('switch');
+            setCurrentTab('chatbot');
+          }}
+          className="bg-slate-900/80 hover:bg-slate-850 border border-slate-800 hover:border-emerald-500/40 rounded-3xl p-5 space-y-3 cursor-pointer transition-all hover:scale-[1.01] group"
+        >
+          <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center">
+            <Bot className="w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="font-bold text-sm text-white group-hover:text-emerald-400 transition-colors">
+              HealthBot AI Assistant
+            </h4>
+            <p className="text-xs text-slate-400 mt-1">
+              Ask questions on blood pressure, cholesterol management, DASH diet, and cardiac health.
+            </p>
+          </div>
+          <div className="text-xs font-bold text-emerald-400 flex items-center gap-1 pt-1">
+            <span>Chat with AI</span>
+            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+          </div>
+        </div>
+
+      </div>
+
     </div>
   );
 }

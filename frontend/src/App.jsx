@@ -119,12 +119,12 @@ export default function App() {
       id: 1,
       sender: 'ai',
       category: 'Welcome & System Ready',
-      text: 'Hello! I am **HealthBot AI**, your 24/7 clinical AI health assistant. Ask me anything about disease prevention, blood pressure, diabetes, biomarkers, symptoms, exercise, or healthy nutrition guidelines.',
+      text: 'Hello! I am **HealthBot AI**, your 24/7 cardiovascular & precision health AI assistant. Ask me anything about heart disease prevention, blood pressure, cholesterol, ECG rhythms, cardiac biomarkers, symptoms, exercise, or healthy cardiovascular nutrition.',
       suggested_prompts: [
-        'How to lower fasting blood sugar?',
-        'What are normal blood pressure ranges?',
-        'What causes stomach ache after meals?',
-        'How much exercise is recommended weekly?'
+        'How to lower blood pressure naturally?',
+        'What are optimal cholesterol target levels?',
+        'What are early signs of coronary artery disease?',
+        'How does exercise improve cardiovascular health?'
       ],
       time: 'Just now'
     }
@@ -411,11 +411,13 @@ export default function App() {
   }, [authToken]);
 
   useEffect(() => {
-    if (currentTab === 'admin_portal' && userProfile && userProfile.role !== 'admin') {
-      setCurrentTab('dashboard');
-      showToast('Access Denied: Admin privileges required to view Admin Management Portal.', 'danger');
+    if (currentTab === 'admin_portal') {
+      if (!authToken || (userProfile && userProfile.role !== 'admin')) {
+        setCurrentTab('dashboard');
+        showToast('Access Denied: Administrator privileges required to view Admin Management Portal.', 'danger');
+      }
     }
-  }, [currentTab, userProfile]);
+  }, [currentTab, userProfile, authToken]);
 
   useEffect(() => {
     if (activeUser && assessments.length > 0) {
@@ -1167,12 +1169,34 @@ export default function App() {
       />
 
       {/* Main Container */}
-      <main className="flex-1 p-3 sm:p-6 md:p-10 w-full max-w-[1600px] mx-auto">
+      <main className="flex-1 p-3 sm:p-6 md:p-8 w-full max-w-[1600px] mx-auto pb-24 sm:pb-12">
+
+        {/* Admin Superuser Active Banner (Visible to Admin in User Views) */}
+        {userProfile?.role === 'admin' && currentTab !== 'admin_portal' && (
+          <div className="mb-6 p-3 sm:p-4 rounded-2xl bg-gradient-to-r from-rose-950/60 via-slate-900/80 to-amber-950/40 border border-rose-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs shadow-lg animate-fade-in no-print">
+            <div className="flex items-center gap-2.5">
+              <span className="w-2 h-2 rounded-full bg-rose-400 animate-pulse shrink-0" />
+              <span className="font-bold text-slate-200">
+                <strong className="text-rose-400 font-black uppercase tracking-wider mr-1.5">👑 Admin Superuser Mode:</strong>
+                You have full access to test all patient clinical tools and manage the system.
+              </span>
+            </div>
+            <button
+              onClick={() => {
+                soundFX.play('switch');
+                setCurrentTab('admin_portal');
+              }}
+              className="w-full sm:w-auto px-3.5 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 hover:text-white border border-rose-500/40 font-bold text-[11px] transition cursor-pointer shrink-0 text-center"
+            >
+              Open Admin Console &rarr;
+            </button>
+          </div>
+        )}
 
         {/* Dynamic Page Header Title & Subtitle */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 no-print">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 sm:mb-8 no-print">
           <div>
-            <h1 className="text-3xl font-black tracking-tight text-white">
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
               {currentTab === 'dashboard' && 'AI Health Risk Dashboard'}
               {currentTab === 'wizard' && 'Clinical Diagnostics Wizard'}
               {currentTab === 'symptom_checker' && 'AI Symptom Checker & Clinical Triage'}
@@ -1330,6 +1354,9 @@ export default function App() {
             assessments={assessments}
             adminUsersList={adminUsersList}
             showToast={showToast}
+            setCurrentTab={setCurrentTab}
+            API_BASE_URL={API_BASE_URL}
+            authToken={authToken}
           />
         )}
 

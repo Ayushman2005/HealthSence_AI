@@ -11,21 +11,21 @@ export default function ChatWidget({
   handleSendChatMessage
 }) {
   return (
-    <div className="fixed bottom-6 right-6 z-50 no-print flex flex-col items-end gap-3">
+    <div className="fixed bottom-4 right-4 z-50 no-print flex flex-col items-end gap-2">
       {/* Floating Mini Chat Popup Drawer */}
       {isChatWidgetOpen && (
-        <div className="w-[360px] sm:w-[400px] h-[500px] glass-modal-container border border-amber-500/30 shadow-2xl rounded-3xl flex flex-col overflow-hidden animate-fade-in transition-all">
+        <div className="w-[calc(100vw-32px)] sm:w-[380px] h-[72vh] max-h-[520px] glass-modal-container border border-amber-500/30 shadow-2xl rounded-3xl flex flex-col overflow-hidden animate-fade-in transition-all">
           {/* Mini Header */}
-          <div className="p-4 bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500 text-white flex items-center justify-between shadow-xs">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center font-bold">
-                <Bot className="w-5 h-5 text-white" />
+          <div className="p-3.5 bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500 text-white flex items-center justify-between shadow-xs shrink-0">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-xl bg-white/20 flex items-center justify-center font-bold">
+                <Bot className="w-4 h-4 text-white" />
               </div>
               <div>
-                <h4 className="font-extrabold text-xs text-white">HealthBot AI Assistant</h4>
-                <span className="text-[10px] text-white/90 font-bold flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-emerald-300 animate-ping inline-block"></span>
-                  24/7 Clinical AI Online
+                <h4 className="font-black text-xs text-white">HealthBot AI Assistant</h4>
+                <span className="text-[9px] text-white/90 font-bold flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-ping inline-block"></span>
+                  24/7 Cardio AI Online
                 </span>
               </div>
             </div>

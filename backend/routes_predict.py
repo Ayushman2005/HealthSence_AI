@@ -7,7 +7,7 @@ import numpy as np
 from fastapi import APIRouter, Request, HTTPException, Depends
 
 from config import BASE_DIR, MODELS_DIR
-from auth import get_auth_token
+from auth import get_auth_token, get_admin_token
 from database import db_execute, db_fetchall
 import ml_engine
 
@@ -325,7 +325,7 @@ async def get_metrics(token: str = Depends(get_auth_token)):
         raise HTTPException(status_code=404, detail='Model metrics file not found. Please train models first.')
 
 @router.post('/api/retrain')
-async def retrain(token: str = Depends(get_auth_token)):
+async def retrain(token: str = Depends(get_admin_token)):
     try:
         print("Received retraining request. Executing train_models.py...")
         train_script = os.path.join(BASE_DIR, "train_models.py")

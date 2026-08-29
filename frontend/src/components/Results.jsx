@@ -66,31 +66,31 @@ export default function Results({
     <div className="max-w-[1150px] mx-auto space-y-8 animate-fade-in text-slate-100">
       
       {/* Header Action Buttons */}
-      <div className="flex flex-wrap gap-3 justify-between items-center no-print">
+      <div className="flex flex-col sm:flex-row gap-3 justify-between items-stretch sm:items-center no-print">
         <button 
           onClick={() => {
             soundFX.play('switch');
             setCurrentTab('dashboard');
           }} 
-          className="py-2.5 px-5 border border-slate-700 bg-slate-900/80 hover:bg-slate-800 rounded-2xl font-bold text-sm text-slate-200 inline-flex items-center gap-2 cursor-pointer transition shadow-xs"
+          className="w-full sm:w-auto py-2.5 px-5 border border-slate-700 bg-slate-900/80 hover:bg-slate-800 rounded-2xl font-bold text-xs sm:text-sm text-slate-200 inline-flex items-center justify-center gap-2 cursor-pointer transition shadow-xs"
         >
           <LayoutDashboard className="w-4 h-4 text-amber-400" /> Back to Dashboard
         </button>
         
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
           <button 
             onClick={() => {
               soundFX.play('switch');
               setCurrentTab('chatbot');
             }}
-            className="px-5 py-2.5 rounded-2xl bg-amber-500/15 border border-amber-500/30 hover:border-amber-400 text-amber-300 font-bold text-xs inline-flex items-center gap-2 cursor-pointer transition"
+            className="w-full sm:w-auto px-4 py-2.5 rounded-2xl bg-amber-500/15 border border-amber-500/30 hover:border-amber-400 text-amber-300 font-bold text-xs inline-flex items-center justify-center gap-2 cursor-pointer transition"
           >
             <Bot className="w-4 h-4 text-amber-400" /> Ask Cardiology AI
           </button>
           
           <button 
             onClick={() => window.print()}
-            className="btn-magnetic bg-gradient-to-r from-rose-500 via-rose-600 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white py-2.5 px-6 rounded-2xl font-black text-sm inline-flex items-center gap-2 cursor-pointer transition shadow-lg shadow-rose-500/30"
+            className="w-full sm:w-auto btn-magnetic bg-gradient-to-r from-rose-500 via-rose-600 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white py-2.5 px-6 rounded-2xl font-black text-xs sm:text-sm inline-flex items-center justify-center gap-2 cursor-pointer transition shadow-lg shadow-rose-500/30"
           >
             <Printer className="w-4 h-4" /> Print Diagnostic Report
           </button>

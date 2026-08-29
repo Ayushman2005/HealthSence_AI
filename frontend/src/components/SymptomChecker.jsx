@@ -114,7 +114,7 @@ export default function SymptomChecker({
               <label className="text-xs font-extrabold text-slate-300 uppercase tracking-wider block mb-2.5">
                 1. Select Anatomical Focus Area
               </label>
-              <div className="grid grid-cols-3 sm:grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {bodyRegions.map(reg => {
                   const isRegActive = activeRegion === reg.id;
                   return (

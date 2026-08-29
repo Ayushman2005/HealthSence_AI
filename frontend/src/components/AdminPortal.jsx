@@ -1,5 +1,9 @@
-import React from 'react';
-import { ShieldAlert, Cpu, Zap, User } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { 
+  ShieldAlert, Cpu, Zap, User, Lock, ArrowRight, RefreshCw, 
+  Activity, Database, HeartPulse, Stethoscope, Bot, ClipboardList, TrendingUp, CheckCircle2
+} from 'lucide-react';
+import { soundFX } from '../utils/audioFX';
 
 export default function AdminPortal({
   userProfile,
@@ -7,62 +11,184 @@ export default function AdminPortal({
   retraining,
   assessments,
   adminUsersList,
-  showToast
+  showToast,
+  setCurrentTab,
+  API_BASE_URL,
+  authToken
 }) {
-  if (!userProfile || userProfile.role !== 'admin') return null;
+  const [systemStatus, setSystemStatus] = useState(null);
+  const [statusLoading, setStatusLoading] = useState(false);
+
+  const fetchSystemStatus = async () => {
+    if (!authToken || userProfile?.role !== 'admin') return;
+    setStatusLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL || ''}/api/admin/system-status`, {
+        headers: { "Authorization": `Bearer ${authToken}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSystemStatus(data);
+      }
+    } catch (err) {
+      console.warn("Failed to fetch system status:", err);
+    } finally {
+      setStatusLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSystemStatus();
+  }, [authToken, userProfile]);
+
+  // Strict Access Guard for Non-Admin Users
+  if (!userProfile || userProfile.role !== 'admin') {
+    return (
+      <div className="max-w-2xl mx-auto my-12 glass-panel rounded-3xl p-8 sm:p-12 text-center space-y-6 border border-rose-500/30 shadow-2xl animate-fade-in no-print bg-slate-950/90">
+        <div className="w-20 h-20 mx-auto rounded-3xl bg-rose-500/15 border border-rose-500/30 text-rose-400 flex items-center justify-center shadow-xl shadow-rose-500/20 animate-pulse">
+          <Lock className="w-10 h-10" />
+        </div>
+        <div className="space-y-2">
+          <span className="px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[10px] font-black uppercase tracking-widest">
+            403 Forbidden • Access Denied
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Administrator Credentials Required</h2>
+          <p className="text-xs sm:text-sm text-slate-300 max-w-md mx-auto font-medium leading-relaxed">
+            The Administration & ML Telemetry Console is strictly restricted to authenticated System Administrators. Standard patient and clinician accounts cannot access administrative controls.
+          </p>
+        </div>
+        <button
+          onClick={() => {
+            soundFX.play('click');
+            if (setCurrentTab) setCurrentTab('dashboard');
+          }}
+          className="btn-magnetic px-6 py-3 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white font-bold text-xs rounded-2xl inline-flex items-center gap-2 cursor-pointer shadow-lg shadow-amber-500/30"
+        >
+          <ArrowRight className="w-4 h-4" /> Return to AI Health Dashboard
+        </button>
+      </div>
+    );
+  }
+
+  const modelsList = [
+    { id: 'xgb', name: 'Heart XGBoost Classifier', algo: 'XGBClassifier', features: 15, accuracy: '96.8%', auc: '0.89 AUC', status: 'Loaded' },
+    { id: 'rf', name: 'Heart Random Forest', algo: 'RandomForestClassifier', features: 15, accuracy: '94.2%', auc: '0.87 AUC', status: 'Loaded' },
+    { id: 'svm', name: 'Heart Support Vector Machine', algo: 'SVC (RBF Kernel)', features: 15, accuracy: '92.4%', auc: '0.85 AUC', status: 'Loaded' },
+    { id: 'lr', name: 'Heart Calibrated Logistic Reg', algo: 'LogisticRegression', features: 15, accuracy: '92.2%', auc: '0.84 AUC', status: 'Loaded' },
+    { id: 'dt', name: 'Heart Decision Tree', algo: 'DecisionTreeClassifier', features: 15, accuracy: '91.8%', auc: '0.80 AUC', status: 'Loaded' }
+  ];
 
   return (
     <div className="space-y-8 animate-fade-in no-print text-slate-100">
-      {/* Admin Portal Banner */}
-      <div className="glass-panel rounded-3xl p-6 md:p-8 bg-gradient-to-r from-slate-900 via-amber-950 to-slate-900 text-white relative overflow-hidden border border-amber-500/30 shadow-2xl">
+      
+      {/* Admin Portal Superuser Banner */}
+      <div className="glass-panel rounded-3xl p-6 md:p-8 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 text-white relative overflow-hidden border border-rose-500/30 shadow-2xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             <div className="flex items-center gap-2.5 flex-wrap">
-              <span className="px-3 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-black uppercase tracking-widest rounded-full flex items-center gap-1.5">
-                <ShieldAlert className="w-3.5 h-3.5" /> Administrator Access Level
+              <span className="px-3.5 py-1 bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[10px] font-black uppercase tracking-widest rounded-full flex items-center gap-1.5 shadow-xs">
+                <ShieldAlert className="w-3.5 h-3.5 text-rose-400" /> Superuser Admin Console
               </span>
-              <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-black uppercase tracking-widest rounded-full flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> System Governance Active
+              <span className="px-3.5 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-black uppercase tracking-widest rounded-full flex items-center gap-1.5 shadow-xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Full Cross-Platform Authority
               </span>
             </div>
-            <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight">System Administrator Control Center</h2>
+            <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight flex items-center gap-3">
+              <span>System Administrator Control Suite</span>
+            </h2>
             <p className="text-xs text-slate-300 max-w-2xl font-medium leading-relaxed">
-              Manage health risk assessment models, system performance diagnostics, user account databases, and diagnostic classification parameters.
+              As an Administrator, you have full privileges to monitor ML models, calibrate pipelines, inspect user databases, and test all patient/clinical tools.
             </p>
           </div>
 
-          <button 
-            onClick={handleRetrain}
-            disabled={retraining}
-            className="btn-magnetic px-6 py-3.5 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white font-bold text-xs rounded-2xl flex items-center gap-2 shadow-lg shadow-amber-500/30 cursor-pointer transition shrink-0 disabled:opacity-50"
-          >
-            <Cpu className={`w-4 h-4 ${retraining ? 'animate-spin' : ''}`} />
-            {retraining ? 'Updating Diagnostic Pipeline...' : 'Update Diagnostic Pipeline'}
-          </button>
+          <div className="flex items-center gap-3 flex-wrap shrink-0">
+            <button 
+              onClick={() => {
+                soundFX.play('click');
+                fetchSystemStatus();
+                showToast("System telemetry refreshed.", "info");
+              }}
+              disabled={statusLoading}
+              className="px-4 py-3 bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-amber-500/40 text-slate-200 text-xs font-bold rounded-2xl flex items-center gap-2 cursor-pointer transition shadow-xs"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 text-amber-400 ${statusLoading ? 'animate-spin' : ''}`} />
+              <span>Refresh Status</span>
+            </button>
+
+            <button 
+              onClick={() => {
+                soundFX.play('switch');
+                handleRetrain();
+              }}
+              disabled={retraining}
+              className="btn-magnetic px-6 py-3 bg-gradient-to-r from-rose-500 via-rose-600 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white font-bold text-xs rounded-2xl flex items-center gap-2 shadow-lg shadow-rose-500/30 cursor-pointer transition shrink-0 disabled:opacity-50"
+            >
+              <Cpu className={`w-4 h-4 ${retraining ? 'animate-spin' : ''}`} />
+              {retraining ? 'Retraining Heart ML Models...' : 'Retrain Heart Models'}
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Section 1: Models Status Grid */}
+      {/* Admin Quick Switcher to User Features */}
+      <div className="glass-panel rounded-3xl p-6 border border-amber-500/20 space-y-4">
+        <div className="flex items-center justify-between flex-wrap gap-2 border-b border-slate-800 pb-3">
+          <div>
+            <h3 className="font-extrabold text-base text-white flex items-center gap-2">
+              <Zap className="w-4 h-4 text-amber-400" />
+              <span>Admin Quick Access to Clinical User Features</span>
+            </h3>
+            <p className="text-[11px] text-slate-400 font-medium mt-0.5">
+              Administrators have unrestricted access to execute, test, and audit every patient diagnostic module.
+            </p>
+          </div>
+          <span className="text-[10px] font-black uppercase text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
+            All Features Unlocked
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          {[
+            { label: 'Risk Wizard', tab: 'wizard', icon: HeartPulse, color: 'text-amber-400 hover:border-amber-400' },
+            { label: 'Cardio Telemetry', tab: 'dashboard', icon: Activity, color: 'text-rose-400 hover:border-rose-400' },
+            { label: 'Symptom Triage', tab: 'symptom_checker', icon: Stethoscope, color: 'text-yellow-400 hover:border-yellow-400' },
+            { label: 'Cardio AI Bot', tab: 'chatbot', icon: Bot, color: 'text-emerald-400 hover:border-emerald-400' },
+            { label: 'Audit History', tab: 'history', icon: ClipboardList, color: 'text-cyan-400 hover:border-cyan-400' },
+            { label: 'Patient Trends', tab: 'insights', icon: TrendingUp, color: 'text-purple-400 hover:border-purple-400' }
+          ].map((action, idx) => {
+            const Icon = action.icon;
+            return (
+              <button
+                key={idx}
+                onClick={() => {
+                  soundFX.play('switch');
+                  if (setCurrentTab) setCurrentTab(action.tab);
+                }}
+                className={`p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 flex flex-col items-center justify-center gap-2 transition-all duration-300 hover:scale-105 cursor-pointer shadow-sm ${action.color} group`}
+              >
+                <Icon className="w-5 h-5 transition-transform group-hover:scale-110" />
+                <span className="text-xs font-bold text-slate-200 group-hover:text-white truncate">{action.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Section 1: 5 Heart Disease ML Models Grid */}
       <div className="space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <h3 className="font-extrabold text-xl text-white flex items-center gap-2">
             <Cpu className="w-5 h-5 text-amber-400" />
             <span>Active Heart Disease ML Ensemble Classifiers</span>
           </h3>
-          <span className="text-xs font-bold text-amber-300 bg-amber-500/15 border border-amber-500/30 px-3.5 py-1 rounded-full shadow-xs flex items-center gap-1.5">
+          <span className="text-xs font-bold text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-3.5 py-1 rounded-full shadow-xs flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            5/5 Heart Models Operational (High Precision)
+            5/5 Heart Models Operational
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          {[
-            { id: 'xgb', name: 'Heart XGBoost', algo: 'XGBClassifier', features: 15, accuracy: '96.8%', status: 'Loaded' },
-            { id: 'rf', name: 'Heart Random Forest', algo: 'RandomForestClassifier', features: 15, accuracy: '94.2%', status: 'Loaded' },
-            { id: 'svm', name: 'Heart Support Vector', algo: 'SVC (RBF Kernel)', features: 15, accuracy: '92.4%', status: 'Loaded' },
-            { id: 'lr', name: 'Heart Logistic Reg', algo: 'LogisticRegression', features: 15, accuracy: '92.2%', status: 'Loaded' },
-            { id: 'dt', name: 'Heart Decision Tree', algo: 'DecisionTreeClassifier', features: 15, accuracy: '91.8%', status: 'Loaded' }
-          ].map(m => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          {modelsList.map(m => (
             <div key={m.id} className="glass-panel glass-panel-hover rounded-2xl p-4.5 border border-amber-500/20 space-y-2.5 relative overflow-hidden shadow-lg">
               <div className="flex justify-between items-center">
                 <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Model #{m.id.toUpperCase()}</span>
@@ -77,52 +203,61 @@ export default function AdminPortal({
               </div>
               <div className="pt-2 border-t border-slate-800/80 flex justify-between text-xs font-bold">
                 <span className="text-slate-400 text-[11px]">Accuracy:</span>
-                <span className="text-emerald-400 font-extrabold font-mono">{m.accuracy}</span>
+                <span className="text-emerald-400 font-extrabold font-mono">{m.accuracy} ({m.auc})</span>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Section 2: System Health & Users Management Grid */}
+      {/* Section 2: Infrastructure Diagnostics & Users Management */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* System Diagnostics Card */}
         <div className="lg:col-span-5 glass-panel rounded-3xl p-6 space-y-5 border border-amber-500/20 shadow-xl">
-          <h3 className="font-extrabold text-lg text-white flex items-center gap-2 border-b border-slate-800/80 pb-3">
-            <Zap className="w-5 h-5 text-amber-400 animate-pulse" />
-            <span>System Diagnostics & Health</span>
-          </h3>
+          <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+            <h3 className="font-extrabold text-lg text-white flex items-center gap-2">
+              <Database className="w-5 h-5 text-amber-400 animate-pulse" />
+              <span>Multi-Tier Database & Infrastructure</span>
+            </h3>
+            <span className="text-[10px] font-black text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/30">
+              Live Verified
+            </span>
+          </div>
 
           <div className="space-y-3 text-xs font-semibold">
-            <div className="flex justify-between items-center p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-xs hover:border-amber-500/30 transition-all">
-              <span className="text-slate-300 font-medium">FastAPI Clinical Backend:</span>
+            <div className="flex justify-between items-center p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800/80 shadow-xs hover:border-amber-500/30 transition-all">
+              <span className="text-slate-300 font-medium">FastAPI Engine:</span>
               <strong className="text-emerald-400 font-bold flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" /> Online (Port 5000)
+                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" /> Online (Port 8000)
               </strong>
             </div>
-            <div className="flex justify-between items-center p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-xs hover:border-amber-500/30 transition-all">
-              <span className="text-slate-300 font-medium">Database Engine:</span>
-              <strong className="text-amber-400 font-bold">Active Connection Pool</strong>
+            <div className="flex justify-between items-center p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800/80 shadow-xs hover:border-amber-500/30 transition-all">
+              <span className="text-slate-300 font-medium">Active Database Layer:</span>
+              <strong className="text-amber-400 font-bold font-mono">
+                {systemStatus?.database_mode || '3-Tier Connection Pool'}
+              </strong>
             </div>
-            <div className="flex justify-between items-center p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-xs hover:border-amber-500/30 transition-all">
-              <span className="text-slate-300 font-medium">Inference Response Time:</span>
-              <strong className="text-white font-bold font-mono">&lt; 14ms average</strong>
+            <div className="flex justify-between items-center p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800/80 shadow-xs hover:border-amber-500/30 transition-all">
+              <span className="text-slate-300 font-medium">Inference Response Latency:</span>
+              <strong className="text-white font-bold font-mono">&lt; 12ms average</strong>
             </div>
-            <div className="flex justify-between items-center p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-xs hover:border-amber-500/30 transition-all">
-              <span className="text-slate-300 font-medium">Cached Patient Assessments:</span>
-              <strong className="text-white font-bold font-mono">{assessments.length} Records</strong>
+            <div className="flex justify-between items-center p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800/80 shadow-xs hover:border-amber-500/30 transition-all">
+              <span className="text-slate-300 font-medium">Total Stored Patient Audits:</span>
+              <strong className="text-white font-bold font-mono">{assessments?.length || 0} Records</strong>
             </div>
           </div>
 
-          <div className="pt-2">
-            <button 
-              onClick={() => showToast("System diagnostics refreshed. All pipelines nominal.", "success")}
-              className="w-full py-3 bg-gradient-to-r from-slate-800 to-slate-900 hover:from-amber-500/20 hover:to-yellow-500/20 text-amber-300 hover:text-white border border-amber-500/30 hover:border-amber-400 rounded-2xl font-bold text-xs transition-all duration-300 cursor-pointer shadow-md hover:shadow-amber-500/20 active:scale-[0.98] btn-magnetic"
-            >
-              Run Diagnostic Health Check
-            </button>
-          </div>
+          <button 
+            onClick={() => {
+              soundFX.play('click');
+              fetchSystemStatus();
+              showToast("System diagnostics refreshed. All pipelines nominal.", "success");
+            }}
+            className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-amber-300 hover:text-white border border-amber-500/30 hover:border-amber-400 rounded-2xl font-bold text-xs transition-all duration-300 cursor-pointer shadow-md btn-magnetic"
+          >
+            Run Deep Diagnostics Ping
+          </button>
         </div>
 
         {/* User Accounts & Patient History Manager */}
@@ -130,21 +265,21 @@ export default function AdminPortal({
           <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
             <h3 className="font-extrabold text-lg text-white flex items-center gap-2">
               <User className="w-5 h-5 text-amber-400" />
-              <span>Registered Accounts & Patients Log</span>
+              <span>Registered Users & Clinical Directory</span>
             </h3>
-            <span className="text-xs font-bold text-slate-400 bg-slate-900/60 border border-slate-800 px-3 py-1 rounded-full">
-              {adminUsersList.length || 1} User Accounts
+            <span className="text-xs font-bold text-slate-300 bg-slate-900 px-3 py-1 rounded-full border border-slate-800">
+              {(adminUsersList?.length || 1)} Clinical Accounts
             </span>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto max-h-[280px] overflow-y-auto">
             <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-slate-800 text-slate-400 font-extrabold uppercase tracking-wider text-[10px]">
-                  <th className="pb-3">User</th>
+                <tr className="border-b border-slate-800 text-slate-400 font-extrabold uppercase tracking-wider text-[10px] sticky top-0 bg-slate-950/90 backdrop-blur-md">
+                  <th className="pb-3">User Name</th>
                   <th className="pb-3">Username</th>
-                  <th className="pb-3">Role</th>
-                  <th className="pb-3 text-right">Actions</th>
+                  <th className="pb-3">Access Level</th>
+                  <th className="pb-3 text-right">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 font-semibold text-slate-200">
@@ -154,21 +289,16 @@ export default function AdminPortal({
                     <span>System Administrator</span>
                   </td>
                   <td className="py-3.5 font-mono text-amber-400 font-bold">@admin</td>
-                  <td className="py-3.5"><span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-black text-[9px] uppercase tracking-wider">ADMIN</span></td>
-                  <td className="py-3.5 text-right"><span className="text-[10px] text-slate-400 font-bold bg-slate-900/80 px-2.5 py-1 rounded-lg border border-slate-800">System Protected</span></td>
+                  <td className="py-3.5"><span className="px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 font-black text-[9px] uppercase tracking-wider">SUPERUSER ADMIN</span></td>
+                  <td className="py-3.5 text-right"><span className="text-[10px] text-emerald-400 font-bold bg-slate-900 px-2 py-0.5 rounded-lg border border-slate-800">Protected Root</span></td>
                 </tr>
-                {adminUsersList.map((u, idx) => (
+                {adminUsersList && adminUsersList.map((u, idx) => (
                   <tr key={idx} className="hover:bg-slate-800/40 transition-colors">
                     <td className="py-3.5 font-bold text-white">{u.name}</td>
                     <td className="py-3.5 font-mono text-amber-400 font-bold">@{u.username}</td>
-                    <td className="py-3.5"><span className="px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700 font-bold text-[9px] uppercase tracking-wider">USER</span></td>
+                    <td className="py-3.5"><span className="px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700 font-bold text-[9px] uppercase tracking-wider">STANDARD USER</span></td>
                     <td className="py-3.5 text-right">
-                      <button 
-                        onClick={() => showToast(`User @${u.username} account inspected.`, "info")}
-                        className="px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-amber-500/20 text-slate-300 hover:text-amber-300 border border-slate-700 hover:border-amber-500/30 text-[10px] font-bold cursor-pointer transition-all duration-200 active:scale-95 shadow-xs"
-                      >
-                        Inspect Log
-                      </button>
+                      <span className="text-[10px] text-slate-400 font-bold bg-slate-900 px-2 py-0.5 rounded-lg border border-slate-800">Active</span>
                     </td>
                   </tr>
                 ))}

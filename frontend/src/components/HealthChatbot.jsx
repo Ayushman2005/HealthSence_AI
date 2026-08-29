@@ -165,11 +165,11 @@ export default function HealthChatbot({
                   id: Date.now(),
                   sender: 'ai',
                   category: 'Welcome & System Ready',
-                  text: 'Hello! I am **HealthBot AI**, your 24/7 clinical AI health assistant. Ask me anything about disease prevention, blood pressure, diabetes, biomarkers, symptoms, exercise, or healthy nutrition guidelines.',
+                  text: 'Hello! I am **HealthBot AI**, your 24/7 cardiovascular & precision health AI assistant. Ask me anything about heart disease prevention, blood pressure, cholesterol, ECG rhythms, cardiac biomarkers, symptoms, exercise, or healthy cardiovascular nutrition.',
                   suggested_prompts: [
-                    'How to lower fasting blood sugar?',
-                    'What are normal blood pressure ranges?',
-                    'What causes stomach ache after meals?'
+                    'How to lower blood pressure naturally?',
+                    'What are optimal cholesterol target levels?',
+                    'What are early signs of coronary artery disease?'
                   ],
                   time: 'Just now'
                 }
@@ -254,7 +254,7 @@ export default function HealthChatbot({
                 </div>
 
                 {/* Message Bubble Content */}
-                <div className={`max-w-[80%] space-y-2 ${msg.sender === 'user' ? 'text-right' : ''}`}>
+                <div className={`max-w-[88%] sm:max-w-[80%] space-y-2 ${msg.sender === 'user' ? 'text-right' : ''}`}>
                   <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 px-1">
                     <span>{msg.sender === 'user' ? (userProfile?.name || 'Patient') : 'HealthBot AI'}</span>
                     <span>•</span>
@@ -266,7 +266,7 @@ export default function HealthChatbot({
                     )}
                   </div>
 
-                  <div className={`p-4.5 rounded-2xl text-xs font-semibold leading-relaxed shadow-xs ${
+                  <div className={`p-4 rounded-2xl text-xs font-semibold leading-relaxed shadow-xs ${
                     msg.sender === 'user'
                       ? 'bg-amber-600 text-white rounded-tr-none'
                       : 'bg-slate-900/90 border border-slate-800 text-slate-200 rounded-tl-none space-y-2'
@@ -360,14 +360,14 @@ export default function HealthChatbot({
                   <span className="w-1 bg-amber-400 rounded-full animate-eq-3" />
                   <span className="w-1 bg-amber-400 rounded-full animate-eq-4" />
                 </div>
-                <span>HealthBot AI is computing clinical response...</span>
+                <span className="text-xs">Computing clinical response...</span>
               </div>
             </div>
           )}
         </div>
 
         {/* Chat Input Bar with Microphone Voice Input */}
-        <div className="p-4 bg-slate-900/90 border-t border-slate-800 no-print">
+        <div className="p-3 sm:p-4 bg-slate-900/90 border-t border-slate-800 no-print">
           <form
             onSubmit={e => {
               e.preventDefault();
@@ -381,7 +381,7 @@ export default function HealthChatbot({
               type="button"
               onClick={toggleVoiceInput}
               title={isListening ? "Stop voice listening" : "Click to speak your medical question"}
-              className={`p-3 rounded-2xl border transition cursor-pointer shrink-0 ${
+              className={`p-2.5 sm:p-3 rounded-2xl border transition cursor-pointer shrink-0 ${
                 isListening
                   ? 'bg-rose-500 text-white border-rose-400 animate-pulse shadow-lg shadow-rose-500/30'
                   : 'bg-slate-800 text-amber-400 border-slate-700 hover:border-amber-400 hover:text-white'
@@ -394,16 +394,16 @@ export default function HealthChatbot({
               type="text"
               value={chatInput}
               onChange={e => setChatInput(e.target.value)}
-              placeholder={isListening ? "Listening to your voice... Speak now." : "Ask HealthBot AI any medical question (e.g. How to lower glucose? Normal BP ranges?)..."}
-              className="flex-1 px-4 py-3 glass-input rounded-2xl outline-none text-xs font-bold text-white placeholder:text-slate-500 shadow-inner"
+              placeholder={isListening ? "Listening... Speak now." : "Ask cardio question (e.g. How to lower BP?)..."}
+              className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 glass-input rounded-2xl outline-none text-xs font-bold text-white placeholder:text-slate-500 shadow-inner"
             />
             
             <button
               type="submit"
               disabled={chatLoading || !chatInput.trim()}
-              className="btn-magnetic px-5 py-3 bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 disabled:opacity-40 text-white rounded-2xl font-black text-xs flex items-center justify-center gap-2 shadow-md cursor-pointer shrink-0"
+              className="btn-magnetic px-4 sm:px-5 py-2.5 sm:py-3 bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 disabled:opacity-40 text-white rounded-2xl font-black text-xs flex items-center justify-center gap-1.5 shadow-md cursor-pointer shrink-0"
             >
-              <span>Send</span>
+              <span className="hidden sm:inline">Send</span>
               <Send className="w-4 h-4" />
             </button>
           </form>

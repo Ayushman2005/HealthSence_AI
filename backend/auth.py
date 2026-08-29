@@ -69,3 +69,22 @@ def extract_username_from_auth(authorization: Optional[str] = Header(None)) -> O
             token = parts[1]
             return token.split(':')[0]
     return None
+
+def is_admin_user(username: Optional[str]) -> bool:
+    if not username:
+        return False
+    if username.lower() == ADMIN_USERNAME.lower():
+        return True
+    try:
+        from database import db_fetchone
+        admin = db_fetchone("SELECT * FROM admin_credentials WHERE LOWER(username) = LOWER(%s)", (username,))
+        return admin is not None
+    except Exception:
+        return False
+
+def get_admin_token(authorization: Optional[str] = Header(None)) -> str:
+    token = get_auth_token(authorization)
+    username = extract_username_from_auth(authorization)
+    if not is_admin_user(username):
+        raise HTTPException(status_code=403, detail="Forbidden: Administrator privileges required to access this resource")
+    return token

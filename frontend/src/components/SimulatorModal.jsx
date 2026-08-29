@@ -108,8 +108,8 @@ export default function SimulatorModal({
     : 8;
 
   return (
-    <div className="fixed inset-0 z-[999] glass-modal-backdrop flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fade-in no-print">
-      <div className="glass-modal-container rounded-3xl max-w-4xl w-full p-6 sm:p-8 shadow-2xl space-y-6 animate-modal-spring text-white my-auto border border-amber-500/30 bg-slate-950/95 backdrop-blur-2xl">
+    <div className="fixed inset-0 z-[999] glass-modal-backdrop flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-fade-in no-print">
+      <div className="glass-modal-container rounded-3xl max-w-4xl w-full p-4 sm:p-8 shadow-2xl space-y-6 animate-modal-spring text-white my-auto border border-amber-500/30 bg-slate-950/95 backdrop-blur-2xl max-h-[92vh] overflow-y-auto custom-scrollbar">
         {/* Modal Header */}
         <div className="flex justify-between items-center border-b border-slate-800 pb-4">
           <div className="flex items-center gap-3">
@@ -190,8 +190,8 @@ export default function SimulatorModal({
                 className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-amber-400"
               />
               <div className="flex justify-between text-[10px] text-slate-400 font-semibold">
-                <span>60 Normal</span>
-                <span>100 Pre-diabetes</span>
+                <span>60 Optimal</span>
+                <span>100 Impaired</span>
                 <span>250 High</span>
               </div>
             </div>

@@ -27,7 +27,7 @@ export default function Wizard({
       }
     },
     {
-      name: '💼 45yo Sedentary (Pre-Diabetic)',
+      name: '💼 45yo Sedentary (Cardio-Metabolic Risk)',
       data: {
         name: 'David Miller', age: 45, gender: 'male', height: 175, weight: 88,
         smoking: 'no', alcohol: 'moderate', physicalActivity: 'sedentary', sleepDuration: 6,
@@ -78,10 +78,10 @@ export default function Wizard({
     let gluStatus = 'Normal Fasting Glucose';
     let gluColor = 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30';
     if (glu >= 126) {
-      gluStatus = 'Diabetic Range (ADA)';
+      gluStatus = 'Elevated Fasting Glucose (AHA/ADA)';
       gluColor = 'text-rose-400 bg-rose-500/10 border-rose-500/30';
     } else if (glu >= 100) {
-      gluStatus = 'Pre-Diabetic Range (ADA)';
+      gluStatus = 'Impaired Fasting Glucose';
       gluColor = 'text-amber-400 bg-amber-500/10 border-amber-500/30';
     }
 
@@ -112,31 +112,34 @@ export default function Wizard({
       </div>
 
       {/* Step navigation nodes */}
-      <div className="flex justify-between items-center relative mb-8 px-6 max-w-[850px] mx-auto">
-        <div className="absolute top-[24px] left-8 right-8 h-1 bg-slate-800 z-0 rounded-full"></div>
+      <div className="flex justify-between items-center relative mb-8 px-2 sm:px-6 max-w-[850px] mx-auto">
+        <div className="absolute top-[20px] sm:top-[24px] left-6 sm:left-8 right-6 sm:right-8 h-1 bg-slate-800 z-0 rounded-full"></div>
         <div 
-          className="absolute top-[24px] left-8 h-1 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 z-10 transition-all duration-500 rounded-full shadow-md shadow-amber-500/50"
+          className="absolute top-[20px] sm:top-[24px] left-6 sm:left-8 h-1 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 z-10 transition-all duration-500 rounded-full shadow-md shadow-amber-500/50"
           style={{ width: `${((wizardStep - 1) / 2) * 85}%` }}
         ></div>
 
         {[
-          { step: 1, label: '1. Personal Profile' },
-          { step: 2, label: '2. Lifestyle Habits' },
-          { step: 3, label: '3. Clinical Biomarkers' }
+          { step: 1, label: '1. Personal Profile', shortLabel: '1. Profile' },
+          { step: 2, label: '2. Lifestyle Habits', shortLabel: '2. Lifestyle' },
+          { step: 3, label: '3. Clinical Biomarkers', shortLabel: '3. Biomarkers' }
         ].map(item => (
-          <div key={item.step} className="flex flex-col items-center gap-2 relative z-20">
-            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black border-2 transition-all duration-300 ${
+          <div key={item.step} className="flex flex-col items-center gap-1.5 relative z-20">
+            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center font-black text-xs sm:text-sm border-2 transition-all duration-300 ${
               wizardStep === item.step
-                ? 'bg-gradient-to-tr from-amber-500 to-yellow-500 text-white border-amber-400 shadow-lg shadow-amber-500/35 ring-4 ring-amber-500/20 scale-110'
+                ? 'bg-gradient-to-tr from-amber-500 to-yellow-500 text-white border-amber-400 shadow-lg shadow-amber-500/35 ring-4 ring-amber-500/20 scale-105'
                 : wizardStep > item.step
                   ? 'bg-emerald-500 text-white border-emerald-500 shadow-md shadow-emerald-500/20'
                   : 'bg-slate-900 text-slate-500 border-slate-700'
             }`}>
-              {wizardStep > item.step ? <Check className="w-6 h-6 stroke-[3]" /> : item.step}
+              {wizardStep > item.step ? <Check className="w-5 h-5 stroke-[3]" /> : item.step}
             </div>
-            <span className={`text-xs font-black transition-all ${
+            <span className={`text-[10px] sm:text-xs font-black transition-all text-center ${
               wizardStep === item.step ? 'text-amber-400' : 'text-slate-400'
-            }`}>{item.label}</span>
+            }`}>
+              <span className="hidden sm:inline">{item.label}</span>
+              <span className="sm:hidden">{item.shortLabel}</span>
+            </span>
           </div>
         ))}
       </div>
@@ -467,7 +470,7 @@ export default function Wizard({
             )}
 
             {/* Controls Row */}
-            <div className="flex justify-between items-center pt-6 border-t border-amber-500/10">
+            <div className="flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-6 border-t border-amber-500/10">
               <button 
                 type="button"
                 onClick={() => {
@@ -475,9 +478,9 @@ export default function Wizard({
                   setWizardStep(prev => prev - 1);
                 }}
                 disabled={wizardStep === 1 || predicting}
-                className={`py-3 px-5 rounded-2xl border font-bold text-sm inline-flex items-center gap-2 cursor-pointer transition ${
+                className={`w-full sm:w-auto py-3 px-5 rounded-2xl border font-bold text-xs sm:text-sm inline-flex items-center justify-center gap-2 cursor-pointer transition ${
                   wizardStep === 1 
-                    ? 'opacity-0 pointer-events-none' 
+                    ? 'hidden sm:inline-flex opacity-0 pointer-events-none' 
                     : 'border-slate-700 text-slate-300 hover:bg-amber-500/10'
                 }`}
               >
@@ -491,7 +494,7 @@ export default function Wizard({
                   handleNextStep();
                 }}
                 disabled={predicting}
-                className="btn-magnetic bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 disabled:opacity-50 text-white py-3 px-7 rounded-2xl font-black text-sm inline-flex items-center gap-2.5 cursor-pointer shadow-lg shadow-amber-500/30"
+                className="w-full sm:w-auto btn-magnetic bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 disabled:opacity-50 text-white py-3.5 sm:py-3 px-7 rounded-2xl font-black text-xs sm:text-sm inline-flex items-center justify-center gap-2.5 cursor-pointer shadow-lg shadow-amber-500/30"
               >
                 {predicting ? (
                   <>
