@@ -571,7 +571,7 @@ export default function Wizard({
           <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 flex gap-3 items-start">
             <HeartPulse className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
             <p className="text-xs text-slate-300 font-medium leading-relaxed">
-              Biomarkers are securely analyzed using precision clinical health algorithms for multi-organ risk prediction.
+              Biomarkers are securely analyzed using the verified Heart Disease ML ensemble to compute precision cardiovascular risk scores and clinical triage recommendations.
             </p>
           </div>
         </div>

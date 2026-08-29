@@ -20,8 +20,8 @@ export default function CommandPalette({
   const actions = [
     {
       id: 'wizard',
-      title: 'Start Health Risk Assessment',
-      subtitle: 'Calculate diabetes, heart, kidney, & liver disease risks',
+      title: 'Start Cardiovascular Risk Assessment',
+      subtitle: 'Evaluate Heart Disease, CAD, & hemodynamic risk dimensions',
       icon: HeartPulse,
       category: 'Diagnostic Engine',
       action: () => {

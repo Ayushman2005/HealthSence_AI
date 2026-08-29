@@ -91,18 +91,21 @@ export default function SimulatorModal({
   const overallScore = Number.isFinite(liveSimResults?.overallScore)
     ? liveSimResults.overallScore
     : 85;
-  const diabetesRisk = Number.isFinite(liveSimResults?.risks?.diabetes)
-    ? liveSimResults.risks.diabetes
-    : 10;
   const heartRisk = Number.isFinite(liveSimResults?.risks?.heartDisease)
     ? liveSimResults.risks.heartDisease
+    : (liveSimResults?.risks?.heart ?? 15);
+  const cadRisk = Number.isFinite(liveSimResults?.risks?.coronaryArtery)
+    ? liveSimResults.risks.coronaryArtery
+    : 12;
+  const hypRisk = Number.isFinite(liveSimResults?.risks?.hypertensiveHeart)
+    ? liveSimResults.risks.hypertensiveHeart
+    : 14;
+  const athRisk = Number.isFinite(liveSimResults?.risks?.atherosclerosis)
+    ? liveSimResults.risks.atherosclerosis
     : 10;
-  const kidneyRisk = Number.isFinite(liveSimResults?.risks?.kidneyDisease)
-    ? liveSimResults.risks.kidneyDisease
-    : 10;
-  const liverRisk = Number.isFinite(liveSimResults?.risks?.liverDisease)
-    ? liveSimResults.risks.liverDisease
-    : 10;
+  const arrRisk = Number.isFinite(liveSimResults?.risks?.arrhythmia)
+    ? liveSimResults.risks.arrhythmia
+    : 8;
 
   return (
     <div className="fixed inset-0 z-[999] glass-modal-backdrop flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fade-in no-print">
@@ -393,42 +396,12 @@ export default function SimulatorModal({
               </div>
             </div>
 
-            {/* 4 Disease Risk Live Progress Bars */}
+            {/* 5 Cardiovascular Risk Live Progress Bars */}
             <div className="space-y-2.5">
-              {/* Diabetes */}
+              {/* Heart Disease Overall */}
               <div className="space-y-1">
                 <div className="flex justify-between text-xs font-bold">
-                  <span className="text-slate-300">Diabetes Risk</span>
-                  <span
-                    className={
-                      diabetesRisk > 65
-                        ? "text-rose-400 font-mono font-black"
-                        : "text-emerald-400 font-mono font-black"
-                    }
-                  >
-                    {diabetesRisk}%
-                  </span>
-                </div>
-                <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-300"
-                    style={{
-                      width: `${diabetesRisk}%`,
-                      backgroundColor:
-                        diabetesRisk > 65
-                          ? "#f43f5e"
-                          : diabetesRisk > 35
-                            ? "#f59e0b"
-                            : "#10b981",
-                    }}
-                  ></div>
-                </div>
-              </div>
-
-              {/* Heart Disease */}
-              <div className="space-y-1">
-                <div className="flex justify-between text-xs font-bold">
-                  <span className="text-slate-300">Heart Disease Risk</span>
+                  <span className="text-slate-300">Heart Disease (Core ML)</span>
                   <span
                     className={
                       heartRisk > 65
@@ -455,29 +428,29 @@ export default function SimulatorModal({
                 </div>
               </div>
 
-              {/* Kidney Disease */}
+              {/* Coronary Artery (CAD) */}
               <div className="space-y-1">
                 <div className="flex justify-between text-xs font-bold">
-                  <span className="text-slate-300">Kidney Disease Risk</span>
+                  <span className="text-slate-300">Coronary Artery (CAD) Risk</span>
                   <span
                     className={
-                      kidneyRisk > 65
+                      cadRisk > 65
                         ? "text-rose-400 font-mono font-black"
                         : "text-emerald-400 font-mono font-black"
                     }
                   >
-                    {kidneyRisk}%
+                    {cadRisk}%
                   </span>
                 </div>
                 <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all duration-300"
                     style={{
-                      width: `${kidneyRisk}%`,
+                      width: `${cadRisk}%`,
                       backgroundColor:
-                        kidneyRisk > 65
+                        cadRisk > 65
                           ? "#f43f5e"
-                          : kidneyRisk > 35
+                          : cadRisk > 35
                             ? "#f59e0b"
                             : "#10b981",
                     }}
@@ -485,29 +458,89 @@ export default function SimulatorModal({
                 </div>
               </div>
 
-              {/* Liver Disease */}
+              {/* Hypertensive Heart Strain */}
               <div className="space-y-1">
                 <div className="flex justify-between text-xs font-bold">
-                  <span className="text-slate-300">Liver Disease Risk</span>
+                  <span className="text-slate-300">Hypertensive Heart Strain</span>
                   <span
                     className={
-                      liverRisk > 65
+                      hypRisk > 65
                         ? "text-rose-400 font-mono font-black"
                         : "text-emerald-400 font-mono font-black"
                     }
                   >
-                    {liverRisk}%
+                    {hypRisk}%
                   </span>
                 </div>
                 <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all duration-300"
                     style={{
-                      width: `${liverRisk}%`,
+                      width: `${hypRisk}%`,
                       backgroundColor:
-                        liverRisk > 65
+                        hypRisk > 65
                           ? "#f43f5e"
-                          : liverRisk > 35
+                          : hypRisk > 35
+                            ? "#f59e0b"
+                            : "#10b981",
+                    }}
+                  ></div>
+                </div>
+              </div>
+
+              {/* Atherosclerosis */}
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs font-bold">
+                  <span className="text-slate-300">Atherosclerosis Plaque Index</span>
+                  <span
+                    className={
+                      athRisk > 65
+                        ? "text-rose-400 font-mono font-black"
+                        : "text-emerald-400 font-mono font-black"
+                    }
+                  >
+                    {athRisk}%
+                  </span>
+                </div>
+                <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-300"
+                    style={{
+                      width: `${athRisk}%`,
+                      backgroundColor:
+                        athRisk > 65
+                          ? "#f43f5e"
+                          : athRisk > 35
+                            ? "#f59e0b"
+                            : "#10b981",
+                    }}
+                  ></div>
+                </div>
+              </div>
+
+              {/* Arrhythmia & Cardiac Rhythm */}
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs font-bold">
+                  <span className="text-slate-300">Cardiac Rhythm & HR Strain</span>
+                  <span
+                    className={
+                      arrRisk > 65
+                        ? "text-rose-400 font-mono font-black"
+                        : "text-emerald-400 font-mono font-black"
+                    }
+                  >
+                    {arrRisk}%
+                  </span>
+                </div>
+                <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-300"
+                    style={{
+                      width: `${arrRisk}%`,
+                      backgroundColor:
+                        arrRisk > 65
+                          ? "#f43f5e"
+                          : arrRisk > 35
                             ? "#f59e0b"
                             : "#10b981",
                     }}

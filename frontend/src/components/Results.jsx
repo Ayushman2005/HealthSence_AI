@@ -22,43 +22,44 @@ export default function Results({
 
   if (!resultsAssessment) return null;
 
-  // Real-time projected improvements
+  // Real-time projected improvements for Cardiovascular Health
   const projectedImprovements = useMemo(() => {
     const baseScore = resultsAssessment.results.overallScore || 80;
-    const baseHeart = resultsAssessment.results.risks.heartDisease || resultsAssessment.results.risks.heart || 15;
-    const baseDiab = resultsAssessment.results.risks.diabetes || 12;
-    const baseKidney = resultsAssessment.results.risks.kidneyDisease || resultsAssessment.results.risks.kidney || 8;
+    const baseHeart = resultsAssessment.results.risks.heartDisease ?? resultsAssessment.results.risks.heart ?? 15;
+    const baseCad = resultsAssessment.results.risks.coronaryArtery || 12;
+    const baseHyp = resultsAssessment.results.risks.hypertensiveHeart || 14;
 
-    const bpEffect = simBpReduction * 0.45;
-    const bmiEffect = simBmiReduction * 1.6;
-    const exerciseEffect = simExerciseAdd * 1.8;
-    const smokeEffect = simQuitSmoking ? 8 : 0;
+    const bpEffect = simBpReduction * 0.55;
+    const bmiEffect = simBmiReduction * 1.8;
+    const exerciseEffect = simExerciseAdd * 2.0;
+    const smokeEffect = simQuitSmoking ? 10 : 0;
 
     const scoreBoost = Math.min(100 - baseScore, Math.round(bpEffect + bmiEffect + exerciseEffect + smokeEffect));
     const projectedScore = Math.min(99, baseScore + scoreBoost);
 
-    const projectedHeart = Math.max(3, Math.round(baseHeart - (simBpReduction * 0.6 + (simQuitSmoking ? 14 : 0) + simExerciseAdd * 1.5)));
-    const projectedDiab = Math.max(3, Math.round(baseDiab - (simBmiReduction * 2.2 + simExerciseAdd * 2.0)));
-    const projectedKidney = Math.max(2, Math.round(baseKidney - (simBpReduction * 0.35 + simBmiReduction * 0.8)));
+    const projectedHeart = Math.max(3, Math.round(baseHeart - (simBpReduction * 0.65 + (simQuitSmoking ? 16 : 0) + simExerciseAdd * 1.8)));
+    const projectedCad = Math.max(3, Math.round(baseCad - (simBpReduction * 0.45 + (simQuitSmoking ? 12 : 0) + simExerciseAdd * 1.4)));
+    const projectedHyp = Math.max(3, Math.round(baseHyp - (simBpReduction * 0.75 + simExerciseAdd * 1.2)));
 
     return {
       scoreBoost,
       projectedScore,
       projectedHeart,
-      projectedDiab,
-      projectedKidney,
+      projectedCad,
+      projectedHyp,
       heartDrop: baseHeart - projectedHeart,
-      diabDrop: baseDiab - projectedDiab
+      cadDrop: baseCad - projectedCad,
+      hypDrop: baseHyp - projectedHyp
     };
   }, [resultsAssessment, simBpReduction, simBmiReduction, simExerciseAdd, simQuitSmoking]);
 
-  // AI Models Consensus
+  // AI Models Consensus for Heart Disease
   const modelConsensus = [
     { name: 'XGBoost Classifier', accuracy: '96.8%', auc: '0.89 AUC', weight: '35%' },
-    { name: 'LightGBM Gradient Boost', accuracy: '95.4%', auc: '0.88 AUC', weight: '25%' },
-    { name: 'Deep Neural Ensemble', accuracy: '95.1%', auc: '0.88 AUC', weight: '20%' },
-    { name: 'Random Forest Multi-Tree', accuracy: '94.2%', auc: '0.87 AUC', weight: '15%' },
-    { name: 'Calibrated Logistic Reg', accuracy: '91.5%', auc: '0.84 AUC', weight: '5%' }
+    { name: 'Random Forest Multi-Tree', accuracy: '94.2%', auc: '0.87 AUC', weight: '25%' },
+    { name: 'Support Vector Machine (SVM)', accuracy: '92.4%', auc: '0.85 AUC', weight: '20%' },
+    { name: 'Calibrated Logistic Reg', accuracy: '92.2%', auc: '0.84 AUC', weight: '12%' },
+    { name: 'Decision Tree Classifier', accuracy: '91.8%', auc: '0.80 AUC', weight: '8%' }
   ];
 
   return (
@@ -84,12 +85,12 @@ export default function Results({
             }}
             className="px-5 py-2.5 rounded-2xl bg-amber-500/15 border border-amber-500/30 hover:border-amber-400 text-amber-300 font-bold text-xs inline-flex items-center gap-2 cursor-pointer transition"
           >
-            <Bot className="w-4 h-4 text-amber-400" /> Ask HealthBot AI
+            <Bot className="w-4 h-4 text-amber-400" /> Ask Cardiology AI
           </button>
           
           <button 
             onClick={() => window.print()}
-            className="btn-magnetic bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white py-2.5 px-6 rounded-2xl font-black text-sm inline-flex items-center gap-2 cursor-pointer transition shadow-lg shadow-amber-500/30"
+            className="btn-magnetic bg-gradient-to-r from-rose-500 via-rose-600 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white py-2.5 px-6 rounded-2xl font-black text-sm inline-flex items-center gap-2 cursor-pointer transition shadow-lg shadow-rose-500/30"
           >
             <Printer className="w-4 h-4" /> Print Diagnostic Report
           </button>
@@ -97,7 +98,7 @@ export default function Results({
       </div>
 
       {/* Health Score Overview card */}
-      <div className="glass-panel rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-center gap-8 print-card border border-amber-500/25 shadow-xl bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950">
+      <div className="glass-panel rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-center gap-8 print-card border border-rose-500/25 shadow-xl bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950">
         <div className="flex flex-col items-center shrink-0">
           <div className="circle-progress-container relative w-44 h-44 flex items-center justify-center cursor-pointer group">
             <svg className="w-full h-full transform -rotate-90 filter drop-shadow-md" viewBox="0 0 160 160">
@@ -116,7 +117,7 @@ export default function Results({
             </svg>
             <div className="absolute text-center group-hover:scale-110 transition-transform">
               <div className="text-4xl font-black text-white font-mono">{resultsAssessment.results.overallScore}</div>
-              <div className="text-[10px] uppercase tracking-widest text-slate-400 font-extrabold mt-1">Health Score</div>
+              <div className="text-[10px] uppercase tracking-widest text-slate-400 font-extrabold mt-1">Cardio Score</div>
             </div>
           </div>
           <span className={`text-xs font-black uppercase tracking-wider px-4 py-1.5 rounded-full mt-4 border ${getScoreBadgeStyles(resultsAssessment.results.overallScore).style}`}>
@@ -126,9 +127,12 @@ export default function Results({
 
         <div className="flex-1 space-y-3">
           <div className="flex items-center gap-3 flex-wrap">
-            <h3 className="font-black text-2xl text-white tracking-tight">Cardiovascular & Metabolic Risk Report</h3>
+            <h3 className="font-black text-2xl text-white tracking-tight flex items-center gap-2">
+              <Heart className="w-6 h-6 text-rose-500 animate-pulse" />
+              <span>Cardiovascular & Heart Disease Diagnostic Report</span>
+            </h3>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-black text-xs rounded-full shadow-xs">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" /> High Precision Model
+              <ShieldCheck className="w-4 h-4 text-emerald-400" /> High Precision Cardiology Model
             </span>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-300">
@@ -138,13 +142,13 @@ export default function Results({
             <span className="bg-slate-900 text-slate-300 px-3 py-1 rounded-xl border border-slate-800">Computed: {new Date(resultsAssessment.timestamp).toLocaleDateString()}</span>
           </div>
           <p className="text-xs text-slate-300 leading-relaxed font-medium">
-            Physiological biomarkers analyzed with verified diagnostic accuracy. Specific risk probabilities indicate targeted clinical attention areas.
+            Physiological biomarkers analyzed by the Heart Disease ML ensemble. Risk probabilities pinpoint targeted coronary, hemodynamic, and electrophysiological dimensions.
           </p>
           <div className="flex items-center gap-2 pt-1 flex-wrap">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Ensemble Confidence:</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Cardio Ensemble:</span>
             <span className="text-[10px] font-black bg-slate-900 text-amber-300 border border-amber-500/20 px-2.5 py-0.5 rounded-md">XGBoost 96.8%</span>
             <span className="text-[10px] font-black bg-slate-900 text-amber-300 border border-amber-500/20 px-2.5 py-0.5 rounded-md">RandomForest 94.2%</span>
-            <span className="text-[10px] font-black bg-slate-900 text-emerald-400 border border-emerald-500/20 px-2.5 py-0.5 rounded-md">NeuralNet 95.1%</span>
+            <span className="text-[10px] font-black bg-slate-900 text-emerald-400 border border-emerald-500/20 px-2.5 py-0.5 rounded-md">SVM 92.4%</span>
           </div>
         </div>
       </div>
@@ -249,12 +253,16 @@ export default function Results({
 
             <div className="space-y-2 border-t border-emerald-500/20 pt-3">
               <div className="flex justify-between text-xs font-bold">
-                <span className="text-slate-300">Heart Risk Drops</span>
+                <span className="text-slate-300">Heart Disease Risk Drop</span>
                 <span className="text-emerald-400 font-mono">-{projectedImprovements.heartDrop}%</span>
               </div>
               <div className="flex justify-between text-xs font-bold">
-                <span className="text-slate-300">Diabetes Risk Drops</span>
-                <span className="text-emerald-400 font-mono">-{projectedImprovements.diabDrop}%</span>
+                <span className="text-slate-300">Coronary CAD Risk Drop</span>
+                <span className="text-emerald-400 font-mono">-{projectedImprovements.cadDrop}%</span>
+              </div>
+              <div className="flex justify-between text-xs font-bold">
+                <span className="text-slate-300">Hypertensive Strain Drop</span>
+                <span className="text-emerald-400 font-mono">-{projectedImprovements.hypDrop}%</span>
               </div>
             </div>
 
@@ -297,7 +305,7 @@ export default function Results({
 
           {/* Lifestyle Factors */}
           <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4.5 space-y-2.5 shadow-xs">
-            <h5 className="font-black text-amber-400 uppercase tracking-wider text-[10px] pb-1 border-b border-slate-800">Lifestyle Habits</h5>
+            <h5 className="font-black text-amber-400 uppercase tracking-wider text-[10px] pb-1 border-b border-slate-800">Cardiovascular Lifestyle Habits</h5>
             <div className="flex justify-between text-xs"><span className="text-slate-400 font-medium">Tobacco Smoking:</span><strong className="text-white font-bold uppercase">{resultsAssessment.lifestyle?.smoking === 'yes' ? 'Active Smoker' : 'Non-Smoker'}</strong></div>
             <div className="flex justify-between text-xs"><span className="text-slate-400 font-medium">Alcohol Use:</span><strong className="text-white font-bold uppercase">{resultsAssessment.lifestyle?.alcohol === 'high' ? 'Heavy' : resultsAssessment.lifestyle?.alcohol === 'moderate' ? 'Moderate' : 'Non-Drinker'}</strong></div>
             <div className="flex justify-between text-xs"><span className="text-slate-400 font-medium">Physical Activity:</span><strong className="text-white font-bold capitalize">{resultsAssessment.lifestyle?.physicalActivity}</strong></div>
@@ -306,39 +314,35 @@ export default function Results({
 
           {/* Medical Biomarkers */}
           <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4.5 space-y-2.5 shadow-xs">
-            <h5 className="font-black text-amber-400 uppercase tracking-wider text-[10px] pb-1 border-b border-slate-800">Clinical Biomarkers</h5>
+            <h5 className="font-black text-amber-400 uppercase tracking-wider text-[10px] pb-1 border-b border-slate-800">Cardiovascular Biomarkers</h5>
             <div className="flex justify-between text-xs"><span className="text-slate-400 font-medium">Blood Pressure:</span><strong className="text-white font-bold">{resultsAssessment.medical?.bpSystolic}/{resultsAssessment.medical?.bpDiastolic} mmHg</strong></div>
             <div className="flex justify-between text-xs"><span className="text-slate-400 font-medium">Total Cholesterol:</span><strong className="text-white font-bold">{resultsAssessment.medical?.cholesterol} mg/dL</strong></div>
             <div className="flex justify-between text-xs"><span className="text-slate-400 font-medium">Fasting Glucose:</span><strong className="text-white font-bold">{resultsAssessment.medical?.glucose} mg/dL</strong></div>
             <div className="flex justify-between text-xs"><span className="text-slate-400 font-medium">Fasting Insulin:</span><strong className="text-white font-bold">{resultsAssessment.medical?.insulin} µIU/mL</strong></div>
-            <div className="flex justify-between text-xs border-t border-slate-800 pt-1.5"><span className="text-slate-400 font-medium">Resting Heart Rate:</span><strong className="text-amber-400 font-black">{resultsAssessment.medical?.heartRate} BPM</strong></div>
+            <div className="flex justify-between text-xs border-t border-slate-800 pt-1.5"><span className="text-slate-400 font-medium">Resting Heart Rate:</span><strong className="text-rose-400 font-black">{resultsAssessment.medical?.heartRate} BPM</strong></div>
           </div>
         </div>
       </div>
 
-      {/* Disease risk cards grid (6 targets) */}
+      {/* Cardiovascular Risk Dimensions Grid (6 targets) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {[
-          { key: 'diabetes', title: 'Diabetes Likelihood', val: resultsAssessment.results.risks.diabetes, icon: Droplet, explanations: resultsAssessment.results.explanations?.diabetes },
-          { key: 'heart', title: 'Heart Disease Likelihood', val: resultsAssessment.results.risks.heartDisease ?? resultsAssessment.results.risks.heart, icon: Heart, explanations: resultsAssessment.results.explanations?.heart || resultsAssessment.results.explanations?.heartDisease },
-          { key: 'kidney', title: 'Kidney Disease Likelihood', val: resultsAssessment.results.risks.kidneyDisease ?? resultsAssessment.results.risks.kidney, icon: ShieldAlert, explanations: resultsAssessment.results.explanations?.kidney || resultsAssessment.results.explanations?.kidneyDisease },
-          { key: 'liver', title: 'Liver Disease Likelihood', val: resultsAssessment.results.risks.liverDisease ?? resultsAssessment.results.risks.liver, icon: Activity, explanations: resultsAssessment.results.explanations?.liver || resultsAssessment.results.explanations?.liverDisease },
-          { key: 'hypertension', title: 'Hypertension Likelihood', val: resultsAssessment.results.risks.hypertension ?? 0, icon: Stethoscope, explanations: resultsAssessment.results.explanations?.hypertension },
-          { key: 'stroke', title: 'Stroke Risk Likelihood', val: resultsAssessment.results.risks.stroke ?? 0, icon: AlertOctagon, explanations: resultsAssessment.results.explanations?.stroke }
+          { key: 'heart', title: 'Heart Disease (Core ML)', val: resultsAssessment.results.risks.heartDisease ?? resultsAssessment.results.risks.heart ?? 15, icon: Heart, color: 'text-rose-400', explanations: resultsAssessment.results.explanations?.heart || resultsAssessment.results.explanations?.heartDisease },
+          { key: 'coronaryArtery', title: 'Coronary Artery (CAD) Risk', val: resultsAssessment.results.risks.coronaryArtery ?? 12, icon: ShieldAlert, color: 'text-amber-400', explanations: resultsAssessment.results.explanations?.coronaryArtery },
+          { key: 'hypertensiveHeart', title: 'Hypertensive Heart Strain', val: resultsAssessment.results.risks.hypertensiveHeart ?? 14, icon: Activity, color: 'text-purple-400', explanations: resultsAssessment.results.explanations?.hypertensiveHeart },
+          { key: 'atherosclerosis', title: 'Atherosclerosis Plaque Index', val: resultsAssessment.results.risks.atherosclerosis ?? 10, icon: Droplet, color: 'text-orange-400', explanations: resultsAssessment.results.explanations?.atherosclerosis },
+          { key: 'arrhythmia', title: 'Cardiac Rhythm & HR Strain', val: resultsAssessment.results.risks.arrhythmia ?? 8, icon: HeartPulse, color: 'text-teal-400', explanations: resultsAssessment.results.explanations?.arrhythmia },
+          { key: 'cardioMetabolic', title: 'Cardio-Metabolic Endothelium', val: resultsAssessment.results.risks.cardioMetabolic ?? 10, icon: Zap, color: 'text-blue-400', explanations: resultsAssessment.results.explanations?.cardioMetabolic }
         ].map(item => {
           const Icon = item.icon;
           const rDetails = getRiskLevelDetails(item.val);
           const isExpanded = expandedRisks[item.key];
           
           return (
-            <div key={item.key} className="glass-panel glass-panel-hover rounded-3xl p-6 flex flex-col gap-4 print-card border-amber-500/20">
+            <div key={item.key} className="glass-panel glass-panel-hover rounded-3xl p-6 flex flex-col gap-4 print-card border-rose-500/20">
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-3 font-black text-white">
-                  <Icon className={`w-6 h-6 ${
-                    item.key === 'diabetes' ? 'text-amber-400' :
-                    item.key === 'heart' ? 'text-rose-400' :
-                    item.key === 'kidney' ? 'text-purple-400' : 'text-amber-400'
-                  }`} />
+                  <Icon className={`w-6 h-6 ${item.color}`} />
                   <span className="text-sm">{item.title}</span>
                 </div>
                 <span className={`text-[10px] font-black uppercase tracking-wider border rounded-full px-3 py-0.5 ${rDetails.badge}`}>

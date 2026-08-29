@@ -32,12 +32,7 @@ def main():
     os.makedirs(models_dir, exist_ok=True)
     
     notebook_files = [
-        os.path.join(notebooks_dir, "diabetes_model_training.ipynb"),
-        os.path.join(notebooks_dir, "heart_disease_model_training.ipynb"),
-        os.path.join(notebooks_dir, "kidney_disease_model_training.ipynb"),
-        os.path.join(notebooks_dir, "liver_disease_model_training.ipynb"),
-        os.path.join(notebooks_dir, "hypertension_model_training.ipynb"),
-        os.path.join(notebooks_dir, "stroke_model_training.ipynb")
+        os.path.join(notebooks_dir, "heart_disease_model_training.ipynb")
     ]
     
     for nb_path in notebook_files:
@@ -46,36 +41,10 @@ def main():
         else:
             print(f"WARNING: Notebook file missing at {nb_path}")
             
-    # Combine individual datasets into unified clinical_dataset.csv
-    print("\n--------------------------------------------------")
-    print("Consolidating individual datasets into clinical_dataset.csv...")
-    try:
-        df_diab = pd.read_csv(os.path.join(models_dir, "diabetes_dataset.csv"))
-        df_heart = pd.read_csv(os.path.join(models_dir, "heart_disease_dataset.csv"))
-        df_kidney = pd.read_csv(os.path.join(models_dir, "kidney_disease_dataset.csv"))
-        df_liver = pd.read_csv(os.path.join(models_dir, "liver_disease_dataset.csv"))
-        df_hyper = pd.read_csv(os.path.join(models_dir, "hypertension_dataset.csv"))
-        df_stroke = pd.read_csv(os.path.join(models_dir, "stroke_dataset.csv"))
-        
-        # Build consolidated dataframe
-        df_combined = df_diab.copy()
-        df_combined['heart_disease'] = df_heart['heart_disease']
-        df_combined['kidney_disease'] = df_kidney['kidney_disease']
-        df_combined['liver_disease'] = df_liver['liver_disease']
-        df_combined['hypertension'] = df_hyper['hypertension']
-        df_combined['stroke'] = df_stroke['stroke']
-        
-        clinical_path = os.path.join(models_dir, "clinical_dataset.csv")
-        df_combined.to_csv(clinical_path, index=False)
-        print(f"Consolidated dataset saved to: {clinical_path} ({len(df_combined)} rows)")
-    except Exception as e:
-        print(f"Warning consolidating clinical dataset: {e}")
-        
-    # Verify trained models count
-    pkl_files = glob.glob(os.path.join(models_dir, "*.pkl"))
-    model_pkls = [f for f in pkl_files if not f.endswith("scaler.pkl")]
-    print(f"\nTraining summary: Successfully loaded/trained {len(model_pkls)} model files in models/ directory.")
-    print("All models are ready for FastAPI server deployment.")
+    # Verify trained Heart Disease models count
+    pkl_files = glob.glob(os.path.join(models_dir, "heart_disease_*.pkl"))
+    print(f"\nTraining summary: Successfully loaded/trained {len(pkl_files)} Heart Disease model files in models/ directory.")
+    print("All Heart Disease models are ready for FastAPI server deployment.")
 
 if __name__ == "__main__":
     main()

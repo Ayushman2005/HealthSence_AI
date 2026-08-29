@@ -53,7 +53,7 @@ export default function Navbar({
     { 
       id: 'dashboard', 
       label: 'AI Health Dashboard', 
-      desc: 'Overview, 6-Organ Matrix & Telemetry',
+      desc: 'Overview, Cardio Matrix & Telemetry',
       icon: LayoutDashboard,
       badge: 'LIVE',
       badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
@@ -61,7 +61,7 @@ export default function Navbar({
     { 
       id: 'wizard', 
       label: 'Risk Assessor Wizard', 
-      desc: 'Multi-Disease Prediction Engine',
+      desc: 'Cardiovascular Prediction Engine',
       icon: HeartPulse, 
       onClick: resetWizard, 
       badge: 'AI ML',

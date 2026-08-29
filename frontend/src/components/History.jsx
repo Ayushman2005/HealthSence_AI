@@ -57,19 +57,19 @@ export default function History({
               <tr className="bg-amber-500/10 border-b border-amber-500/20 text-slate-700 dark:text-slate-200 font-black">
                 <th className="p-4 px-6">Patient Profile</th>
                 <th className="p-4">Calculated Date</th>
-                <th className="p-4">Health Score</th>
-                <th className="p-4">Diabetes Risk</th>
+                <th className="p-4">Cardio Score</th>
                 <th className="p-4">Heart Risk</th>
-                <th className="p-4">Kidney Risk</th>
-                <th className="p-4">Liver Risk</th>
+                <th className="p-4">Blood Pressure</th>
+                <th className="p-4">Cholesterol</th>
+                <th className="p-4">Resting HR</th>
                 <th className="p-4">Alert Class</th>
                 <th className="p-4 px-6 text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-amber-500/10">
               {filteredAssessments.map(item => {
-                const maxVal = Math.max(item.results.risks.diabetes, item.results.risks.heartDisease, item.results.risks.kidneyDisease, item.results.risks.liverDisease);
-                const rDetails = getRiskLevelDetails(maxVal);
+                const heartVal = item.results.risks.heartDisease ?? item.results.risks.heart ?? 15;
+                const rDetails = getRiskLevelDetails(heartVal);
                 const dateObj = new Date(item.timestamp);
                 const dateFormatted = `${dateObj.toLocaleDateString()} ${dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
                 
@@ -83,10 +83,10 @@ export default function History({
                     </td>
                     <td className="p-4 font-bold text-slate-600 dark:text-slate-300">{dateFormatted}</td>
                     <td className="p-4 font-black text-amber-500">{item.results.overallScore}/100</td>
-                    <td className="p-4 font-extrabold text-slate-800 dark:text-slate-200">{item.results.risks.diabetes}%</td>
-                    <td className="p-4 font-extrabold text-slate-800 dark:text-slate-200">{item.results.risks.heartDisease}%</td>
-                    <td className="p-4 font-extrabold text-slate-800 dark:text-slate-200">{item.results.risks.kidneyDisease}%</td>
-                    <td className="p-4 font-extrabold text-slate-800 dark:text-slate-200">{item.results.risks.liverDisease}%</td>
+                    <td className="p-4 font-extrabold text-rose-400">{heartVal}%</td>
+                    <td className="p-4 font-extrabold text-slate-800 dark:text-slate-200">{item.medical?.bpSystolic}/{item.medical?.bpDiastolic} mmHg</td>
+                    <td className="p-4 font-extrabold text-slate-800 dark:text-slate-200">{item.medical?.cholesterol} mg/dL</td>
+                    <td className="p-4 font-extrabold text-slate-800 dark:text-slate-200">{item.medical?.heartRate || 70} BPM</td>
                     <td className="p-4">
                       <span className={`text-[10px] font-black uppercase tracking-wider border rounded-full px-2.5 py-0.5 ${rDetails.badge}`}>
                         {rDetails.label.split(' ')[0]}

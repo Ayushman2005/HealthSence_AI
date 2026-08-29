@@ -10,8 +10,8 @@ feature_names = []
 models = {}
 model_metrics = {}
 
-diseases = ['diabetes', 'heart_disease', 'kidney_disease', 'liver_disease', 'hypertension', 'stroke']
-algs = ['logistic_regression', 'decision_tree', 'random_forest', 'xgboost', 'svm']
+diseases = ['heart_disease']
+algs = ['xgboost', 'random_forest', 'svm', 'logistic_regression', 'decision_tree']
 
 def load_ml_assets():
     global scaler, feature_names, models, model_metrics

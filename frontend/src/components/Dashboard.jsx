@@ -69,124 +69,124 @@ export default function Dashboard({
   // Dynamic live score simulation calculation based on knobs
   const dynamicMetrics = useMemo(() => {
     let base = latestAssessment?.results?.overallScore || 85;
-    const bpDelta = (120 - quickSystolic) * 0.22 + (80 - quickDiastolic) * 0.12;
-    const gluDelta = (90 - quickGlucose) * 0.28;
-    const cholDelta = (180 - quickCholesterol) * 0.12;
-    const bmiDelta = (23.5 - quickBMI) * 0.7;
+    const bpDelta = (120 - quickSystolic) * 0.28 + (80 - quickDiastolic) * 0.16;
+    const cholDelta = (180 - quickCholesterol) * 0.16;
+    const gluDelta = (90 - quickGlucose) * 0.18;
+    const bmiDelta = (23.5 - quickBMI) * 0.8;
     const sleepDelta = (quickSleep - 7) * 1.5;
 
-    const computedScore = Math.min(99, Math.max(15, Math.round(base + bpDelta + gluDelta + cholDelta + bmiDelta + sleepDelta)));
+    const computedScore = Math.min(99, Math.max(15, Math.round(base + bpDelta + cholDelta + gluDelta + bmiDelta + sleepDelta)));
 
-    // Recompute organ risks dynamically
-    const heartRisk = Math.min(98, Math.max(4, Math.round(
-      (latestAssessment?.results?.risks?.heartDisease || 15) + (quickSystolic - 120)*0.35 + (quickCholesterol - 180)*0.18 + (quickBMI - 23.5)*0.8
+    // Recompute Cardiovascular Risk Dimensions dynamically
+    const heartOverallRisk = Math.min(98, Math.max(4, Math.round(
+      (latestAssessment?.results?.risks?.heartDisease || 15) + (quickSystolic - 120)*0.38 + (quickCholesterol - 180)*0.20 + (quickBMI - 23.5)*0.85
     )));
 
-    const diabRisk = Math.min(98, Math.max(3, Math.round(
-      (latestAssessment?.results?.risks?.diabetes || 12) + (quickGlucose - 90)*0.42 + (quickBMI - 23.5)*1.1
+    const cadRisk = Math.min(98, Math.max(4, Math.round(
+      (latestAssessment?.results?.risks?.coronaryArtery || 12) + (quickCholesterol - 180)*0.28 + (quickSystolic - 120)*0.25
     )));
 
-    const kidneyRisk = Math.min(98, Math.max(2, Math.round(
-      (latestAssessment?.results?.risks?.kidneyDisease || 8) + (quickSystolic - 120)*0.25 + (quickGlucose - 90)*0.2
+    const hypRisk = Math.min(98, Math.max(4, Math.round(
+      (latestAssessment?.results?.risks?.hypertensiveHeart || 14) + (quickSystolic - 120)*0.45 + (quickDiastolic - 80)*0.30
     )));
 
-    const liverRisk = Math.min(98, Math.max(2, Math.round(
-      (latestAssessment?.results?.risks?.liverDisease || 9) + (quickBMI - 23.5)*1.2 + (quickCholesterol - 180)*0.1
+    const athRisk = Math.min(98, Math.max(3, Math.round(
+      (latestAssessment?.results?.risks?.atherosclerosis || 10) + (quickCholesterol - 180)*0.24 + (quickBMI - 23.5)*0.9
     )));
 
-    const respRisk = Math.min(98, Math.max(3, Math.round(
-      10 + (quickBMI > 28 ? (quickBMI - 28)*1.8 : 0) + (quickSleep < 6 ? 12 : 0)
+    const rhythmRisk = Math.min(98, Math.max(3, Math.round(
+      (latestAssessment?.results?.risks?.arrhythmia || 8) + (quickSleep < 6 ? 16 : 0) + (quickSystolic > 140 ? 12 : 0)
     )));
 
-    const neuroRisk = Math.min(98, Math.max(4, Math.round(
-      12 + (quickSleep < 6 ? 18 : quickSleep > 8 ? 5 : 0) + (quickSystolic > 140 ? 15 : 0)
+    const metabolicCardioRisk = Math.min(98, Math.max(4, Math.round(
+      (latestAssessment?.results?.risks?.cardioMetabolic || 10) + (quickGlucose - 90)*0.35 + (quickBMI - 23.5)*1.1
     )));
 
     return {
       score: computedScore,
       scoreDelta: computedScore - base,
-      heartRisk,
-      diabRisk,
-      kidneyRisk,
-      liverRisk,
-      respRisk,
-      neuroRisk
+      heartOverallRisk,
+      cadRisk,
+      hypRisk,
+      athRisk,
+      rhythmRisk,
+      metabolicCardioRisk
     };
   }, [latestAssessment, quickSystolic, quickDiastolic, quickGlucose, quickCholesterol, quickBMI, quickSleep]);
 
-  // 6-Organ Health Matrix Definitions
+  // 6-Pillar Cardiovascular Diagnostic Matrix Definitions
   const organData = [
     {
-      id: 'heart',
-      name: 'Cardiovascular System',
+      id: 'heart_overall',
+      name: 'Coronary Perfusion & Myocardium',
       icon: Heart,
-      risk: dynamicMetrics.heartRisk,
+      risk: dynamicMetrics.heartOverallRisk,
       vitals: `${quickSystolic}/${quickDiastolic} mmHg`,
-      status: dynamicMetrics.heartRisk < 30 ? 'Optimal' : dynamicMetrics.heartRisk < 65 ? 'Elevated' : 'High Risk',
+      status: dynamicMetrics.heartOverallRisk < 30 ? 'Optimal Perfusion' : dynamicMetrics.heartOverallRisk < 65 ? 'Elevated Strain' : 'High Cardiac Risk',
       color: 'from-rose-500 to-pink-600',
-      badgeColor: dynamicMetrics.heartRisk < 30 ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' : dynamicMetrics.heartRisk < 65 ? 'text-amber-400 bg-amber-500/10 border-amber-500/30' : 'text-rose-400 bg-rose-500/10 border-rose-500/30',
-      summary: 'Monitors arterial pressure, coronary perfusion, cardiac output, and lipid deposition indices.',
-      tests: ['Lipid Panel (LDL/HDL)', 'Coronary Calcium Scan', '12-Lead ECG']
+      badgeColor: dynamicMetrics.heartOverallRisk < 30 ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' : dynamicMetrics.heartOverallRisk < 65 ? 'text-amber-400 bg-amber-500/10 border-amber-500/30' : 'text-rose-400 bg-rose-500/10 border-rose-500/30',
+      summary: 'Evaluates myocardial oxygenation, coronary blood supply, left ventricular stroke volume, and ischemic vulnerability.',
+      tests: ['12-Lead Resting ECG', 'High-Sensitivity Troponin', 'Coronary CT Angiography']
     },
     {
-      id: 'diabetes',
-      name: 'Metabolic & Glycemic',
+      id: 'coronary_artery',
+      name: 'Coronary Artery (CAD) Profile',
+      icon: ShieldAlert,
+      risk: dynamicMetrics.cadRisk,
+      vitals: `${quickCholesterol} mg/dL Chol`,
+      status: dynamicMetrics.cadRisk < 30 ? 'Low Plaque Risk' : dynamicMetrics.cadRisk < 65 ? 'Moderate Plaque' : 'High CAD Risk',
+      color: 'from-amber-500 to-orange-600',
+      badgeColor: dynamicMetrics.cadRisk < 30 ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' : dynamicMetrics.cadRisk < 65 ? 'text-amber-400 bg-amber-500/10 border-amber-500/30' : 'text-rose-400 bg-rose-500/10 border-rose-500/30',
+      summary: 'Assesses coronary artery calcification (CAC), atheroma stenosis, and lumen patency for arterial blood flow.',
+      tests: ['Coronary Artery Calcium (CAC) Scan', 'Apolipoprotein B (ApoB)', 'Lipoprotein(a)']
+    },
+    {
+      id: 'hemodynamics',
+      name: 'Blood Pressure & Hemodynamics',
       icon: Activity,
-      risk: dynamicMetrics.diabRisk,
-      vitals: `${quickGlucose} mg/dL Glucose`,
-      status: dynamicMetrics.diabRisk < 30 ? 'Normal Range' : dynamicMetrics.diabRisk < 65 ? 'Borderline' : 'Diabetic Alert',
-      color: 'from-amber-500 to-yellow-600',
-      badgeColor: dynamicMetrics.diabRisk < 30 ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' : dynamicMetrics.diabRisk < 65 ? 'text-amber-400 bg-amber-500/10 border-amber-500/30' : 'text-rose-400 bg-rose-500/10 border-rose-500/30',
-      summary: 'Measures beta-cell insulin sensitivity, HbA1c trajectory, and postprandial glucose regulation.',
-      tests: ['HbA1c Glycated Hemoglobin', 'Fasting Plasma Insulin', 'HOMA-IR Score']
+      risk: dynamicMetrics.hypRisk,
+      vitals: `${quickSystolic} Sys / ${quickDiastolic} Dia`,
+      status: dynamicMetrics.hypRisk < 30 ? 'Normal Pressure' : dynamicMetrics.hypRisk < 65 ? 'Stage 1 Elevated' : 'Hypertensive Alert',
+      color: 'from-purple-500 to-indigo-600',
+      badgeColor: dynamicMetrics.hypRisk < 30 ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' : dynamicMetrics.hypRisk < 65 ? 'text-amber-400 bg-amber-500/10 border-amber-500/30' : 'text-rose-400 bg-rose-500/10 border-rose-500/30',
+      summary: 'Tracks systemic vascular resistance, arterial pulse wave velocity, and left ventricular wall shear tension.',
+      tests: ['24-Hour Ambulatory BP Monitor', 'Echocardiogram (EF%)', 'Pulse Wave Velocity']
     },
     {
-      id: 'kidney',
-      name: 'Renal & Filtration',
-      icon: Zap,
-      risk: dynamicMetrics.kidneyRisk,
-      vitals: `eGFR 108 mL/min`,
-      status: dynamicMetrics.kidneyRisk < 30 ? 'Normal Function' : 'Renal Caution',
-      color: 'from-indigo-500 to-blue-600',
-      badgeColor: dynamicMetrics.kidneyRisk < 30 ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' : 'text-amber-400 bg-amber-500/10 border-amber-500/30',
-      summary: 'Evaluates glomeruli filtration pressure, microalbuminuria clearance, and electrolyte retention.',
-      tests: ['Serum Creatinine & eGFR', 'Blood Urea Nitrogen (BUN)', 'Urine Albumin/Creatinine Ratio']
-    },
-    {
-      id: 'liver',
-      name: 'Hepatic Function',
+      id: 'atherosclerosis',
+      name: 'Atherosclerosis & Plaque Index',
       icon: Droplets,
-      risk: dynamicMetrics.liverRisk,
-      vitals: `ALT/AST Nominal`,
-      status: dynamicMetrics.liverRisk < 30 ? 'Optimal Clearance' : 'Elevated Enzymes',
+      risk: dynamicMetrics.athRisk,
+      vitals: `BMI ${quickBMI} • Chol ${quickCholesterol}`,
+      status: dynamicMetrics.athRisk < 30 ? 'Clear Intima' : dynamicMetrics.athRisk < 65 ? 'Borderline Plaque' : 'Atherogenic Alert',
       color: 'from-orange-500 to-amber-600',
-      badgeColor: dynamicMetrics.liverRisk < 30 ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' : 'text-amber-400 bg-amber-500/10 border-amber-500/30',
-      summary: 'Tracks hepatic lipid accumulation, transaminase enzymes, bile clearance, and detox pathways.',
-      tests: ['Comprehensive Metabolic Panel', 'Liver Ultrasound', 'GGT & Bilirubin']
+      badgeColor: dynamicMetrics.athRisk < 30 ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' : dynamicMetrics.athRisk < 65 ? 'text-amber-400 bg-amber-500/10 border-amber-500/30' : 'text-rose-400 bg-rose-500/10 border-rose-500/30',
+      summary: 'Analyzes lipid oxidation, endothelial intima-media thickness, and subclinical atheromatous accumulation.',
+      tests: ['Carotid Intima-Media Thickness (CIMT)', 'Fasting Lipid Panel (LDL-C)', 'hs-CRP Inflammatory Marker']
     },
     {
-      id: 'lungs',
-      name: 'Pulmonary & Oxygenation',
-      icon: Wind,
-      risk: dynamicMetrics.respRisk,
-      vitals: `SpO2 99% • RR 15/min`,
-      status: dynamicMetrics.respRisk < 30 ? 'High Capacity' : 'Airway Caution',
+      id: 'rhythm',
+      name: 'Cardiac Rhythm & Electrophysiology',
+      icon: HeartPulse,
+      risk: dynamicMetrics.rhythmRisk,
+      vitals: `${activeRhythm.bpm} BPM • ${activeRhythm.label.split(' ')[0]}`,
+      status: dynamicMetrics.rhythmRisk < 30 ? 'Sinus Synchrony' : dynamicMetrics.rhythmRisk < 65 ? 'Ectopic Watch' : 'Arrhythmia Caution',
       color: 'from-teal-500 to-emerald-600',
-      badgeColor: dynamicMetrics.respRisk < 30 ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' : 'text-amber-400 bg-amber-500/10 border-amber-500/30',
-      summary: 'Analyzes alveolar gas exchange efficiency, forced expiratory volume, and sleep apnea susceptibility.',
-      tests: ['Pulse Oximetry', 'Spirometry (FEV1/FVC)', 'High-Resolution Chest CT']
+      badgeColor: dynamicMetrics.rhythmRisk < 30 ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' : dynamicMetrics.rhythmRisk < 65 ? 'text-amber-400 bg-amber-500/10 border-amber-500/30' : 'text-rose-400 bg-rose-500/10 border-rose-500/30',
+      summary: 'Monitors cardiac sinus rhythm, QT interval stability, ventricular refractory balance, and autonomic electrophysiology.',
+      tests: ['Holter 24h Rhythm Monitor', 'Electrophysiology Study', 'Stress Treadmill ECG']
     },
     {
-      id: 'neuro',
-      name: 'Neurological & Autonomic',
-      icon: Brain,
-      risk: dynamicMetrics.neuroRisk,
-      vitals: `${quickSleep}h Sleep • HRV 68ms`,
-      status: dynamicMetrics.neuroRisk < 30 ? 'Balanced Tone' : 'Stress Alert',
-      color: 'from-purple-500 to-violet-600',
-      badgeColor: dynamicMetrics.neuroRisk < 30 ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' : 'text-amber-400 bg-amber-500/10 border-amber-500/30',
-      summary: 'Evaluates parasympathetic heart rate variability, REM restorative sleep, and cerebrovascular risk.',
-      tests: ['Heart Rate Variability (HRV)', 'Polysomnography', 'Cognitive Assessment']
+      id: 'metabolic_vascular',
+      name: 'Cardio-Metabolic Endothelium',
+      icon: Zap,
+      risk: dynamicMetrics.metabolicCardioRisk,
+      vitals: `${quickGlucose} mg/dL Glu • ${quickSleep}h Sleep`,
+      status: dynamicMetrics.metabolicCardioRisk < 30 ? 'Intact Endothelium' : dynamicMetrics.metabolicCardioRisk < 65 ? 'Endothelial Strain' : 'Microvascular Risk',
+      color: 'from-blue-500 to-cyan-600',
+      badgeColor: dynamicMetrics.metabolicCardioRisk < 30 ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' : dynamicMetrics.metabolicCardioRisk < 65 ? 'text-amber-400 bg-amber-500/10 border-amber-500/30' : 'text-rose-400 bg-rose-500/10 border-rose-500/30',
+      summary: 'Assesses glycemic endothelial oxidative stress, microvascular vasodilation capacity, and nitric oxide bio-availability.',
+      tests: ['EndoPAT Endothelial Function Test', 'HbA1c & Microalbuminuria', 'Fasting Insulin & HOMA-IR']
     }
   ];
 
@@ -244,9 +244,9 @@ export default function Dashboard({
 
     const recommendation = latestAssessment?.results?.recommendations?.immediate?.[0] || 
       latestAssessment?.results?.recommendations?.lifestyle?.[0] || 
-      `Clinical health index is rated at ${dynamicMetrics.score} out of 100. Key vitals reflect blood pressure of ${quickSystolic} over ${quickDiastolic} mmHg and fasting blood sugar of ${quickGlucose} milligrams per deciliter. All major organ systems are actively monitored.`;
+      `Cardiovascular health score is rated at ${dynamicMetrics.score} out of 100. Key vitals reflect blood pressure of ${quickSystolic} over ${quickDiastolic} mmHg and total cholesterol of ${quickCholesterol} milligrams per deciliter. Coronary and vascular profiles are actively monitored.`;
 
-    const speechText = `HealthSence AI Clinical Diagnostic Summary. Overall health score is ${dynamicMetrics.score} out of 100. Recommendation: ${recommendation}`;
+    const speechText = `HealthSence AI Cardiovascular Diagnostic Summary. Overall cardiovascular health score is ${dynamicMetrics.score} out of 100. Key recommendation: ${recommendation}`;
 
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(speechText);
@@ -422,9 +422,9 @@ export default function Dashboard({
                 <AlertOctagon className="w-7 h-7" />
               </div>
               <div>
-                <h4 className="text-xs uppercase tracking-wider text-slate-400 font-bold mb-1">Critical Risk Flags</h4>
+                <h4 className="text-xs uppercase tracking-wider text-slate-400 font-bold mb-1">Critical Cardiac Flags</h4>
                 <div className="text-3xl font-black text-white font-mono">
-                  {[dynamicMetrics.heartRisk, dynamicMetrics.diabRisk, dynamicMetrics.kidneyRisk, dynamicMetrics.liverRisk, dynamicMetrics.respRisk, dynamicMetrics.neuroRisk].filter(r => r >= 65).length}
+                  {[dynamicMetrics.heartOverallRisk, dynamicMetrics.cadRisk, dynamicMetrics.hypRisk, dynamicMetrics.athRisk, dynamicMetrics.rhythmRisk, dynamicMetrics.metabolicCardioRisk].filter(r => r >= 65).length}
                 </div>
               </div>
             </div>
@@ -434,27 +434,27 @@ export default function Dashboard({
                 <Stethoscope className="w-7 h-7" />
               </div>
               <div>
-                <h4 className="text-xs uppercase tracking-wider text-slate-400 font-bold mb-1">Diagnostic Status</h4>
+                <h4 className="text-xs uppercase tracking-wider text-slate-400 font-bold mb-1">Cardio Diagnostic Status</h4>
                 <div className={`text-xs font-black mt-1 px-3 py-1 rounded-full border text-center ${
-                  [dynamicMetrics.heartRisk, dynamicMetrics.diabRisk, dynamicMetrics.kidneyRisk, dynamicMetrics.liverRisk].some(r => r >= 65)
+                  [dynamicMetrics.heartOverallRisk, dynamicMetrics.cadRisk, dynamicMetrics.hypRisk, dynamicMetrics.athRisk, dynamicMetrics.rhythmRisk, dynamicMetrics.metabolicCardioRisk].some(r => r >= 65)
                     ? 'text-rose-300 bg-rose-500/15 border-rose-500/30'
                     : 'text-emerald-300 bg-emerald-500/15 border-emerald-500/30'
                 }`}>
-                  {[dynamicMetrics.heartRisk, dynamicMetrics.diabRisk, dynamicMetrics.kidneyRisk, dynamicMetrics.liverRisk].some(r => r >= 65) ? 'Critical Alert Flagged' : 'Normal Physiological Range'}
+                  {[dynamicMetrics.heartOverallRisk, dynamicMetrics.cadRisk, dynamicMetrics.hypRisk, dynamicMetrics.athRisk, dynamicMetrics.rhythmRisk, dynamicMetrics.metabolicCardioRisk].some(r => r >= 65) ? 'Cardiac Attention Flagged' : 'Cardiovascular Synchrony'}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Interactive 6-Organ Health Matrix */}
+          {/* Interactive 6-Pillar Cardiovascular Diagnostic Matrix */}
           <div className="space-y-3">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <h3 className="font-extrabold text-lg text-white flex items-center gap-2">
-                <Activity className="w-5 h-5 text-amber-400" />
-                <span>Multi-Organ Physiological Diagnostic Matrix</span>
+                <Heart className="w-5 h-5 text-rose-400" />
+                <span>6-Pillar Cardiovascular & Heart Health Matrix</span>
               </h3>
               <div className="flex items-center gap-2 text-xs text-slate-400 font-bold">
-                <span>Click any organ card to inspect clinical indicators</span>
+                <span>Click any pillar card to inspect cardiology indicators & test recommendations</span>
               </div>
             </div>
 

@@ -9,10 +9,7 @@ from fastapi import APIRouter, Request, HTTPException, Depends
 from config import BASE_DIR, MODELS_DIR
 from auth import get_auth_token
 from database import db_execute, db_fetchall
-from ml_engine import (
-    scaler, models, diseases, algs, load_ml_assets,
-    select_best_algorithm_for_disease, encode_input
-)
+import ml_engine
 
 router = APIRouter()
 
@@ -33,15 +30,14 @@ async def predict(request: Request):
         height_meters = height / 100
         bmi = round(weight / (height_meters * height_meters), 1)
         
-        X = encode_input(data, bmi)
+        X = ml_engine.encode_input(data, bmi)
         
-        global scaler
-        if scaler is None:
-            load_ml_assets()
-            if scaler is None:
+        if ml_engine.scaler is None:
+            ml_engine.load_ml_assets()
+            if ml_engine.scaler is None:
                 raise HTTPException(status_code=500, detail='Model assets (scaler) are not loaded on server.')
                 
-        X_num_scaled = scaler.transform(X[:, :11])
+        X_num_scaled = ml_engine.scaler.transform(X[:, :11])
         X_scaled = X.copy()
         X_scaled[:, :11] = X_num_scaled
         
@@ -49,18 +45,20 @@ async def predict(request: Request):
         
         predictions = {}
         selected_algorithms = {}
-        for disease in diseases:
-            if passed_alg in algs:
+        for disease in ml_engine.diseases:
+            if passed_alg in ml_engine.algs:
                 best_alg = passed_alg
             else:
-                best_alg = select_best_algorithm_for_disease(disease)
+                best_alg = ml_engine.select_best_algorithm_for_disease(disease)
                 
             selected_algorithms[disease] = best_alg
             
-            disease_models = models.get(disease, {})
+            disease_models = ml_engine.models.get(disease, {})
             model = disease_models.get(best_alg)
             if model is None:
-                model = disease_models.get('random_forest')
+                model = disease_models.get('random_forest') or disease_models.get('xgboost')
+                if model is None and len(disease_models) > 0:
+                    model = list(disease_models.values())[0]
                 if model is None:
                     raise HTTPException(status_code=500, detail=f'Model for {disease} not found')
                 best_alg = 'random_forest'
@@ -71,20 +69,7 @@ async def predict(request: Request):
             
         print(f"Predictions run. Selected algorithms: {selected_algorithms}")
             
-        avg_risk = sum(predictions.values()) / len(diseases)
-        health_score = 100 - (avg_risk * 0.75)
-        high_alerts = sum(1 for r in predictions.values() if r >= 70)
-        health_score -= (high_alerts * 8)
-        health_score = int(max(15, min(100, round(health_score))))
-        
-        explanations = {
-            'diabetes': [],
-            'heartDisease': [],
-            'kidneyDisease': [],
-            'liverDisease': [],
-            'hypertension': [],
-            'stroke': []
-        }
+        heart_risk_val = predictions.get('heart_disease', 20)
         
         age = int(data.get('age', 35))
         gender = str(data.get('gender', 'male')).lower()
@@ -99,65 +84,91 @@ async def predict(request: Request):
         sleep = float(data.get('sleepDuration', 7))
         heart_rate = int(data.get('heartRate', 70))
         
-        if glucose > 100:
-            explanations['diabetes'].append(f"Fasting blood glucose of {glucose} mg/dL exceeds normal limit (<100 mg/dL).")
-        if bmi >= 25:
-            explanations['diabetes'].append(f"Elevated BMI of {bmi} kg/m² indicates overweight/obesity.")
-        if insulin > 15:
-            explanations['diabetes'].append(f"Fasting insulin of {insulin} µIU/mL suggests insulin resistance.")
-        if age > 45:
-            explanations['diabetes'].append(f"Age of {age} increases baseline risk factors.")
-        if activity == 'sedentary':
-            explanations['diabetes'].append("Sedentary lifestyle reduces insulin sensitivity.")
-            
-        if bp_systolic >= 130 or bp_diastolic >= 85:
-            explanations['heartDisease'].append(f"Elevated blood pressure ({bp_systolic}/{bp_diastolic} mmHg) increases cardiovascular strain.")
-        if cholesterol > 200:
-            explanations['heartDisease'].append(f"Cholesterol level of {cholesterol} mg/dL is borderline/high.")
-        if smoking == 'yes':
-            explanations['heartDisease'].append("Active tobacco smoking is a major risk factor for coronary plaque.")
-        if alcohol == 'high':
-            explanations['heartDisease'].append("Heavy alcohol usage impacts myocardial cells.")
-        if age > 45:
-            explanations['heartDisease'].append(f"Age of {age} increases cardiovascular baseline parameters.")
-            
-        if bp_systolic >= 130 or bp_diastolic >= 85:
-            explanations['kidneyDisease'].append(f"Hypertension ({bp_systolic}/{bp_diastolic} mmHg) damages renal blood vessels.")
-        if glucose > 100:
-            explanations['kidneyDisease'].append(f"Elevated fasting glucose of {glucose} mg/dL increases kidney filtering workload.")
-        if age > 50:
-            explanations['kidneyDisease'].append(f"Natural decline in glomerular filtration rate (GFR) over age 50.")
-            
-        if alcohol == 'high':
-            explanations['liverDisease'].append("Heavy alcohol consumption increases liver toxicity risk.")
-        elif alcohol == 'moderate':
-            explanations['liverDisease'].append("Moderate alcohol consumption adds liver metabolism loads.")
-        if bmi >= 25:
-            explanations['liverDisease'].append(f"Elevated BMI of {bmi} kg/m² contributes to non-alcoholic fatty liver (NAFLD) risk.")
-        if cholesterol > 220:
-            explanations['liverDisease'].append(f"Hyperlipidemia (cholesterol {cholesterol} mg/dL) contributes to fatty deposits in liver tissue.")
-            
-        if bp_systolic >= 130 or bp_diastolic >= 85:
-            explanations['hypertension'].append(f"High blood pressure ({bp_systolic}/{bp_diastolic} mmHg) indicates hypertension baseline.")
-        if bmi >= 25:
-            explanations['hypertension'].append(f"Elevated BMI of {bmi} kg/m² increases vascular resistance.")
-        if heart_rate >= 80:
-            explanations['hypertension'].append(f"Resting heart rate of {heart_rate} bpm indicates elevated cardiac tone.")
-        if alcohol in ['high', 'moderate']:
-            explanations['hypertension'].append("Regular alcohol consumption elevates systemic blood pressure.")
+        # Calculate Cardiovascular Sub-Risk Dimensions
+        # 1. Coronary Artery Disease (CAD) Risk
+        cad_z = -4.8 + 0.038*(bp_systolic - 120) + 0.030*(cholesterol - 180) + 0.032*(age - 40) + (1.2 if smoking == 'yes' else 0) + 0.04*(bmi - 24)
+        cad_risk = int(np.clip(round(100 / (1 + np.exp(-cad_z))), 4, 98))
+        
+        # 2. Hypertensive Cardiac Strain
+        hyp_z = -4.5 + 0.055*(bp_systolic - 120) + 0.035*(bp_diastolic - 80) + 0.025*(heart_rate - 70) + 0.03*(bmi - 24)
+        hyp_risk = int(np.clip(round(100 / (1 + np.exp(-hyp_z))), 4, 98))
+        
+        # 3. Atherosclerosis & Plaque Accumulation Index
+        ath_z = -4.6 + 0.042*(cholesterol - 180) + 0.022*(glucose - 90) + (0.9 if smoking == 'yes' else 0) + 0.035*(age - 40)
+        ath_risk = int(np.clip(round(100 / (1 + np.exp(-ath_z))), 4, 98))
+        
+        # 4. Arrhythmia & Cardiac Rhythm Strain
+        arr_z = -5.0 + 0.045*(heart_rate - 70) + 0.025*(bp_systolic - 120) + (0.8 if sleep < 6 else 0) + (0.6 if alcohol == 'high' else 0)
+        arr_risk = int(np.clip(round(100 / (1 + np.exp(-arr_z))), 3, 96))
+        
+        # 5. Cardio-Metabolic Endothelial Risk
+        met_z = -4.7 + 0.035*(glucose - 90) + 0.030*(insulin - 8) + 0.05*(bmi - 24) + (0.5 if activity == 'sedentary' else 0)
+        met_risk = int(np.clip(round(100 / (1 + np.exp(-met_z))), 4, 98))
 
-        if bp_systolic >= 140 or bp_diastolic >= 90:
-            explanations['stroke'].append(f"Hypertension ({bp_systolic}/{bp_diastolic} mmHg) is a primary risk factor for cerebrovascular events.")
-        if cholesterol >= 220:
-            explanations['stroke'].append(f"High cholesterol ({cholesterol} mg/dL) increases arterial plaque and ischemia risk.")
+        # Overall Cardiovascular Health Score
+        cardio_risk_avg = (heart_risk_val * 0.4) + (cad_risk * 0.2) + (hyp_risk * 0.15) + (ath_risk * 0.15) + (arr_risk * 0.1)
+        health_score = 100 - (cardio_risk_avg * 0.75)
+        if heart_risk_val >= 70 or bp_systolic >= 150:
+            health_score -= 10
+        health_score = int(max(15, min(100, round(health_score))))
+        
+        explanations = {
+            'heartDisease': [],
+            'coronaryArtery': [],
+            'hypertensiveHeart': [],
+            'atherosclerosis': [],
+            'arrhythmia': [],
+            'cardioMetabolic': []
+        }
+        
+        # Clinical Explanations for Heart Disease
+        if bp_systolic >= 130 or bp_diastolic >= 85:
+            explanations['heartDisease'].append(f"Elevated blood pressure ({bp_systolic}/{bp_diastolic} mmHg) increases myocardial workload and arterial stiffness.")
+        if cholesterol > 200:
+            explanations['heartDisease'].append(f"Total cholesterol of {cholesterol} mg/dL exceeds desirable range (<200 mg/dL), elevating coronary plaque risk.")
         if smoking == 'yes':
-            explanations['stroke'].append("Active smoking damages cerebral blood vessels.")
-        if age >= 55:
-            explanations['stroke'].append(f"Age of {age} significantly increases cerebrovascular vulnerability.")
+            explanations['heartDisease'].append("Active tobacco smoking damages arterial endothelial lining and accelerates coronary thrombosis.")
+        if alcohol == 'high':
+            explanations['heartDisease'].append("High alcohol consumption exerts direct cardiotoxic and arrhythmogenic stress.")
+        if age > 45:
+            explanations['heartDisease'].append(f"Age {age} increases baseline vascular calcification risk factors.")
+        if bmi >= 25:
+            explanations['heartDisease'].append(f"Elevated BMI ({bmi} kg/m²) increases systemic circulatory demands and cardiac output strain.")
+            
+        if cholesterol >= 220:
+            explanations['coronaryArtery'].append(f"Elevated serum lipids ({cholesterol} mg/dL) accelerate coronary atheroma formation.")
+        if smoking == 'yes':
+            explanations['coronaryArtery'].append("Tobacco nicotine promotes coronary vasoconstriction and arterial spasms.")
+        if age >= 50:
+            explanations['coronaryArtery'].append(f"Age {age} increases coronary artery calcium deposition trajectory.")
+            
+        if bp_systolic >= 140 or bp_diastolic >= 90:
+            explanations['hypertensiveHeart'].append(f"Hypertension Stage 2 ({bp_systolic}/{bp_diastolic} mmHg) induces left ventricular hypertrophy pressure load.")
+        elif bp_systolic >= 130:
+            explanations['hypertensiveHeart'].append(f"Hypertension Stage 1 ({bp_systolic} mmHg systolic) raises arterial pulse pressure.")
+        if heart_rate >= 80:
+            explanations['hypertensiveHeart'].append(f"Elevated resting heart rate of {heart_rate} bpm increases chronic vascular shear stress.")
+
+        if cholesterol >= 200 or glucose >= 100:
+            explanations['atherosclerosis'].append("Dyslipidemia and impaired glucose synergistically accelerate arterial intima thickening.")
+        if bmi >= 28:
+            explanations['atherosclerosis'].append(f"Adiposity (BMI {bmi}) stimulates pro-inflammatory cytokines promoting plaque vulnerability.")
+
+        if heart_rate >= 85:
+            explanations['arrhythmia'].append(f"Resting heart rate of {heart_rate} bpm reflects elevated sympathetic cardiac tone.")
+        if sleep < 6:
+            explanations['arrhythmia'].append("Sleep deprivation (<6 hrs) alters autonomic heart rate variability (HRV).")
+        if alcohol in ['high', 'moderate']:
+            explanations['arrhythmia'].append("Alcohol intake increases susceptibility to atrial ectopic beats.")
+
+        if glucose >= 100 or insulin > 15:
+            explanations['cardioMetabolic'].append(f"Elevated fasting glucose ({glucose} mg/dL) or insulin ({insulin} µIU/mL) impairs nitric oxide vasodilation.")
+        if activity == 'sedentary':
+            explanations['cardioMetabolic'].append("Sedentary physical profile reduces coronary capillary density and muscular oxygen uptake.")
 
         for k in explanations:
             if not explanations[k]:
-                explanations[k].append("All parameters within standard clinical limits.")
+                explanations[k].append("All cardiovascular biomarkers within standard AHA/ACC reference limits.")
                 
         recs = {
             "immediate": [],
@@ -165,67 +176,65 @@ async def predict(request: Request):
             "medical": []
         }
         
-        if bp_systolic >= 150 or bp_diastolic >= 95:
-            recs["immediate"].append(f"Seek clinical evaluation for high blood pressure ({bp_systolic}/{bp_diastolic} mmHg).")
-        if glucose >= 150:
-            recs["immediate"].append(f"Consult an endocrinologist regarding elevated fasting blood glucose ({glucose} mg/dL).")
-        if predictions['heart_disease'] >= 70:
-            recs["immediate"].append("Consult a cardiologist for a cardiovascular diagnostic checkup.")
-        if predictions['liver_disease'] >= 70:
-            recs["immediate"].append("Schedule a hepatic ultrasound examination with your doctor.")
-        if predictions.get('hypertension', 0) >= 70:
-            recs["immediate"].append("Consult a physician for hypertension management and blood pressure control.")
-        if predictions.get('stroke', 0) >= 70:
-            recs["immediate"].append("Seek urgent medical consultation for stroke and cardiovascular prevention.")
+        if bp_systolic >= 160 or bp_diastolic >= 100:
+            recs["immediate"].append(f"🚨 Urgent: Clinical evaluation required for severe hypertension ({bp_systolic}/{bp_diastolic} mmHg).")
+        elif bp_systolic >= 140 or bp_diastolic >= 90:
+            recs["immediate"].append(f"Schedule clinical consultation for Stage 2 hypertension management ({bp_systolic}/{bp_diastolic} mmHg).")
+            
+        if heart_risk_val >= 65:
+            recs["immediate"].append("Consult a cardiologist for comprehensive diagnostic cardiovascular evaluation and 12-lead ECG.")
+        if cholesterol >= 240:
+            recs["immediate"].append("Discuss targeted lipid-lowering therapy and atherogenic risk reduction with your physician.")
             
         if smoking == 'yes':
-            recs["lifestyle"].append("Enroll in a tobacco cessation program. Smoking accelerates vascular damage.")
-        if alcohol in ['high', 'moderate']:
-            recs["lifestyle"].append("Limit alcohol intake to normal parameters or abstain completely.")
+            recs["lifestyle"].append("Enroll in an evidence-based tobacco cessation program. Quitting reduces cardiac risk by 50% within 1 year.")
         if activity == 'sedentary':
-            recs["lifestyle"].append("Incorporate 150 minutes of moderate aerobic activity weekly.")
+            recs["lifestyle"].append("Incorporate 150 minutes of moderate-intensity aerobic cardio (brisk walking, swimming) weekly per AHA guidelines.")
+        if bp_systolic >= 130 or cholesterol >= 200:
+            recs["lifestyle"].append("Adopt the DASH dietary pattern: limit sodium to <2,000 mg/day and increase potassium, magnesium, and dietary fiber.")
         if bmi >= 25:
-            recs["lifestyle"].append("Focus on dietary modifications aimed at 5-10% body weight reduction.")
+            recs["lifestyle"].append("Target a 5-10% sustained body weight reduction to substantially relieve myocardial workload.")
         if sleep < 7:
-            recs["lifestyle"].append("Improve sleep hygiene to ensure 7-8 hours of sleep per night.")
+            recs["lifestyle"].append("Prioritize 7-8 hours of restful sleep nightly to optimize parasympathetic cardiac recovery.")
             
-        if glucose >= 100:
-            recs["medical"].append("Request an HbA1c blood test to screen for pre-diabetes/diabetes.")
         if bp_systolic >= 130 or bp_diastolic >= 80:
-            recs["medical"].append("Track blood pressure readings daily at home.")
+            recs["medical"].append("Perform daily calibrated blood pressure logs (morning and evening at rest).")
         if cholesterol >= 200:
-            recs["medical"].append("Discuss a lipid panel test and cholesterol management with your doctor.")
+            recs["medical"].append("Order a comprehensive fasting Lipid Panel (LDL-C, HDL-C, Triglycerides, Non-HDL).")
+        if age >= 45 or heart_risk_val >= 40:
+            recs["medical"].append("Discuss a Coronary Artery Calcium (CAC) CT scan or Echocardiogram with your doctor.")
             
-        if not recs["lifestyle"]:
-            recs["lifestyle"].append("Maintain your excellent physical fitness and healthy habits!")
+        if not recs["immediate"] and not recs["lifestyle"]:
+            recs["lifestyle"].append("Maintain your excellent cardiovascular conditioning and healthy lifestyle habits!")
         if not recs["medical"]:
-            recs["medical"].append("Continue with routine annual health screenings.")
+            recs["medical"].append("Continue with annual preventive cardiac and biometric screenings.")
             
         confidence = 100
         
         results = {
             'risks': {
-                'diabetes': predictions['diabetes'],
-                'heartDisease': predictions['heart_disease'],
-                'kidneyDisease': predictions['kidney_disease'],
-                'liverDisease': predictions['liver_disease'],
-                'hypertension': predictions['hypertension'],
-                'stroke': predictions['stroke']
+                'heartDisease': heart_risk_val,
+                'coronaryArtery': cad_risk,
+                'hypertensiveHeart': hyp_risk,
+                'atherosclerosis': ath_risk,
+                'arrhythmia': arr_risk,
+                'cardioMetabolic': met_risk
             },
             'overallScore': health_score,
             'confidence': confidence,
             'recommendations': recs,
             'explanations': {
-                'diabetes': explanations['diabetes'],
                 'heart': explanations['heartDisease'],
-                'kidney': explanations['kidneyDisease'],
-                'liver': explanations['liverDisease'],
-                'hypertension': explanations['hypertension'],
-                'stroke': explanations['stroke']
+                'heartDisease': explanations['heartDisease'],
+                'coronaryArtery': explanations['coronaryArtery'],
+                'hypertensiveHeart': explanations['hypertensiveHeart'],
+                'atherosclerosis': explanations['atherosclerosis'],
+                'arrhythmia': explanations['arrhythmia'],
+                'cardioMetabolic': explanations['cardioMetabolic']
             }
         }
         
-        alg_suffix = passed_alg if passed_alg in algs else 'auto'
+        alg_suffix = passed_alg if passed_alg in ml_engine.algs else 'auto'
         assess_id = f"assess-{int(np.round(np.random.rand() * 1000000))}-{alg_suffix}"
         timestamp_str = datetime.now().isoformat()
         
@@ -323,7 +332,7 @@ async def retrain(token: str = Depends(get_auth_token)):
         result = subprocess.run([sys.executable, train_script], capture_output=True, text=True, check=True, cwd=BASE_DIR)
         print("Retraining completed successfully.")
         
-        load_ml_assets()
+        ml_engine.load_ml_assets()
         
         metrics_path = os.path.join(MODELS_DIR, "model_metrics.json")
         if os.path.exists(metrics_path):

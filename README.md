@@ -1,49 +1,61 @@
-# HealthSence AI 🏥🤖
+# HealthSence AI 🫀🤖
 
-**HealthSence AI** is an advanced, full-stack medical health risk assessment platform. Utilizing machine learning models trained across comprehensive clinical datasets, HealthSence AI analyzes patient physiological, lifestyle, and medical parameters to predict individual risk percentages for **Diabetes**, **Heart Disease**, **Kidney Disease**, and **Liver Disease**.
+**HealthSence AI** is an advanced, full-stack cardiovascular health risk assessment and clinical intelligence platform. Utilizing machine learning models trained on physiological and cardiac biomarker datasets, HealthSence AI analyzes patient vitals, lifestyle habits, and hemodynamic indicators to predict **Heart Disease Likelihood** alongside comprehensive cardiovascular risk sub-dimensions.
 
-In addition to multi-disease predictive risk scoring, HealthSence AI features an **AI Medical Report OCR & Prescription Recommendation Engine**, a **Resilient 3-Tier Database System** (Supabase PostgreSQL / MySQL / SQLite), and an **Admin Dashboard** with live system monitoring and on-demand model retraining.
+HealthSence AI features a **6-Pillar Cardiovascular Diagnostic Matrix**, interactive **"What-If" Life Extension Cardiac Simulation**, an **AI Symptom Checker & Clinical Triage Engine**, a **24/7 Cardiology Assistant Chatbot**, a **Resilient 3-Tier Database System** (Supabase PostgreSQL / MySQL / SQLite), and an **Admin Portal** with live telemetry and on-demand model retraining.
 
 ---
 
 ## 🌟 Key Features
 
-- **Multi-Disease Risk Prediction Engine**:
-  - Evaluates physiological & lifestyle metrics to predict risk scores for Diabetes, Cardiovascular Disease, Chronic Kidney Disease, and Liver Disease.
-- **5 ML Algorithm Suite & Automatic Selection**:
-  - Implements **Random Forest**, **XGBoost**, **Support Vector Classifier (SVM)**, **Decision Tree**, and **Logistic Regression**.
-  - Dynamically selects the best-performing algorithm per disease based on F1-Score, Accuracy, and ROC-AUC metrics, while supporting manual algorithm overrides.
-- **AI Medical Report Analysis & Prescription Generator (`POST /api/analyze-report`)**:
-  - Parses uploaded PDF/text medical lab reports to extract key physiological biomarkers (glucose, blood pressure, cholesterol, insulin, BMI).
-  - Determines primary clinical diagnosis and severity ratings.
-  - Automatically generates targeted pharmaceutical prescription recommendations (drug name, dosage, frequency, therapeutic purpose, and clinical precautions) alongside lifestyle interventions.
-- **Pharmacology & Drug Safety Portal (Local Clinical + DailyMed)**:
-  - **Multi-Drug Interaction (DDI) Matrix Engine**: Evaluates pairwise prescription combinations using the app’s local clinical safety rules for severe/contraindicated interactions and mechanisms.
-  - **Drug Monograph Explorer**: Queries standardized medication metadata and official DailyMed structured product labels for clinical information.
-  - **DailyMed SPL & NDC Package Verification**: Links directly to official NIH DailyMed structured product labels and FDA National Drug Code packaging.
-  - **Automated Prescription Verification**: 1-click verification of extracted lab report prescriptions with instant safety scoring and warning alerts.
+- **Heart Disease Machine Learning Ensemble**:
+  - Predicts core Heart Disease risk probabilities with a calibrated ensemble of 5 machine learning algorithms:
+    - **XGBoost Classifier**
+    - **Random Forest Multi-Tree**
+    - **Support Vector Machine (SVM)**
+    - **Calibrated Logistic Regression**
+    - **Decision Tree Classifier**
+  - Dynamically selects the optimal algorithm based on F1-Score, Accuracy, and ROC-AUC metrics, while supporting manual algorithm overrides (`xgboost`, `random_forest`, `svm`, `logistic_regression`, `decision_tree`, or `auto`).
+
+- **6 Cardiovascular Sub-Dimensions & Risk Profiles**:
+  1. **Heart Disease Likelihood**: Core ML model output reflecting comprehensive cardiac risk.
+  2. **Coronary Artery Disease (CAD) Risk**: Assesses atheroma formation, lipid deposition, and arterial stenosis.
+  3. **Hypertensive Heart Strain**: Evaluates left ventricular workload, pulse pressure, and systemic vascular resistance.
+  4. **Atherosclerosis & Plaque Index**: Analyzes oxidized LDL lipids, carotid intima-media thickness markers, and vascular stiffness.
+  5. **Cardiac Rhythm & Electrophysiology**: Monitors resting heart rate, ECG rhythm stability, and autonomic recovery.
+  6. **Cardio-Metabolic Endothelial Strain**: Tracks glycemic microvascular resistance and insulin-related endothelial stress.
+
+- **6-Pillar Cardiovascular Diagnostic Matrix & ECG Telemetry**:
+  - Live interactive dashboard visualizing cardiovascular pillars with real-time biometric recalibration knobs (Blood Pressure, Cholesterol, Glucose, BMI, Sleep).
+  - Built-in real-time ECG rhythm simulator (Sinus Normal, Tachycardia, Bradycardia, Arrhythmia) with audio pulse synthesis.
+
+- **Interactive "What-If" Life Extension Simulator**:
+  - Real-time sliders allowing patients and clinicians to simulate blood pressure reduction, BMI optimization, aerobic exercise, and smoking cessation to forecast quantifiable heart risk drops and health score improvements.
+
+- **AI Symptom Checker & Clinical Triage Engine (`POST /api/check-symptom`)**:
+  - Anatomical body-region symptom evaluator with red-flag detection for acute myocardial infarction, unstable angina, and emergency cardiovascular conditions.
+
+- **HealthBot AI 24/7 Cardiology Assistant (`POST /api/chat`)**:
+  - Voice-enabled intelligent clinical chatbot providing evidence-based AHA/ACC cardiovascular guidance, DASH diet protocols, lipid management targets, and emergency triage FAQs.
+
 - **Automated Health Score & Clinical Explanations**:
-  - Computes an overall composite **Health Score (15–100)** and confidence index.
-  - Highlights specific clinical risk drivers (e.g., elevated fasting glucose, blood pressure, BMI).
-  - Categorizes actionable recommendations into **Immediate Actions**, **Lifestyle Modifications**, and **Recommended Medical Screenings**.
+  - Computes a unified **Cardiovascular Health Score (15–100)** and confidence index.
+  - Generates clear, clinician-grade risk factor drivers and structured recommendations (**Immediate Actions**, **Lifestyle Modifications**, **Recommended Screenings**).
+
 - **Resilient 3-Tier Database Architecture**:
   - **Tier 1 (Cloud Primary)**: Supabase Cloud PostgreSQL with Row Level Security (RLS) and automatic schema migration (`supabase_schema.sql`).
   - **Tier 2 (Self-Hosted/Local)**: MySQL Database (`health_risk_db`).
   - **Tier 3 (Embedded Fallback)**: Embedded SQLite (`models/local_storage.db`).
   - Seamless automatic failover across tiers ensures continuous operation without service interruption.
+
 - **Secure Authentication & User Account Management**:
-  - HMAC SHA-256 / JWT signed token authentication.
-  - User Registration, Login, Profile updates, Password changes, and Account deletion.
-  - Immutable Admin security credential table (`admin_credentials`).
-- **Assessment History & Record Auditing**:
-  - Persists patient risk assessments with full JSON input snapshots and predictive outcomes.
-  - Offers record searching, detailed record viewing, and record deletion.
-- **Admin Dashboard & Retraining Engine**:
-  - Real-time monitoring of active database mode, total users, system health, and assessment counts.
-  - Displays algorithm accuracy and F1 benchmarks across all 4 disease models.
-  - Triggers on-demand machine learning model retraining directly via backend execution (`train_models.py`).
-- **Modern Responsive UI**:
-  - Glassmorphic UI built with **React 19**, **Vite 8**, **Tailwind CSS 4**, **Lucide Icons**, and **Chart.js**.
+  - HMAC SHA-256 signed token authentication.
+  - User Registration, Login, Profile updates, Password management, and Account deletion.
+  - Dedicated Admin security governance portal (`admin_credentials`).
+
+- **Medical Audit History & Longitudinal Insights**:
+  - Persists patient assessments with complete biomarker snapshots and risk outcomes.
+  - Longitudinal timeline charts displaying health score trajectories and biometric trends over time.
 
 ---
 
@@ -51,10 +63,10 @@ In addition to multi-disease predictive risk scoring, HealthSence AI features an
 
 ### **Frontend**
 - **Framework**: React 19, Vite 8
-- **Styling**: Tailwind CSS 4, Custom Glassmorphism UI
+- **Styling**: Tailwind CSS 4, Custom Glassmorphic Dark UI
 - **Data Visualization**: Chart.js, `react-chartjs-2`
 - **Icons**: Lucide React
-- **Linter**: Oxlint
+- **Audio Synthesis**: Web Audio API (ECG Heartbeat & Clinical Sound Effects)
 
 ### **Backend**
 - **Server Framework**: Python FastAPI, Uvicorn, Pydantic
@@ -67,7 +79,7 @@ In addition to multi-disease predictive risk scoring, HealthSence AI features an
 ## 📁 Repository Structure
 
 ```
-Project 2026/
+HealthSence_AI/
 ├── backend/
 │   ├── main.py                # Primary FastAPI entry point, lifespan, CORS & APIRouter configuration
 │   ├── config.py              # Environment variables, admin credentials, Supabase & DB settings
@@ -77,45 +89,48 @@ Project 2026/
 │   ├── routes_auth.py         # Auth endpoints (Register, Login, Profile, Password, Account)
 │   ├── routes_predict.py      # Risk prediction endpoints (/api/predict, /api/assessments, /api/retrain)
 │   ├── routes_symptom.py      # AI Symptom Checker & Clinical Triage endpoint (/api/check-symptom)
-│   ├── routes_chatbot.py      # HealthBot AI 24/7 Clinical Assistant chat endpoint (/api/chat)
-│   ├── routes_report.py       # Medical Report OCR & Prescription generator endpoint (/api/analyze-report)
+│   ├── routes_chatbot.py      # HealthBot AI 24/7 Cardiology Assistant chat endpoint (/api/chat)
 │   ├── routes_admin.py        # System Admin Governance endpoints (/api/admin/users, /api/admin/system-status)
-│   ├── train_models.py        # Automated ML model training & dataset synthesis script
+│   ├── train_models.py        # Automated Heart Disease ML model training & calibration script
 │   ├── supabase_schema.sql    # PostgreSQL schema setup & Row Level Security policies
 │   ├── .env                   # Environment variables (Supabase, MySQL, Admin, JWT)
 │   ├── requirements.txt       # Python dependencies
 │   ├── models/                # Trained model artifacts & SQLite storage
-│   │   ├── model_metrics.json # Accuracy & F1 benchmarks across algorithms
-│   │   ├── scaler.pkl         # Trained StandardScaler for numerical inputs
-│   │   ├── *.pkl              # Trained PKL models for each disease-algorithm pair
-│   │   └── local_storage.db   # Embedded SQLite fallback database
-│   └── notebooks/             # Jupyter notebooks for EDA & model training
-│       ├── diabetes_model_training.ipynb
-│       ├── heart_disease_model_training.ipynb
-│       ├── kidney_disease_model_training.ipynb
-│       └── liver_disease_model_training.ipynb
+│   │   ├── heart_disease_dataset.csv          # Heart Disease training dataset
+│   │   ├── heart_disease_xgboost.pkl          # Trained XGBoost model
+│   │   ├── heart_disease_random_forest.pkl    # Trained Random Forest model
+│   │   ├── heart_disease_svm.pkl              # Trained SVM model
+│   │   ├── heart_disease_logistic_regression.pkl # Trained Logistic Regression model
+│   │   ├── heart_disease_decision_tree.pkl    # Trained Decision Tree model
+│   │   ├── model_metrics.json                 # Benchmark metrics across algorithms
+│   │   ├── scaler.pkl                         # Trained StandardScaler for numerical inputs
+│   │   ├── feature_names.json                 # Encoded feature names mapping
+│   │   └── local_storage.db                   # Embedded SQLite fallback database
+│   └── notebooks/
+│       └── heart_disease_model_training.ipynb # Jupyter notebook for Heart Disease training & EDA
 ├── frontend/
 │   ├── src/                   # React frontend application
 │   │   ├── App.jsx            # Main container, top-level state management & route controller
 │   │   ├── main.jsx           # React app entry point
 │   │   ├── index.css          # Core CSS design system & Tailwind setup
-│   │   └── components/        # Modular Component Pages & Feature Modules
-│   │       ├── Navbar.jsx          # Top navigation header & user profile dropdown
-│   │       ├── Dashboard.jsx       # AI Health Risk Dashboard overview & charts
-│   │       ├── Wizard.jsx          # Multi-step Clinical Diagnostics assessment wizard
-│   │       ├── SymptomChecker.jsx  # AI Symptom Checker & Clinical Triage Engine
-│   │       ├── HealthChatbot.jsx   # HealthBot AI 24/7 Clinical Assistant chat page
-│   │       ├── MedicalReport.jsx   # Medical Report OCR & Prescription (Rx) Engine
-│   │       ├── Results.jsx         # Diagnostic Risk Evaluation report & print layout
-│   │       ├── History.jsx         # Audit History Log table & search filters
-│   │       ├── Insights.jsx        # Chronological health score & vital sign timeline charts
-│   │       ├── Account.jsx         # User account settings & credentials management
-│   │       ├── AdminPortal.jsx     # Admin Governance & ML model control panel
-│   │       ├── AuthModal.jsx       # Sign in / Sign up authentication container
-│   │       ├── SimulatorModal.jsx  # Interactive real-time risk parameter simulator modal
-│   │       ├── SplashLoader.jsx    # Animated initial splash loading screen
-│   │       ├── ToastContainer.jsx  # Floating toast notification overlay
-│   │       └── ChatWidget.jsx      # Floating persistent medical chatbot widget drawer
+│   │   ├── components/        # Modular Component Pages & Feature Modules
+│   │   │   ├── Navbar.jsx          # Top navigation header & user profile dropdown
+│   │   │   ├── Dashboard.jsx       # 6-Pillar Cardio Matrix, Live Recalibration & ECG Telemetry
+│   │   │   ├── Wizard.jsx          # 3-Step Clinical Assessment Wizard with presets
+│   │   │   ├── Results.jsx         # Cardiovascular Evaluation Report & "What-If" Simulator
+│   │   │   ├── SimulatorModal.jsx  # Interactive real-time risk parameter simulator modal
+│   │   │   ├── SymptomChecker.jsx  # AI Symptom Checker & Clinical Triage Engine
+│   │   │   ├── HealthChatbot.jsx   # HealthBot AI 24/7 Cardiology Assistant chat page
+│   │   │   ├── History.jsx         # Longitudinal Audit History Log table & search filters
+│   │   │   ├── Insights.jsx        # Cardiovascular score & biomarker timeline charts
+│   │   │   ├── Account.jsx         # User account settings & credentials management
+│   │   │   ├── AdminPortal.jsx     # Admin Governance & ML model control panel
+│   │   │   ├── AuthModal.jsx       # Sign in / Sign up authentication container
+│   │   │   ├── SplashLoader.jsx    # Animated initial splash loading screen
+│   │   │   ├── ToastContainer.jsx  # Floating toast notification overlay
+│   │   │   └── ChatWidget.jsx      # Floating persistent medical chatbot widget drawer
+│   │   └── utils/
+│   │       └── audioFX.js          # Web Audio API sound synthesizers
 │   ├── index.html             # HTML template
 │   ├── package.json           # Frontend dependencies & npm scripts
 │   └── vite.config.js         # Vite configuration
@@ -129,7 +144,7 @@ Project 2026/
 ### Prerequisites
 - **Python**: `v3.10` or higher
 - **Node.js**: `v18.0.0` or higher
-- **Supabase Cloud / MySQL** *(Optional)*: If unavailable, the server automatically defaults to embedded SQLite.
+- **Supabase Cloud / MySQL** *(Optional)*: If unavailable, the backend automatically defaults to embedded SQLite.
 
 ---
 
@@ -176,17 +191,16 @@ Project 2026/
    JWT_SECRET=your_secure_jwt_secret_key
    ```
 
-5. Train the Machine Learning models (Generates dataset, scalers, and model pickle files):
+5. Train the Machine Learning models (Calibrates the 5 Heart Disease classifiers, scalers, and metrics):
    ```bash
    python train_models.py
    ```
 
 6. Launch the FastAPI backend server:
    ```bash
-   python main.py
+   python -m uvicorn main:app --host 127.0.0.1 --port 8000
    ```
-   *(Or `python server.py` for backward compatibility).*
-   The backend API will start at **`http://localhost:5000`**.
+   The backend API will start at **`http://127.0.0.1:8000`**.
 
 ---
 
@@ -216,24 +230,26 @@ Project 2026/
 | Method | Endpoint | Description | Auth Required |
 | :--- | :--- | :--- | :---: |
 | `POST` | `/api/register` | Register a new user account | ❌ |
-| `POST` | `/api/login` | Authenticate user/admin & return token | ❌ |
+| `POST` | `/api/login` | Authenticate user/admin & return signed token | ❌ |
 | `GET` | `/api/user/profile` | Retrieve profile details of logged-in user | ✅ |
 | `PUT` | `/api/user/profile` | Update user profile name | ✅ |
 | `PUT` | `/api/user/password` | Change user account password | ✅ |
 | `DELETE` | `/api/user/account` | Delete user account | ✅ |
 
-### **Risk Assessment & Medical AI Engine**
+### **Cardiovascular Risk Assessment & Clinical AI**
 | Method | Endpoint | Description | Auth Required |
 | :--- | :--- | :--- | :---: |
-| `POST` | `/api/predict` | Calculate risk predictions across 4 diseases | ❌ |
-| `POST` | `/api/analyze-report` | AI scan of lab report PDF & prescription recommendation generator | ✅ |
+| `GET` | `/api/health` | Health check endpoint returning backend & DB status | ❌ |
+| `POST` | `/api/predict` | Calculate Heart Disease risk & cardiovascular sub-dimensions | ❌ |
+| `POST` | `/api/chat` | 24/7 Cardiology & Clinical Guidance AI Assistant | ❌ |
+| `POST` | `/api/check-symptom` | AI Symptom Checker & Emergency Triage Engine | ❌ |
 | `GET` | `/api/assessments` | Retrieve historical saved patient risk assessments | ✅ |
 | `DELETE` | `/api/assessments/{id}` | Delete a specific assessment record | ✅ |
 
 ### **Admin & Model Operations**
 | Method | Endpoint | Description | Auth Required |
 | :--- | :--- | :--- | :---: |
-| `GET` | `/api/metrics` | Retrieve benchmark metrics for all ML algorithms | ✅ |
+| `GET` | `/api/metrics` | Retrieve benchmark metrics for Heart Disease ML models | ✅ |
 | `POST` | `/api/retrain` | Trigger model retraining pipeline (`train_models.py`) | ✅ |
 | `GET` | `/api/admin/users` | List all registered users & total assessment count | ✅ (Admin) |
 | `GET` | `/api/admin/system-status` | View system health, DB connection mode & model statuses | ✅ (Admin) |
@@ -243,11 +259,11 @@ Project 2026/
 ## 🤖 Machine Learning Workflow
 
 1. **Feature Matrix (15 Metrics)**:
-   - **Numerical (11)**: Age, Height, Weight, BMI, Sleep Duration, Systolic BP, Diastolic BP, Cholesterol, Fasting Glucose, Insulin, Heart Rate.
+   - **Numerical (11)**: Age, Height, Weight, BMI, Sleep Duration, Systolic BP, Diastolic BP, Total Cholesterol, Fasting Glucose, Fasting Insulin, Resting Heart Rate.
    - **Categorical (4)**: Gender, Smoking Status, Alcohol Consumption, Physical Activity Level.
 2. **Model Training & Evaluation**:
-   - Models trained per disease for 5 algorithms (Random Forest, XGBoost, Support Vector Classifier, Decision Tree, Logistic Regression).
-   - Artifacts stored under `backend/models/*.pkl` alongside performance metrics in `model_metrics.json`.
+   - 5 models trained for Heart Disease (XGBoost, Random Forest, Support Vector Classifier, Decision Tree, Logistic Regression).
+   - Artifacts stored under `backend/models/heart_disease_*.pkl` alongside performance metrics in `model_metrics.json`.
 
 ---
 

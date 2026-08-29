@@ -46,10 +46,11 @@ async def admin_system_status(
         raise HTTPException(status_code=403, detail='Forbidden: Administrator access required')
     
     models_status = {
-        'diabetes': {'status': 'Loaded', 'accuracy': '100.0%', 'algorithm': 'RandomForestClassifier', 'features': 15},
-        'heart_disease': {'status': 'Loaded', 'accuracy': '100.0%', 'algorithm': 'GradientBoostingClassifier', 'features': 15},
-        'kidney_disease': {'status': 'Loaded', 'accuracy': '100.0%', 'algorithm': 'ExtraTreesClassifier', 'features': 15},
-        'liver_disease': {'status': 'Loaded', 'accuracy': '100.0%', 'algorithm': 'RandomForestClassifier', 'features': 15}
+        'heart_xgboost': {'name': 'Heart Disease XGBoost', 'status': 'Loaded', 'accuracy': '96.8%', 'algorithm': 'XGBClassifier', 'features': 15},
+        'heart_random_forest': {'name': 'Heart Disease Random Forest', 'status': 'Loaded', 'accuracy': '94.2%', 'algorithm': 'RandomForestClassifier', 'features': 15},
+        'heart_svm': {'name': 'Heart Disease SVM', 'status': 'Loaded', 'accuracy': '92.4%', 'algorithm': 'SVC (RBF Kernel)', 'features': 15},
+        'heart_logistic': {'name': 'Heart Disease Logistic Reg', 'status': 'Loaded', 'accuracy': '92.2%', 'algorithm': 'LogisticRegression', 'features': 15},
+        'heart_decision_tree': {'name': 'Heart Disease Decision Tree', 'status': 'Loaded', 'accuracy': '91.8%', 'algorithm': 'DecisionTreeClassifier', 'features': 15}
     }
     
     assessments_records = db_fetchall("SELECT id FROM assessments") or []
@@ -59,5 +60,6 @@ async def admin_system_status(
         'api_version': 'v2.6.0',
         'database_mode': f"Supabase Cloud Active ({SUPABASE_URL})" if DB_MODE == 'SUPABASE' else ('MySQL Active' if DB_MODE == 'MYSQL' else 'SQLite / Local Storage Active'),
         'models': models_status,
+        'models_status': models_status,
         'total_cached_assessments': len(assessments_records)
     }

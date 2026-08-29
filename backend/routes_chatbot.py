@@ -130,22 +130,23 @@ async def chat_assistant(payload: ChatRequest):
                 "What are red-flag headache warning signs?"
             ]
 
-        # 6. General Healthcare & Medications Fallback
+        # 6. General Cardiovascular & Medical Guidance Fallback
         else:
-            category = "General Medical Advice"
-            specialist_rec = "General Physician"
+            category = "Cardiovascular & Clinical Guidance"
+            specialist_rec = "Cardiologist / Physician"
             response_text = (
-                f"### 🩺 HealthBot AI Clinical Overview\n\n"
+                f"### 🫀 HealthBot AI Cardiovascular Overview\n\n"
                 f"Thank you for reaching out regarding: *\"{user_msg}\"*.\n\n"
-                "**General Clinical Guidance:**\n"
-                "1. **Comprehensive Evaluation:** For personalized diagnostic clarity, ensure your vital signs (blood pressure, fasting glucose, heart rate) are recorded regularly.\n"
-                "2. **Preventive Wellness:** Prioritize a balanced Mediterranean-style diet, 150 minutes of weekly exercise, 7–8 hours of continuous sleep, and daily hydration (2.5L+).\n"
-                "3. **Regular Screenings:** Schedule routine annual health checkups and blood panels with your primary care provider."
+                "**Cardiovascular Health Recommendations:**\n"
+                "1. **Biometric Tracking:** Maintain a regular log of your resting blood pressure (<120/80 mmHg), total cholesterol (<200 mg/dL), and resting heart rate (60–80 BPM).\n"
+                "2. **Heart-Healthy Lifestyle:** Prioritize the DASH or Mediterranean diet, 150 minutes of weekly aerobic exercise, 7–8 hours of restorative sleep, and complete smoking cessation.\n"
+                "3. **Clinical Evaluation:** Consult your physician or cardiologist for routine ECG, lipid panels, and risk assessments."
             )
             suggested_prompts = [
-                "How can I check my disease risk scores?",
-                "What are normal fasting blood sugar levels?",
-                "How to upload a medical report for analysis?"
+                "How to lower blood pressure naturally?",
+                "What are normal cholesterol levels?",
+                "What are the early warning signs of heart disease?",
+                "How does exercise improve heart health?"
             ]
 
         return {

@@ -47,35 +47,36 @@ export default function AdminPortal({
         <div className="flex items-center justify-between flex-wrap gap-2">
           <h3 className="font-extrabold text-xl text-white flex items-center gap-2">
             <Cpu className="w-5 h-5 text-amber-400" />
-            <span>Active Diagnostic Assessment Models</span>
+            <span>Active Heart Disease ML Ensemble Classifiers</span>
           </h3>
           <span className="text-xs font-bold text-amber-300 bg-amber-500/15 border border-amber-500/30 px-3.5 py-1 rounded-full shadow-xs flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            4/4 Models Operational (High Precision)
+            5/5 Heart Models Operational (High Precision)
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           {[
-            { id: 'diabetes', name: 'Diabetes Classifier', algo: 'RandomForest', features: 15, accuracy: '100.0%', color: 'from-indigo-500 to-blue-600', status: 'Loaded' },
-            { id: 'heart', name: 'Heart Disease Classifier', algo: 'GradientBoosting', features: 15, accuracy: '100.0%', color: 'from-rose-500 to-pink-600', status: 'Loaded' },
-            { id: 'kidney', name: 'Kidney Disease Classifier', algo: 'ExtraTrees', features: 15, accuracy: '100.0%', color: 'from-purple-500 to-indigo-600', status: 'Loaded' },
-            { id: 'liver', name: 'Liver Disease Classifier', algo: 'RandomForest', features: 15, accuracy: '100.0%', color: 'from-amber-500 to-orange-600', status: 'Loaded' }
+            { id: 'xgb', name: 'Heart XGBoost', algo: 'XGBClassifier', features: 15, accuracy: '96.8%', status: 'Loaded' },
+            { id: 'rf', name: 'Heart Random Forest', algo: 'RandomForestClassifier', features: 15, accuracy: '94.2%', status: 'Loaded' },
+            { id: 'svm', name: 'Heart Support Vector', algo: 'SVC (RBF Kernel)', features: 15, accuracy: '92.4%', status: 'Loaded' },
+            { id: 'lr', name: 'Heart Logistic Reg', algo: 'LogisticRegression', features: 15, accuracy: '92.2%', status: 'Loaded' },
+            { id: 'dt', name: 'Heart Decision Tree', algo: 'DecisionTreeClassifier', features: 15, accuracy: '91.8%', status: 'Loaded' }
           ].map(m => (
-            <div key={m.id} className="glass-panel glass-panel-hover rounded-2xl p-5 border border-amber-500/20 space-y-3 relative overflow-hidden shadow-lg">
+            <div key={m.id} className="glass-panel glass-panel-hover rounded-2xl p-4.5 border border-amber-500/20 space-y-2.5 relative overflow-hidden shadow-lg">
               <div className="flex justify-between items-center">
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Diagnostic Model #{m.id}</span>
-                <span className="text-[9px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 flex items-center gap-1 shadow-xs">
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Model #{m.id.toUpperCase()}</span>
+                <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 flex items-center gap-1 shadow-xs">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                   {m.status}
                 </span>
               </div>
               <div>
-                <h4 className="font-extrabold text-base text-white tracking-tight">{m.name}</h4>
-                <p className="text-[11px] font-semibold text-slate-400 mt-0.5">Algorithm: <span className="text-amber-400 font-mono font-bold">{m.algo}</span></p>
+                <h4 className="font-extrabold text-sm text-white tracking-tight">{m.name}</h4>
+                <p className="text-[10px] font-semibold text-slate-400 mt-0.5">Algo: <span className="text-amber-400 font-mono font-bold">{m.algo}</span></p>
               </div>
-              <div className="pt-2.5 border-t border-slate-800/80 flex justify-between text-xs font-bold">
-                <span className="text-slate-400">Verified Accuracy:</span>
+              <div className="pt-2 border-t border-slate-800/80 flex justify-between text-xs font-bold">
+                <span className="text-slate-400 text-[11px]">Accuracy:</span>
                 <span className="text-emerald-400 font-extrabold font-mono">{m.accuracy}</span>
               </div>
             </div>

@@ -19,25 +19,25 @@ export default function HealthChatbot({
   const [copiedMsgId, setCopiedMsgId] = useState(null);
   const [activeCategoryTab, setActiveCategoryTab] = useState('all');
 
-  // Categorized Prompt Library
+  // Categorized Prompt Library for Cardiology & Heart Disease
   const promptCategories = [
     { id: 'all', label: '🌟 All Prompts' },
-    { id: 'cardio', label: '🫀 Heart & BP', icon: Heart },
-    { id: 'diabetes', label: '🩸 Glucose & Diabetes', icon: Droplets },
-    { id: 'fitness', label: '🏃 Fitness & Vitals', icon: Activity },
-    { id: 'diet', label: '🥗 Diet & Lifestyle', icon: Sparkles },
-    { id: 'triage', label: '🚨 Emergency FAQs', icon: ShieldAlert }
+    { id: 'cardio', label: '🫀 Heart Disease & CAD', icon: Heart },
+    { id: 'bp', label: '🩺 Blood Pressure & Arteries', icon: Activity },
+    { id: 'lipids', label: '🧪 Cholesterol & Lipids', icon: Droplets },
+    { id: 'lifestyle', label: '🏃 Cardio Fitness & Diet', icon: Sparkles },
+    { id: 'emergency', label: '🚨 Cardiac Warning Signs', icon: ShieldAlert }
   ];
 
   const suggestedPrompts = [
-    { cat: 'diabetes', label: '🩸 How to lower fasting blood sugar naturally?', prompt: 'How can I lower my fasting blood glucose levels through diet, exercise, and hydration?' },
-    { cat: 'cardio', label: '🫀 What are normal blood pressure ranges by age?', prompt: 'What are the current AHA guideline blood pressure stages for adults?' },
-    { cat: 'cardio', label: '🧪 What is an ideal LDL & HDL cholesterol level?', prompt: 'What is the recommended LDL and HDL cholesterol target for cardiovascular health?' },
-    { cat: 'fitness', label: '🏃 How much aerobic exercise is needed for heart health?', prompt: 'What is the recommended weekly duration of moderate-to-vigorous cardio exercise?' },
-    { cat: 'diet', label: '🥗 What is the DASH diet protocol for hypertension?', prompt: 'Explain the DASH diet eating plan and daily sodium limits for lowering blood pressure.' },
-    { cat: 'triage', label: '🚨 Red-flag symptoms for stroke or heart attack?', prompt: 'What are the warning signs of stroke (FAST) and acute myocardial infarction?' },
-    { cat: 'diabetes', label: '🍰 What is HbA1c and how often should it be tested?', prompt: 'What does the HbA1c test measure and what are the pre-diabetic and diabetic thresholds?' },
-    { cat: 'fitness', label: '😴 How does sleep duration impact blood pressure & metabolic risk?', prompt: 'How does getting less than 6 hours of sleep affect insulin resistance and blood pressure?' }
+    { cat: 'cardio', label: '🫀 What are early indicators of Coronary Artery Disease?', prompt: 'What are the early clinical signs, symptoms, and diagnostic tests for coronary artery disease?' },
+    { cat: 'bp', label: '🩺 What are normal blood pressure ranges by age (AHA)?', prompt: 'What are the current AHA guideline blood pressure stages for adults?' },
+    { cat: 'lipids', label: '🧪 What is an ideal LDL & HDL cholesterol target for heart health?', prompt: 'What is the recommended LDL and HDL cholesterol target for cardiovascular protection?' },
+    { cat: 'lifestyle', label: '🏃 How much aerobic cardio exercise is recommended weekly?', prompt: 'What is the recommended weekly duration and intensity of aerobic cardio exercise per AHA guidelines?' },
+    { cat: 'lifestyle', label: '🥗 What is the DASH diet protocol for cardiovascular health?', prompt: 'Explain the DASH diet eating plan and daily sodium limits for lowering blood pressure.' },
+    { cat: 'emergency', label: '🚨 What are the red-flag symptoms of acute myocardial infarction?', prompt: 'What are the emergency warning signs of heart attack and angina that require 911/ER triage?' },
+    { cat: 'cardio', label: '💓 How does resting heart rate reflect cardiovascular conditioning?', prompt: 'What is an optimal resting heart rate and how does heart rate variability (HRV) relate to cardiac health?' },
+    { cat: 'lipids', label: '🍰 How do triglycerides and fasting glucose affect arterial walls?', prompt: 'How does glycemic endothelial stress contribute to atherosclerosis and arterial plaque?' }
   ];
 
   const filteredPrompts = activeCategoryTab === 'all'

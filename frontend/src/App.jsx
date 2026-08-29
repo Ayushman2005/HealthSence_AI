@@ -97,7 +97,7 @@ export default function App() {
 
   const [retraining, setRetraining] = useState(false);
   const [resultsAssessment, setResultsAssessment] = useState(null);
-  const [expandedRisks, setExpandedRisks] = useState({ diabetes: false, heart: false, kidney: false, liver: false });
+  const [expandedRisks, setExpandedRisks] = useState({ heart: false, coronaryArtery: false, hypertensiveHeart: false, atherosclerosis: false, arrhythmia: false, cardioMetabolic: false });
 
   // History & Insights filter state
   const [historySearch, setHistorySearch] = useState('');
@@ -185,7 +185,7 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
-  // Compute live simulator results
+  // Compute live simulator results for Heart Disease & Cardiovascular Risk
   const liveSimResults = useMemo(() => {
     const age = parseFloat(simParams?.age) || 45;
     const bmi = parseFloat(simParams?.bmi) || 24;
@@ -196,31 +196,41 @@ export default function App() {
     const insulin = parseFloat(simParams?.insulin) || 10;
     const smoking = simParams?.smoking === 'yes';
     const alcoholHigh = simParams?.alcohol === 'high';
-    const alcoholMod = simParams?.alcohol === 'moderate';
     const sedentary = simParams?.physicalActivity === 'sedentary';
 
-    const zDiab = -5.0 + 0.048*(glucose - 90) + 0.075*(bmi - 24) + 0.025*(age - 35) + 0.020*(insulin - 8) + 0.012*(systolic - 120);
-    const diabProb = Math.min(99, Math.max(2, Math.round(100 / (1 + Math.exp(-zDiab))))) || 5;
+    // Core Heart Disease ML Logistic Approximation
+    const zHeart = -5.2 + 0.040*(systolic - 120) + 0.022*(cholesterol - 180) + 0.035*(age - 40) + (smoking ? 0.95 : 0) + 0.050*(bmi - 25) + (sedentary ? 0.45 : 0) + (alcoholHigh ? 0.5 : 0);
+    const heartProb = Math.min(99, Math.max(3, Math.round(100 / (1 + Math.exp(-zHeart))))) || 10;
 
-    const zHeart = -5.2 + 0.040*(systolic - 120) + 0.022*(cholesterol - 180) + 0.035*(age - 40) + (smoking ? 0.75 : 0) + 0.050*(bmi - 25) + (sedentary ? 0.4 : 0);
-    const heartProb = Math.min(99, Math.max(2, Math.round(100 / (1 + Math.exp(-zHeart))))) || 5;
+    // Sub-Risks
+    const zCad = -4.8 + 0.038*(systolic - 120) + 0.030*(cholesterol - 180) + 0.032*(age - 40) + (smoking ? 1.2 : 0) + 0.04*(bmi - 24);
+    const cadProb = Math.min(99, Math.max(3, Math.round(100 / (1 + Math.exp(-zCad))))) || 10;
 
-    const zKidney = -5.4 + 0.045*(systolic - 120) + 0.025*(glucose - 90) + 0.040*(age - 40) + 0.035*(bmi - 25) + 0.020*(diastolic - 75);
-    const kidneyProb = Math.min(99, Math.max(2, Math.round(100 / (1 + Math.exp(-zKidney))))) || 5;
+    const zHyp = -4.5 + 0.055*(systolic - 120) + 0.035*(diastolic - 80) + 0.03*(bmi - 24);
+    const hypProb = Math.min(99, Math.max(3, Math.round(100 / (1 + Math.exp(-zHyp))))) || 10;
 
-    const zLiver = -4.8 + (alcoholHigh ? 1.2 : alcoholMod ? 0.4 : 0) + 0.065*(bmi - 25) + 0.018*(cholesterol - 180) + 0.015*(glucose - 90) + 0.020*(age - 35);
-    const liverProb = Math.min(99, Math.max(2, Math.round(100 / (1 + Math.exp(-zLiver))))) || 5;
+    const zAth = -4.6 + 0.042*(cholesterol - 180) + 0.022*(glucose - 90) + (smoking ? 0.9 : 0) + 0.035*(age - 40);
+    const athProb = Math.min(99, Math.max(3, Math.round(100 / (1 + Math.exp(-zAth))))) || 10;
 
-    const maxRisk = Math.max(diabProb, heartProb, kidneyProb, liverProb);
-    let score = Math.min(98, Math.max(5, Math.round(100 - (maxRisk * 0.65 + (diabProb + heartProb + kidneyProb + liverProb)/4 * 0.35))));
+    const zArr = -5.0 + 0.025*(systolic - 120) + (alcoholHigh ? 0.8 : 0);
+    const arrProb = Math.min(99, Math.max(2, Math.round(100 / (1 + Math.exp(-zArr))))) || 8;
+
+    const zMet = -4.7 + 0.035*(glucose - 90) + 0.030*(insulin - 8) + 0.05*(bmi - 24) + (sedentary ? 0.5 : 0);
+    const metProb = Math.min(99, Math.max(3, Math.round(100 / (1 + Math.exp(-zMet))))) || 10;
+
+    const cardioAvg = (heartProb * 0.4) + (cadProb * 0.2) + (hypProb * 0.15) + (athProb * 0.15) + (arrProb * 0.1);
+    let score = Math.min(99, Math.max(15, Math.round(100 - (cardioAvg * 0.75))));
+    if (heartProb >= 70 || systolic >= 150) score = Math.max(15, score - 8);
     if (!Number.isFinite(score)) score = 85;
 
     return {
       risks: {
-        diabetes: Number.isFinite(diabProb) ? diabProb : 10,
-        heartDisease: Number.isFinite(heartProb) ? heartProb : 10,
-        kidneyDisease: Number.isFinite(kidneyProb) ? kidneyProb : 10,
-        liverDisease: Number.isFinite(liverProb) ? liverProb : 10
+        heartDisease: Number.isFinite(heartProb) ? heartProb : 15,
+        coronaryArtery: Number.isFinite(cadProb) ? cadProb : 12,
+        hypertensiveHeart: Number.isFinite(hypProb) ? hypProb : 14,
+        atherosclerosis: Number.isFinite(athProb) ? athProb : 10,
+        arrhythmia: Number.isFinite(arrProb) ? arrProb : 8,
+        cardioMetabolic: Number.isFinite(metProb) ? metProb : 10
       },
       overallScore: score
     };
@@ -711,29 +721,57 @@ export default function App() {
 
   const calculateFallbackRisks = (data, bmi) => {
     const age = parseInt(data.age) || 35;
-    let dRisk = 12 + (data.glucose ? (data.glucose - 90) * 0.45 : 0) + (bmi ? (bmi - 24) * 1.5 : 0) + (data.insulin ? (data.insulin - 8) * 0.8 : 0);
-    let hRisk = 10 + (data.bpSystolic ? (data.bpSystolic - 120) * 0.5 : 0) + (data.cholesterol ? (data.cholesterol - 180) * 0.25 : 0) + (data.smoking === 'yes' ? 15 : 0);
-    let kRisk = 8 + (data.bpSystolic ? (data.bpSystolic - 120) * 0.35 : 0) + (data.glucose ? (data.glucose - 90) * 0.3 : 0) + (age - 35) * 0.25;
-    let lRisk = 10 + (data.alcohol === 'high' ? 25 : data.alcohol === 'moderate' ? 10 : 0) + (bmi ? (bmi - 24) * 1.2 : 0) + (data.cholesterol ? (data.cholesterol - 180) * 0.15 : 0);
+    const sys = parseInt(data.bpSystolic) || 120;
+    const dia = parseInt(data.bpDiastolic) || 80;
+    const chol = parseInt(data.cholesterol) || 180;
+    const glu = parseInt(data.glucose) || 90;
+    const hr = parseInt(data.heartRate) || 70;
+    const isSmoker = data.smoking === 'yes';
 
-    const explanations = { diabetes: [], heartDisease: [], kidneyDisease: [], liverDisease: [] };
-    if (data.glucose >= 126) explanations.diabetes.push("Elevated fasting blood glucose levels detected.");
-    if (data.bpSystolic >= 140) explanations.heartDisease.push("Hypertension reading elevated above 140 mmHg.");
-    if (data.smoking === 'yes') explanations.heartDisease.push("Active smoking accelerates vascular plaque buildup.");
+    let hRisk = 12 + (sys - 120) * 0.45 + (chol - 180) * 0.22 + (isSmoker ? 18 : 0) + (bmi ? (bmi - 24) * 1.2 : 0) + (age - 35) * 0.3;
+    let cadRisk = 10 + (sys - 120) * 0.38 + (chol - 180) * 0.28 + (isSmoker ? 15 : 0) + (age - 40) * 0.35;
+    let hypRisk = 10 + (sys - 120) * 0.55 + (dia - 80) * 0.35 + (hr - 70) * 0.25;
+    let athRisk = 8 + (chol - 180) * 0.35 + (glu - 90) * 0.2 + (isSmoker ? 12 : 0);
+    let arrRisk = 8 + (hr - 70) * 0.45 + (sys - 120) * 0.2;
+    let metRisk = 10 + (glu - 90) * 0.35 + (bmi ? (bmi - 24) * 1.4 : 0);
+
+    const heartVal = Math.min(96, Math.max(5, Math.round(hRisk)));
+    const cadVal = Math.min(96, Math.max(5, Math.round(cadRisk)));
+    const hypVal = Math.min(96, Math.max(5, Math.round(hypRisk)));
+    const athVal = Math.min(96, Math.max(5, Math.round(athRisk)));
+    const arrVal = Math.min(96, Math.max(4, Math.round(arrRisk)));
+    const metVal = Math.min(96, Math.max(5, Math.round(metRisk)));
+
+    const explanations = {
+      heart: [],
+      heartDisease: [],
+      coronaryArtery: [],
+      hypertensiveHeart: [],
+      atherosclerosis: [],
+      arrhythmia: [],
+      cardioMetabolic: []
+    };
+    if (sys >= 130) explanations.heartDisease.push(`Systolic blood pressure of ${sys} mmHg increases cardiovascular strain.`);
+    if (chol > 200) explanations.heartDisease.push(`Total cholesterol (${chol} mg/dL) exceeds optimal limits (<200 mg/dL).`);
+    if (isSmoker) explanations.heartDisease.push("Active smoking accelerates coronary endothelial plaque buildup.");
+    if (sys >= 140) explanations.hypertensiveHeart.push(`Hypertension (${sys}/${dia} mmHg) creates pressure resistance on left ventricle.`);
+    if (chol >= 220) explanations.coronaryArtery.push(`Elevated serum lipids (${chol} mg/dL) increase coronary atheroma risk.`);
 
     return {
       risks: {
-        diabetes: Math.min(95, Math.max(5, Math.round(dRisk))),
-        heartDisease: Math.min(95, Math.max(5, Math.round(hRisk))),
-        kidneyDisease: Math.min(95, Math.max(5, Math.round(kRisk))),
-        liverDisease: Math.min(95, Math.max(5, Math.round(lRisk)))
+        heartDisease: heartVal,
+        coronaryArtery: cadVal,
+        hypertensiveHeart: hypVal,
+        atherosclerosis: athVal,
+        arrhythmia: arrVal,
+        cardioMetabolic: metVal
       },
-      overallScore: Math.max(15, 100 - (data.bpSystolic >= 140 ? 15 : 0) - (data.glucose >= 126 ? 18 : 0)),
+      overallScore: Math.max(15, 100 - Math.round(heartVal * 0.6 + (sys >= 140 ? 12 : 0) + (chol >= 220 ? 8 : 0))),
       confidence: 100,
       recommendations: {
-        immediate: data.bpSystolic >= 150 ? ["Schedule checkup for high BP."] : [],
-        lifestyle: data.smoking === 'yes' ? ["Start smoking cessation program."] : ["Maintain healthy activity levels."],
-        medical: ["Schedule standard yearly screenings."]
+        immediate: sys >= 150 ? ["Schedule urgent clinical checkup for high blood pressure."] : [],
+        lifestyle: isSmoker ? ["Start smoking cessation program.", "Incorporate 150 minutes of aerobic exercise weekly."] : ["Incorporate 150 minutes of aerobic exercise weekly."],
+        medical: ["Schedule standard yearly lipid panel and cardiology screening."]
       },
       explanations
     };
@@ -803,7 +841,7 @@ export default function App() {
     setResultsAssessment(newRecord);
     setPredicting(false);
     
-    showToast("Clinical Assessment Calculated!", "success");
+    showToast("Cardiovascular Assessment Calculated!", "success");
     setCurrentTab('results');
   };
 
@@ -882,10 +920,10 @@ export default function App() {
       const matchesSearch = a.name.toLowerCase().includes(historySearch.toLowerCase());
       if (historyFilter === 'all') return matchesSearch;
       
-      const maxRisk = Math.max(a.results.risks.diabetes, a.results.risks.heartDisease, a.results.risks.kidneyDisease, a.results.risks.liverDisease);
-      if (historyFilter === 'high') return matchesSearch && maxRisk >= 70;
-      if (historyFilter === 'medium') return matchesSearch && maxRisk >= 35 && maxRisk < 70;
-      if (historyFilter === 'low') return matchesSearch && maxRisk < 35;
+      const heartRisk = a.results?.risks?.heartDisease ?? a.results?.risks?.heart ?? 0;
+      if (historyFilter === 'high') return matchesSearch && heartRisk >= 65;
+      if (historyFilter === 'medium') return matchesSearch && heartRisk >= 35 && heartRisk < 65;
+      if (historyFilter === 'low') return matchesSearch && heartRisk < 35;
       return matchesSearch;
     });
   }, [assessments, historySearch, historyFilter]);
@@ -899,22 +937,30 @@ export default function App() {
 
   const overviewRadarData = useMemo(() => {
     if (!latestAssessment) return null;
+    const r = latestAssessment.results?.risks || {};
     return {
-      labels: ['Diabetes', 'Heart Disease', 'Kidney Disease', 'Liver Disease', 'Hypertension', 'Stroke Risk'],
+      labels: [
+        'Heart Disease (ML)',
+        'Coronary Artery (CAD)',
+        'Hypertensive Strain',
+        'Atherosclerosis Index',
+        'Cardiac Rhythm & HR',
+        'Cardio-Metabolic Synergy'
+      ],
       datasets: [{
-        label: 'Risk Likelihood (%)',
+        label: 'Cardiovascular Risk Profile (%)',
         data: [
-          latestAssessment.results.risks.diabetes,
-          latestAssessment.results.risks.heartDisease || latestAssessment.results.risks.heart || 0,
-          latestAssessment.results.risks.kidneyDisease || latestAssessment.results.risks.kidney || 0,
-          latestAssessment.results.risks.liverDisease || latestAssessment.results.risks.liver || 0,
-          latestAssessment.results.risks.hypertension || 0,
-          latestAssessment.results.risks.stroke || 0
+          r.heartDisease ?? r.heart ?? 15,
+          r.coronaryArtery ?? 12,
+          r.hypertensiveHeart ?? 14,
+          r.atherosclerosis ?? 10,
+          r.arrhythmia ?? 8,
+          r.cardioMetabolic ?? 10
         ],
-        backgroundColor: 'rgba(245, 158, 11, 0.2)',
-        borderColor: 'rgba(245, 158, 11, 0.8)',
+        backgroundColor: 'rgba(244, 63, 94, 0.2)',
+        borderColor: 'rgba(244, 63, 94, 0.9)',
         borderWidth: 2,
-        pointBackgroundColor: 'rgba(245, 158, 11, 1)',
+        pointBackgroundColor: 'rgba(244, 63, 94, 1)',
         pointBorderColor: '#fff',
       }]
     };

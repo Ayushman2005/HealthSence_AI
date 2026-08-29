@@ -94,7 +94,7 @@ export default function Insights({
             </div>
             
             <div className="glass-panel glass-panel-hover rounded-3xl p-6 flex-1 flex flex-col justify-center border border-rose-500/20">
-              <h4 className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 font-extrabold mb-1">Peak Disease Risk</h4>
+              <h4 className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 font-extrabold mb-1">Peak Heart Disease Risk</h4>
               <div className="text-3xl font-black text-slate-900 dark:text-white">{insightsAggregates.maxRisk}%</div>
               <p className="text-xs text-amber-500 font-black mt-1 uppercase tracking-wider">{insightsAggregates.advice}</p>
             </div>
