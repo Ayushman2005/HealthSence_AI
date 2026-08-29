@@ -851,7 +851,7 @@ export default function App() {
   const renderProtectedTab = (component) => {
     if (!authToken) {
       return (
-        <div className="max-w-[480px] mx-auto my-12 bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-2xl animate-fade-in backdrop-blur-md">
+        <div className="max-w-120 mx-auto my-12 bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-2xl animate-fade-in backdrop-blur-md">
           <div className="flex flex-col items-center text-center mb-8">
             <div className="w-16 h-16 bg-zinc-100 border border-zinc-200 text-zinc-900 rounded-2xl flex items-center justify-center mb-4">
               <ClipboardList className="w-8 h-8" />
@@ -1149,9 +1149,9 @@ export default function App() {
 
       {/* Ambient background glow mesh */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none">
-        <div className="absolute -top-20 -left-20 w-[42rem] h-[42rem] rounded-full bg-gradient-to-tr from-amber-500/15 via-yellow-500/12 to-amber-400/10 blur-[130px] animate-float-blob" />
-        <div className="absolute top-[35%] -right-20 w-[45rem] h-[45rem] rounded-full bg-gradient-to-tr from-yellow-500/15 via-amber-400/12 to-yellow-600/10 blur-[140px] animate-float-blob-reverse" />
-        <div className="absolute -bottom-20 left-[20%] w-[40rem] h-[40rem] rounded-full bg-gradient-to-tr from-amber-400/12 via-yellow-500/10 to-amber-500/10 blur-[120px] animate-float-blob-slow" />
+        <div className="absolute -top-20 -left-20 w-2xl h-2xl rounded-full bg-linear-to-tr from-amber-500/15 via-yellow-500/12 to-amber-400/10 blur-[130px] animate-float-blob" />
+        <div className="absolute top-[35%] -right-20 w-180 h-180 rounded-full bg-linear-to-tr from-yellow-500/15 via-amber-400/12 to-yellow-600/10 blur-[140px] animate-float-blob-reverse" />
+        <div className="absolute -bottom-20 left-[20%] w-160 h-160 rounded-full bg-linear-to-tr from-amber-400/12 via-yellow-500/10 to-amber-500/10 blur-[120px] animate-float-blob-slow" />
       </div>
 
       {/* Top Navbar Header */}
@@ -1169,11 +1169,11 @@ export default function App() {
       />
 
       {/* Main Container */}
-      <main className="flex-1 p-3 sm:p-6 md:p-8 w-full max-w-[1600px] mx-auto pb-24 sm:pb-12">
+      <main className="flex-1 p-3 sm:p-6 md:p-8 w-full max-w-400 mx-auto pb-24 sm:pb-12">
 
         {/* Admin Superuser Active Banner (Visible to Admin in User Views) */}
         {userProfile?.role === 'admin' && currentTab !== 'admin_portal' && (
-          <div className="mb-6 p-3 sm:p-4 rounded-2xl bg-gradient-to-r from-rose-950/60 via-slate-900/80 to-amber-950/40 border border-rose-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs shadow-lg animate-fade-in no-print">
+          <div className="mb-6 p-3 sm:p-4 rounded-2xl bg-linear-to-r from-rose-950/60 via-slate-900/80 to-amber-950/40 border border-rose-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs shadow-lg animate-fade-in no-print">
             <div className="flex items-center gap-2.5">
               <span className="w-2 h-2 rounded-full bg-rose-400 animate-pulse shrink-0" />
               <span className="font-bold text-slate-200">

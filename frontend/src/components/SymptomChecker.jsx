@@ -67,13 +67,13 @@ export default function SymptomChecker({
   };
 
   return (
-    <div className="max-w-[1200px] mx-auto space-y-8 animate-fade-in no-print text-slate-100">
+    <div className="max-w-300 mx-auto space-y-8 animate-fade-in no-print text-slate-100">
       
       {/* Header Hero Banner */}
-      <div className="glass-panel rounded-3xl p-6 md:p-8 border border-amber-500/25 shadow-2xl relative overflow-hidden bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950">
+      <div className="glass-panel rounded-3xl p-6 md:p-8 border border-amber-500/25 shadow-2xl relative overflow-hidden bg-linear-to-r from-slate-950 via-slate-900 to-slate-950">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative z-10">
           <div className="flex items-start gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 to-yellow-500 text-white flex items-center justify-center shadow-lg shadow-amber-500/30 shrink-0">
+            <div className="w-14 h-14 rounded-2xl bg-linear-to-tr from-amber-500 to-yellow-500 text-white flex items-center justify-center shadow-lg shadow-amber-500/30 shrink-0">
               <Stethoscope className="w-7 h-7" />
             </div>
             <div>
@@ -127,7 +127,7 @@ export default function SymptomChecker({
                       }}
                       className={`p-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                         isRegActive 
-                          ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-white shadow-md shadow-amber-500/30 scale-105 border border-amber-300'
+                          ? 'bg-linear-to-r from-amber-500 to-yellow-500 text-white shadow-md shadow-amber-500/30 scale-105 border border-amber-300'
                           : 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-slate-800'
                       }`}
                     >
@@ -291,7 +291,7 @@ export default function SymptomChecker({
                 handleCheckSymptom();
               }}
               disabled={analyzingSymptom}
-              className="w-full btn-magnetic bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 disabled:opacity-50 text-white py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/30 cursor-pointer"
+              className="w-full btn-magnetic bg-linear-to-r from-amber-500 via-amber-600 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 disabled:opacity-50 text-white py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/30 cursor-pointer"
             >
               {analyzingSymptom ? (
                 <>
@@ -401,7 +401,7 @@ export default function SymptomChecker({
                     resetWizard();
                     setCurrentTab('wizard');
                   }}
-                  className="w-full btn-magnetic py-3.5 px-4 bg-gradient-to-r from-amber-500 to-yellow-500 text-white rounded-2xl font-black text-xs flex items-center justify-center gap-2 shadow-md cursor-pointer"
+                  className="w-full btn-magnetic py-3.5 px-4 bg-linear-to-r from-amber-500 to-yellow-500 text-white rounded-2xl font-black text-xs flex items-center justify-center gap-2 shadow-md cursor-pointer"
                 >
                   <span>Run Full Disease Risk Assessor</span>
                   <ArrowRight className="w-4 h-4 text-white" />
@@ -420,7 +420,7 @@ export default function SymptomChecker({
 
             </div>
           ) : (
-            <div className="glass-panel rounded-3xl p-10 border border-amber-500/20 text-center flex flex-col items-center justify-center h-full space-y-4 shadow-sm min-h-[350px]">
+            <div className="glass-panel rounded-3xl p-10 border border-amber-500/20 text-center flex flex-col items-center justify-center h-full space-y-4 shadow-sm min-h-87.5">
               <div className="w-16 h-16 rounded-2xl bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center justify-center animate-pulse">
                 <Stethoscope className="w-8 h-8" />
               </div>

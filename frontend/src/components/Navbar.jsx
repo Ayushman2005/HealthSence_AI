@@ -56,7 +56,7 @@ export default function Navbar({
             }}
             className="flex items-center gap-3 cursor-pointer select-none group shrink-0"
           >
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-rose-500 via-amber-500 to-yellow-400 p-[2px] shadow-md shadow-amber-500/20 group-hover:scale-105 transition-transform duration-200">
+            <div className="w-10 h-10 rounded-2xl bg-linear-to-tr from-rose-500 via-amber-500 to-yellow-400 p-0.5 shadow-md shadow-amber-500/20 group-hover:scale-105 transition-transform duration-200">
               <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center p-1.5 overflow-hidden">
                 <img src="/logo.png" alt="HealthSence AI" className="w-full h-full object-contain" />
               </div>
@@ -127,7 +127,7 @@ export default function Navbar({
                     {userProfile?.name ? userProfile.name.charAt(0).toUpperCase() : 'U'}
                   </div>
                   <div className="hidden sm:flex flex-col">
-                    <span className="text-xs font-bold text-white max-w-[100px] truncate">
+                    <span className="text-xs font-bold text-white max-w-25 truncate">
                       {userProfile?.name || activeUser || 'User'}
                     </span>
                     <span className="text-[9px] text-slate-400 font-bold uppercase">

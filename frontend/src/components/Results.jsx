@@ -63,7 +63,7 @@ export default function Results({
   ];
 
   return (
-    <div className="max-w-[1150px] mx-auto space-y-8 animate-fade-in text-slate-100">
+    <div className="max-w-287.5 mx-auto space-y-8 animate-fade-in text-slate-100">
       
       {/* Header Action Buttons */}
       <div className="flex flex-col sm:flex-row gap-3 justify-between items-stretch sm:items-center no-print">
@@ -90,7 +90,7 @@ export default function Results({
           
           <button 
             onClick={() => window.print()}
-            className="w-full sm:w-auto btn-magnetic bg-gradient-to-r from-rose-500 via-rose-600 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white py-2.5 px-6 rounded-2xl font-black text-xs sm:text-sm inline-flex items-center justify-center gap-2 cursor-pointer transition shadow-lg shadow-rose-500/30"
+            className="w-full sm:w-auto btn-magnetic bg-linear-to-r from-rose-500 via-rose-600 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white py-2.5 px-6 rounded-2xl font-black text-xs sm:text-sm inline-flex items-center justify-center gap-2 cursor-pointer transition shadow-lg shadow-rose-500/30"
           >
             <Printer className="w-4 h-4" /> Print Diagnostic Report
           </button>
@@ -98,7 +98,7 @@ export default function Results({
       </div>
 
       {/* Health Score Overview card */}
-      <div className="glass-panel rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-center gap-8 print-card border border-rose-500/25 shadow-xl bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950">
+      <div className="glass-panel rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-center gap-8 print-card border border-rose-500/25 shadow-xl bg-linear-to-r from-slate-950 via-slate-900 to-slate-950">
         <div className="flex flex-col items-center shrink-0">
           <div className="circle-progress-container relative w-44 h-44 flex items-center justify-center cursor-pointer group">
             <svg className="w-full h-full transform -rotate-90 filter drop-shadow-md" viewBox="0 0 160 160">
@@ -384,7 +384,7 @@ export default function Results({
               <div 
                 className={`overflow-hidden transition-all duration-300 ease-in-out print-force-show ${
                   isExpanded
-                    ? 'max-h-[300px] opacity-100 mt-3 border border-slate-800 bg-slate-900/90 p-4 rounded-2xl' 
+                    ? 'max-h-75 opacity-100 mt-3 border border-slate-800 bg-slate-900/90 p-4 rounded-2xl' 
                     : 'max-h-0 opacity-0 mt-0 border-transparent p-0'
                 }`}
               >

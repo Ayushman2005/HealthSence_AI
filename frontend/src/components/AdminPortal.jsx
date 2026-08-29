@@ -62,7 +62,7 @@ export default function AdminPortal({
             soundFX.play('click');
             if (setCurrentTab) setCurrentTab('dashboard');
           }}
-          className="btn-magnetic px-6 py-3 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white font-bold text-xs rounded-2xl inline-flex items-center gap-2 cursor-pointer shadow-lg shadow-amber-500/30"
+          className="btn-magnetic px-6 py-3 bg-linear-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white font-bold text-xs rounded-2xl inline-flex items-center gap-2 cursor-pointer shadow-lg shadow-amber-500/30"
         >
           <ArrowRight className="w-4 h-4" /> Return to AI Health Dashboard
         </button>
@@ -82,7 +82,7 @@ export default function AdminPortal({
     <div className="space-y-8 animate-fade-in no-print text-slate-100">
       
       {/* Admin Portal Superuser Banner */}
-      <div className="glass-panel rounded-3xl p-6 md:p-8 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 text-white relative overflow-hidden border border-rose-500/30 shadow-2xl">
+      <div className="glass-panel rounded-3xl p-6 md:p-8 bg-linear-to-r from-slate-950 via-slate-900 to-slate-950 text-white relative overflow-hidden border border-rose-500/30 shadow-2xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
           <div className="space-y-2.5">
             <div className="flex items-center gap-2.5 flex-wrap">
@@ -121,7 +121,7 @@ export default function AdminPortal({
                 handleRetrain();
               }}
               disabled={retraining}
-              className="btn-magnetic px-6 py-3 bg-gradient-to-r from-rose-500 via-rose-600 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white font-bold text-xs rounded-2xl flex items-center gap-2 shadow-lg shadow-rose-500/30 cursor-pointer transition shrink-0 disabled:opacity-50"
+              className="btn-magnetic px-6 py-3 bg-linear-to-r from-rose-500 via-rose-600 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white font-bold text-xs rounded-2xl flex items-center gap-2 shadow-lg shadow-rose-500/30 cursor-pointer transition shrink-0 disabled:opacity-50"
             >
               <Cpu className={`w-4 h-4 ${retraining ? 'animate-spin' : ''}`} />
               {retraining ? 'Retraining Heart ML Models...' : 'Retrain Heart Models'}
@@ -272,7 +272,7 @@ export default function AdminPortal({
             </span>
           </div>
 
-          <div className="overflow-x-auto max-h-[280px] overflow-y-auto">
+          <div className="overflow-x-auto max-h-70 overflow-y-auto">
             <table className="w-full text-left text-xs">
               <thead>
                 <tr className="border-b border-slate-800 text-slate-400 font-extrabold uppercase tracking-wider text-[10px] sticky top-0 bg-slate-950/90 backdrop-blur-md">

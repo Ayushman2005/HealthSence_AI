@@ -149,7 +149,7 @@ export default function CommandPalette({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-start justify-center pt-20 sm:pt-28 p-4 no-print">
+    <div className="fixed inset-0 z-120 flex items-start justify-center pt-20 sm:pt-28 p-4 no-print">
       {/* Backdrop with blur */}
       <div 
         className="absolute inset-0 bg-slate-950/80 backdrop-blur-xl animate-fade-in transition-opacity"
@@ -187,7 +187,7 @@ export default function CommandPalette({
         </div>
 
         {/* Action List */}
-        <div className="max-h-[380px] overflow-y-auto p-2 space-y-1 bg-slate-950/80">
+        <div className="max-h-95 overflow-y-auto p-2 space-y-1 bg-slate-950/80">
           {filteredActions.length === 0 ? (
             <div className="p-8 text-center text-slate-500 text-xs font-bold">
               No matching clinical commands found for "{query}"
@@ -207,7 +207,7 @@ export default function CommandPalette({
                   onMouseEnter={() => setSelectedIndex(idx)}
                   className={`p-3 rounded-2xl flex items-center justify-between gap-4 cursor-pointer transition-all ${
                     isSelected 
-                      ? 'bg-gradient-to-r from-amber-500/20 via-yellow-500/15 to-transparent border border-amber-500/40 text-white shadow-md' 
+                      ? 'bg-linear-to-r from-amber-500/20 via-yellow-500/15 to-transparent border border-amber-500/40 text-white shadow-md' 
                       : 'border border-transparent text-slate-300 hover:text-white hover:bg-slate-900/60'
                   }`}
                 >

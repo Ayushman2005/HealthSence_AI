@@ -108,7 +108,7 @@ export default function SimulatorModal({
     : 8;
 
   return (
-    <div className="fixed inset-0 z-[999] glass-modal-backdrop flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-fade-in no-print">
+    <div className="fixed inset-0 z-999 glass-modal-backdrop flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-fade-in no-print">
       <div className="glass-modal-container rounded-3xl max-w-4xl w-full p-4 sm:p-8 shadow-2xl space-y-6 animate-modal-spring text-white my-auto border border-amber-500/30 bg-slate-950/95 backdrop-blur-2xl max-h-[92vh] overflow-y-auto custom-scrollbar">
         {/* Modal Header */}
         <div className="flex justify-between items-center border-b border-slate-800 pb-4">
@@ -166,7 +166,7 @@ export default function SimulatorModal({
         {/* Main Grid: Parameters Left, Real-Time Predictions Right */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Sliders Input Panel */}
-          <div className="lg:col-span-7 space-y-4 glass-panel rounded-2xl p-5 max-h-[420px] overflow-y-auto pr-3 border border-slate-800 bg-slate-900/70">
+          <div className="lg:col-span-7 space-y-4 glass-panel rounded-2xl p-5 max-h-105 overflow-y-auto pr-3 border border-slate-800 bg-slate-900/70">
             {/* Fasting Glucose Slider */}
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs font-bold">
@@ -566,7 +566,7 @@ export default function SimulatorModal({
                 setShowSimulatorModal(false);
                 setCurrentTab("wizard");
               }}
-              className="btn-magnetic w-full py-3.5 bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white font-black text-xs rounded-2xl shadow-lg shadow-amber-500/30 cursor-pointer transition active:scale-[0.98]"
+              className="btn-magnetic w-full py-3.5 bg-linear-to-r from-amber-500 via-amber-600 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white font-black text-xs rounded-2xl shadow-lg shadow-amber-500/30 cursor-pointer transition active:scale-[0.98]"
             >
               Import Parameters into Risk Assessor
             </button>

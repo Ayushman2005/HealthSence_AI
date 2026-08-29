@@ -32,10 +32,10 @@ export default function AuthModal({
       <div className="absolute top-[-15%] left-[-15%] w-[45%] h-[45%] bg-amber-500/15 rounded-full blur-[140px] pointer-events-none animate-float-blob" />
       <div className="absolute bottom-[-15%] right-[-15%] w-[45%] h-[45%] bg-yellow-500/15 rounded-full blur-[140px] pointer-events-none animate-float-blob-reverse" />
       
-      <div className="w-full max-w-[460px] glass-modal-container rounded-3xl p-8 md:p-10 shadow-2xl relative z-10 animate-modal-spring border border-amber-500/20">
+      <div className="w-full max-w-115 glass-modal-container rounded-3xl p-8 md:p-10 shadow-2xl relative z-10 animate-modal-spring border border-amber-500/20">
         
         <div className="flex flex-col items-center text-center mb-6">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 via-amber-600 to-yellow-400 p-[2px] shadow-lg shadow-amber-500/30 mb-4">
+          <div className="w-16 h-16 rounded-2xl bg-linear-to-tr from-amber-500 via-amber-600 to-yellow-400 p-0.5 shadow-lg shadow-amber-500/30 mb-4">
             <div className="w-full h-full bg-white dark:bg-slate-900 rounded-[14px] flex items-center justify-center p-2">
               <img 
                 src="/logo.png" 
@@ -93,7 +93,7 @@ export default function AuthModal({
             <button 
               type="submit" 
               disabled={loginLoading}
-              className="btn-magnetic w-full py-4 text-white bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 rounded-2xl font-black text-sm shadow-lg shadow-amber-500/35 cursor-pointer flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-50"
+              className="btn-magnetic w-full py-4 text-white bg-linear-to-r from-amber-500 via-amber-600 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 rounded-2xl font-black text-sm shadow-lg shadow-amber-500/35 cursor-pointer flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-50"
             >
               {loginLoading ? 'Authenticating...' : 'Sign In'}
               <ArrowRight className="w-4 h-4" />

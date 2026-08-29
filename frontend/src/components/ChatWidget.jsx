@@ -14,9 +14,9 @@ export default function ChatWidget({
     <div className="fixed bottom-4 right-4 z-50 no-print flex flex-col items-end gap-2">
       {/* Floating Mini Chat Popup Drawer */}
       {isChatWidgetOpen && (
-        <div className="w-[calc(100vw-32px)] sm:w-[380px] h-[72vh] max-h-[520px] glass-modal-container border border-amber-500/30 shadow-2xl rounded-3xl flex flex-col overflow-hidden animate-fade-in transition-all">
+        <div className="w-[calc(100vw-32px)] sm:w-95 h-[72vh] max-h-130 glass-modal-container border border-amber-500/30 shadow-2xl rounded-3xl flex flex-col overflow-hidden animate-fade-in transition-all">
           {/* Mini Header */}
-          <div className="p-3.5 bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500 text-white flex items-center justify-between shadow-xs shrink-0">
+          <div className="p-3.5 bg-linear-to-r from-amber-500 via-amber-600 to-yellow-500 text-white flex items-center justify-between shadow-xs shrink-0">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-xl bg-white/20 flex items-center justify-center font-bold">
                 <Bot className="w-4 h-4 text-white" />
@@ -94,7 +94,7 @@ export default function ChatWidget({
       {/* Floating Launcher Button */}
       <button
         onClick={() => setIsChatWidgetOpen(!isChatWidgetOpen)}
-        className="group relative flex items-center gap-2.5 px-4 py-3 bg-gradient-to-r from-amber-500 to-yellow-500 text-white font-extrabold text-xs rounded-full shadow-2xl shadow-amber-500/50 hover:scale-105 transition-all duration-300 cursor-pointer"
+        className="group relative flex items-center gap-2.5 px-4 py-3 bg-linear-to-r from-amber-500 to-yellow-500 text-white font-extrabold text-xs rounded-full shadow-2xl shadow-amber-500/50 hover:scale-105 transition-all duration-300 cursor-pointer"
       >
         <span className="relative flex h-3 w-3">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>

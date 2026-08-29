@@ -40,7 +40,7 @@ export default function Insights({
             resetWizard();
             setCurrentTab('wizard');
           }}
-          className="btn-magnetic bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white py-2.5 px-5 rounded-2xl font-black text-xs inline-flex items-center gap-1.5 cursor-pointer transition shadow-md shadow-amber-500/25"
+          className="btn-magnetic bg-linear-to-r from-amber-500 via-amber-600 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white py-2.5 px-5 rounded-2xl font-black text-xs inline-flex items-center gap-1.5 cursor-pointer transition shadow-md shadow-amber-500/25"
         >
           <PlusCircle className="w-4 h-4" /> Assess Patient Again
         </button>
@@ -55,7 +55,7 @@ export default function Insights({
           <p className="text-sm text-slate-600 dark:text-slate-400 font-medium max-w-sm">Perform a clinical assessment or upload a medical report to view longitudinal timeline graphs.</p>
           <button 
             onClick={() => setCurrentTab('wizard')}
-            className="btn-magnetic mt-2 bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500 text-white font-black py-3 px-6 rounded-2xl inline-flex items-center gap-2 cursor-pointer transition shadow-lg shadow-amber-500/25 text-xs"
+            className="btn-magnetic mt-2 bg-linear-to-r from-amber-500 via-amber-600 to-yellow-500 text-white font-black py-3 px-6 rounded-2xl inline-flex items-center gap-2 cursor-pointer transition shadow-lg shadow-amber-500/25 text-xs"
           >
             <PlusCircle className="w-4 h-4" /> Perform First Assessment
           </button>
@@ -64,12 +64,12 @@ export default function Insights({
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
           
           {/* Score Trend Line Chart */}
-          <div className="glass-panel rounded-3xl p-6 xl:col-span-8 h-[340px] border border-amber-500/20">
+          <div className="glass-panel rounded-3xl p-6 xl:col-span-8 h-85 border border-amber-500/20">
             <h2 className="font-black text-lg text-slate-900 dark:text-white mb-4 flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-amber-500" />
               <span>Overall Health Score Progression</span>
             </h2>
-            <div className="h-full max-h-[250px]">
+            <div className="h-full max-h-62.5">
               <Line 
                 data={insightsScoreTrendData}
                 options={{
@@ -101,9 +101,9 @@ export default function Insights({
           </div>
 
           {/* Biomarker charts timeline */}
-          <div className="glass-panel rounded-3xl p-6 xl:col-span-12 h-[340px] border border-amber-500/20">
+          <div className="glass-panel rounded-3xl p-6 xl:col-span-12 h-85 border border-amber-500/20">
             <h2 className="font-black text-lg text-slate-900 dark:text-white mb-4">Longitudinal Biomarkers Progression</h2>
-            <div className="h-full max-h-[250px]">
+            <div className="h-full max-h-62.5">
               <Line 
                 data={insightsVitalsData}
                 options={{

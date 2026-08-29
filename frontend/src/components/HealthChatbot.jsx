@@ -133,13 +133,13 @@ export default function HealthChatbot({
   };
 
   return (
-    <div className="max-w-[1200px] mx-auto space-y-6 animate-fade-in no-print text-slate-100">
+    <div className="max-w-300 mx-auto space-y-6 animate-fade-in no-print text-slate-100">
       
       {/* Upper Banner Card */}
-      <div className="glass-panel rounded-3xl p-6 border border-amber-500/20 shadow-xl relative overflow-hidden bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950">
+      <div className="glass-panel rounded-3xl p-6 border border-amber-500/20 shadow-xl relative overflow-hidden bg-linear-to-r from-slate-950 via-slate-900 to-slate-950">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative z-10">
           <div className="flex items-start gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 to-yellow-500 text-white flex items-center justify-center shadow-lg shadow-amber-500/30 shrink-0">
+            <div className="w-14 h-14 rounded-2xl bg-linear-to-tr from-amber-500 to-yellow-500 text-white flex items-center justify-center shadow-lg shadow-amber-500/30 shrink-0">
               <Bot className="w-7 h-7" />
             </div>
             <div>
@@ -232,7 +232,7 @@ export default function HealthChatbot({
       </div>
 
       {/* Main Chat Thread Window */}
-      <div className="glass-panel rounded-3xl border border-amber-500/20 shadow-xl flex flex-col h-[580px] overflow-hidden bg-slate-950/90">
+      <div className="glass-panel rounded-3xl border border-amber-500/20 shadow-xl flex flex-col h-145 overflow-hidden bg-slate-950/90">
         
         {/* Chat Messages Stream */}
         <div className="flex-1 p-6 overflow-y-auto space-y-6">
@@ -248,7 +248,7 @@ export default function HealthChatbot({
                 <div className={`w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 font-black text-xs shadow-md ${
                   msg.sender === 'user'
                     ? 'bg-slate-800 text-white border border-slate-700'
-                    : 'bg-gradient-to-tr from-amber-500 to-yellow-500 text-white shadow-amber-500/20'
+                    : 'bg-linear-to-tr from-amber-500 to-yellow-500 text-white shadow-amber-500/20'
                 }`}>
                   {msg.sender === 'user' ? <User className="w-5 h-5" /> : <Bot className="w-5 h-5" />}
                 </div>
@@ -401,7 +401,7 @@ export default function HealthChatbot({
             <button
               type="submit"
               disabled={chatLoading || !chatInput.trim()}
-              className="btn-magnetic px-4 sm:px-5 py-2.5 sm:py-3 bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 disabled:opacity-40 text-white rounded-2xl font-black text-xs flex items-center justify-center gap-1.5 shadow-md cursor-pointer shrink-0"
+              className="btn-magnetic px-4 sm:px-5 py-2.5 sm:py-3 bg-linear-to-r from-amber-500 via-amber-600 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 disabled:opacity-40 text-white rounded-2xl font-black text-xs flex items-center justify-center gap-1.5 shadow-md cursor-pointer shrink-0"
             >
               <span className="hidden sm:inline">Send</span>
               <Send className="w-4 h-4" />

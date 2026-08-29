@@ -89,7 +89,7 @@ export default function Wizard({
   }, [formData, calculatedBMI]);
 
   return (
-    <div className="max-w-[1250px] mx-auto animate-fade-in no-print space-y-8">
+    <div className="max-w-312.5 mx-auto animate-fade-in no-print space-y-8">
       
       {/* Quick Test Presets Bar */}
       <div className="glass-panel rounded-2xl p-4 border border-amber-500/25 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
@@ -112,10 +112,10 @@ export default function Wizard({
       </div>
 
       {/* Step navigation nodes */}
-      <div className="flex justify-between items-center relative mb-8 px-2 sm:px-6 max-w-[850px] mx-auto">
-        <div className="absolute top-[20px] sm:top-[24px] left-6 sm:left-8 right-6 sm:right-8 h-1 bg-slate-800 z-0 rounded-full"></div>
+      <div className="flex justify-between items-center relative mb-8 px-2 sm:px-6 max-w-212.5 mx-auto">
+        <div className="absolute top-5 sm:top-6 left-6 sm:left-8 right-6 sm:right-8 h-1 bg-slate-800 z-0 rounded-full"></div>
         <div 
-          className="absolute top-[20px] sm:top-[24px] left-6 sm:left-8 h-1 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 z-10 transition-all duration-500 rounded-full shadow-md shadow-amber-500/50"
+          className="absolute top-5 sm:top-6 left-6 sm:left-8 h-1 bg-linear-to-r from-amber-500 via-yellow-400 to-amber-500 z-10 transition-all duration-500 rounded-full shadow-md shadow-amber-500/50"
           style={{ width: `${((wizardStep - 1) / 2) * 85}%` }}
         ></div>
 
@@ -127,12 +127,12 @@ export default function Wizard({
           <div key={item.step} className="flex flex-col items-center gap-1.5 relative z-20">
             <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center font-black text-xs sm:text-sm border-2 transition-all duration-300 ${
               wizardStep === item.step
-                ? 'bg-gradient-to-tr from-amber-500 to-yellow-500 text-white border-amber-400 shadow-lg shadow-amber-500/35 ring-4 ring-amber-500/20 scale-105'
+                ? 'bg-linear-to-tr from-amber-500 to-yellow-500 text-white border-amber-400 shadow-lg shadow-amber-500/35 ring-4 ring-amber-500/20 scale-105'
                 : wizardStep > item.step
                   ? 'bg-emerald-500 text-white border-emerald-500 shadow-md shadow-emerald-500/20'
                   : 'bg-slate-900 text-slate-500 border-slate-700'
             }`}>
-              {wizardStep > item.step ? <Check className="w-5 h-5 stroke-[3]" /> : item.step}
+              {wizardStep > item.step ? <Check className="w-5 h-5 stroke-3" /> : item.step}
             </div>
             <span className={`text-[10px] sm:text-xs font-black transition-all text-center ${
               wizardStep === item.step ? 'text-amber-400' : 'text-slate-400'
@@ -396,7 +396,7 @@ export default function Wizard({
                     return (
                       <div key={item.key} className="flex flex-col gap-3 bg-slate-850 border border-slate-750 hover:border-amber-500/40 rounded-2xl p-4.5 transition-all duration-300 shadow-xs">
                         <div className="flex justify-between items-center text-xs font-extrabold text-slate-300 uppercase tracking-wider">
-                          <span className="truncate max-w-[200px] sm:max-w-none">{item.label}</span>
+                          <span className="truncate max-w-50 sm:max-w-none">{item.label}</span>
                           <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md border shrink-0 ${statusInfo.color}`}>
                             {statusInfo.label}
                           </span>
@@ -433,7 +433,7 @@ export default function Wizard({
 
                 {/* Algorithm Selection */}
                 <div className="pt-3 border-t border-slate-800">
-                  <label className="text-xs font-extrabold text-slate-300 uppercase tracking-wider block mb-2 flex items-center gap-1.5">
+                  <label className="text-xs font-extrabold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                     <Cpu className="w-4 h-4 text-amber-400" />
                     <span>Select Predictive Model Algorithm</span>
                   </label>
@@ -494,7 +494,7 @@ export default function Wizard({
                   handleNextStep();
                 }}
                 disabled={predicting}
-                className="w-full sm:w-auto btn-magnetic bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 disabled:opacity-50 text-white py-3.5 sm:py-3 px-7 rounded-2xl font-black text-xs sm:text-sm inline-flex items-center justify-center gap-2.5 cursor-pointer shadow-lg shadow-amber-500/30"
+                className="w-full sm:w-auto btn-magnetic bg-linear-to-r from-amber-500 via-amber-600 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 disabled:opacity-50 text-white py-3.5 sm:py-3 px-7 rounded-2xl font-black text-xs sm:text-sm inline-flex items-center justify-center gap-2.5 cursor-pointer shadow-lg shadow-amber-500/30"
               >
                 {predicting ? (
                   <>

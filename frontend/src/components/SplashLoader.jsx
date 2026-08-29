@@ -3,12 +3,12 @@ import React from 'react';
 export default function SplashLoader({ isInitialLoading, loadingPhase, loadingProgress }) {
   return (
     <div 
-      className={`fixed inset-0 z-[100] bg-[#0b0f19]/95 backdrop-blur-3xl flex flex-col items-center justify-center p-6 select-none transition-all duration-700 ease-out ${
+      className={`fixed inset-0 z-100 bg-[#0b0f19]/95 backdrop-blur-3xl flex flex-col items-center justify-center p-6 select-none transition-all duration-700 ease-out ${
         isInitialLoading ? 'opacity-100 pointer-events-auto scale-100' : 'opacity-0 pointer-events-none scale-105'
       }`}
     >
       {/* Ambient glow mesh behind loader */}
-      <div className="absolute w-[30rem] h-[30rem] rounded-full bg-gradient-to-tr from-amber-500/20 via-yellow-400/15 to-amber-300/10 blur-[130px] animate-float-blob pointer-events-none" />
+      <div className="absolute w-120 h-120 rounded-full bg-linear-to-tr from-amber-500/20 via-yellow-400/15 to-amber-300/10 blur-[130px] animate-float-blob pointer-events-none" />
 
       {/* Central Logo Ring Container */}
       <div className="relative flex items-center justify-center mb-8">
@@ -38,7 +38,7 @@ export default function SplashLoader({ isInitialLoading, loadingPhase, loadingPr
       {/* Dynamic Progress Bar */}
       <div className="w-72 h-2.5 bg-slate-800 rounded-full overflow-hidden border border-slate-700/80 shadow-inner mb-3">
         <div 
-          className="bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-400 h-full transition-all duration-200 rounded-full shadow-xs"
+          className="bg-linear-to-r from-amber-500 via-amber-400 to-yellow-400 h-full transition-all duration-200 rounded-full shadow-xs"
           style={{ width: `${loadingProgress}%` }}
         />
       </div>

@@ -122,7 +122,7 @@ export default function Account({
               <button
                 type="submit"
                 disabled={profileLoading}
-                className="btn-magnetic py-2.5 px-5 bg-gradient-to-r from-amber-500 to-yellow-500 text-white rounded-xl font-bold text-xs shadow-lg shadow-amber-500/25 cursor-pointer flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-50"
+                className="btn-magnetic py-2.5 px-5 bg-linear-to-r from-amber-500 to-yellow-500 text-white rounded-xl font-bold text-xs shadow-lg shadow-amber-500/25 cursor-pointer flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-50"
               >
                 {profileLoading ? "Saving..." : "Save Profile Details"}
               </button>
@@ -197,7 +197,7 @@ export default function Account({
 
             <button
               type="submit"
-              className="btn-magnetic py-2.5 px-5 bg-gradient-to-r from-amber-500 to-yellow-500 text-white rounded-xl font-bold text-xs shadow-lg shadow-amber-500/25 cursor-pointer flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
+              className="btn-magnetic py-2.5 px-5 bg-linear-to-r from-amber-500 to-yellow-500 text-white rounded-xl font-bold text-xs shadow-lg shadow-amber-500/25 cursor-pointer flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
             >
               Change Password
             </button>
