@@ -861,14 +861,15 @@ export default function App() {
   const renderProtectedTab = (component) => {
     if (!authToken) {
       return (
-        <div className="max-w-120 mx-auto my-12 bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-2xl animate-fade-in backdrop-blur-md">
+        <div className="max-w-120 mx-auto my-12 bg-white border border-slate-200 rounded-3xl p-8 shadow-xl animate-fade-in">
           <div className="flex flex-col items-center text-center mb-8">
-            <div className="w-16 h-16 bg-zinc-100 border border-zinc-200 text-zinc-900 rounded-2xl flex items-center justify-center mb-4">
+            <div className="w-16 h-16 bg-slate-100 border border-slate-200 text-slate-900 rounded-2xl flex items-center justify-center mb-4">
               <ClipboardList className="w-8 h-8" />
             </div>
-            <h3 className="font-extrabold text-2xl text-zinc-900">Database Access Portal</h3>
-            <p className="text-sm text-zinc-500 mt-2 max-w-sm">Enter administrator credentials to view patient assessment records, clinical vitals metrics, and retrain ML studio models.</p>
+            <h3 className="font-extrabold text-2xl text-slate-900">Database Access Portal</h3>
+            <p className="text-sm text-slate-500 mt-2 max-w-sm">Enter credentials to view patient assessment records, clinical vitals metrics, and retrain ML studio models.</p>
           </div>
+
           
           <form onSubmit={handleLogin} className="space-y-5">
             {loginError && (
@@ -1157,11 +1158,11 @@ export default function App() {
         loadingProgress={loadingProgress} 
       />
 
-      {/* Ambient background glow mesh */}
+      {/* Ambient background glow mesh (Clean subtle light tint) */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none">
-        <div className="absolute -top-20 -left-20 w-2xl h-2xl rounded-full bg-linear-to-tr from-amber-500/15 via-yellow-500/12 to-amber-400/10 blur-[130px] animate-float-blob" />
-        <div className="absolute top-[35%] -right-20 w-180 h-180 rounded-full bg-linear-to-tr from-yellow-500/15 via-amber-400/12 to-yellow-600/10 blur-[140px] animate-float-blob-reverse" />
-        <div className="absolute -bottom-20 left-[20%] w-160 h-160 rounded-full bg-linear-to-tr from-amber-400/12 via-yellow-500/10 to-amber-500/10 blur-[120px] animate-float-blob-slow" />
+        <div className="absolute -top-20 -left-20 w-2xl h-2xl rounded-full bg-linear-to-tr from-amber-100/50 via-yellow-100/30 to-amber-50/20 blur-[120px] animate-float-blob" />
+        <div className="absolute top-[35%] -right-20 w-180 h-180 rounded-full bg-linear-to-tr from-sky-100/40 via-blue-50/30 to-amber-50/20 blur-[130px] animate-float-blob-reverse" />
+        <div className="absolute -bottom-20 left-[20%] w-160 h-160 rounded-full bg-linear-to-tr from-emerald-50/30 via-amber-50/20 to-yellow-50/20 blur-[110px] animate-float-blob-slow" />
       </div>
 
       {/* Top Navbar Header */}
@@ -1179,15 +1180,15 @@ export default function App() {
       />
 
       {/* Main Container */}
-      <main className="flex-1 p-3 sm:p-6 md:p-8 w-full max-w-400 mx-auto pb-24 sm:pb-12">
+      <main className="flex-1 p-3 sm:p-6 md:p-8 w-full max-w-400 mx-auto pb-24 sm:pb-12 relative z-10">
 
         {/* Admin Superuser Active Banner (Visible to Admin in User Views) */}
         {userProfile?.role === 'admin' && currentTab !== 'admin_portal' && (
-          <div className="mb-6 p-3 sm:p-4 rounded-2xl bg-linear-to-r from-rose-950/60 via-slate-900/80 to-amber-950/40 border border-rose-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs shadow-lg animate-fade-in no-print">
+          <div className="mb-6 p-3 sm:p-4 rounded-2xl bg-rose-50 border border-rose-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs shadow-xs animate-fade-in no-print">
             <div className="flex items-center gap-2.5">
-              <span className="w-2 h-2 rounded-full bg-rose-400 animate-pulse shrink-0" />
-              <span className="font-bold text-slate-200">
-                <strong className="text-rose-400 font-black uppercase tracking-wider mr-1.5">👑 Admin Superuser Mode:</strong>
+              <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse shrink-0" />
+              <span className="font-bold text-slate-800">
+                <strong className="text-rose-600 font-black uppercase tracking-wider mr-1.5">👑 Admin Superuser Mode:</strong>
                 You have full access to test all patient clinical tools and manage the system.
               </span>
             </div>
@@ -1196,7 +1197,7 @@ export default function App() {
                 soundFX.play('switch');
                 setCurrentTab('admin_portal');
               }}
-              className="w-full sm:w-auto px-3.5 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 hover:text-white border border-rose-500/40 font-bold text-[11px] transition cursor-pointer shrink-0 text-center"
+              className="w-full sm:w-auto px-3.5 py-1.5 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-700 border border-rose-300 font-bold text-[11px] transition cursor-pointer shrink-0 text-center"
             >
               Open Admin Console &rarr;
             </button>
@@ -1206,7 +1207,7 @@ export default function App() {
         {/* Dynamic Page Header Title & Subtitle */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 sm:mb-8 no-print">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
               {currentTab === 'dashboard' && 'AI Health Risk Dashboard'}
               {currentTab === 'wizard' && 'Clinical Diagnostics Wizard'}
               {currentTab === 'symptom_checker' && 'AI Symptom Checker & Clinical Triage'}
@@ -1217,7 +1218,7 @@ export default function App() {
               {currentTab === 'account' && 'Account Settings & Management'}
               {currentTab === 'admin_portal' && 'Admin Governance & Management Portal'}
             </h1>
-            <p className="text-sm font-semibold text-slate-400 mt-1">
+            <p className="text-sm font-semibold text-slate-500 mt-1">
               {currentTab === 'dashboard' && 'Precision predictive metrics and diagnostic profiles.'}
               {currentTab === 'wizard' && 'Record biomarkers to calculate diagnostic health risk evaluations.'}
               {currentTab === 'symptom_checker' && 'Analyze physical symptoms (stomach ache, headache, fever, chest pain) to receive instant clinical triage & specialist advice.'}
@@ -1233,6 +1234,7 @@ export default function App() {
 
         {/* Tab Views */}
         {currentTab === 'dashboard' && (
+
           <Dashboard
             assessments={assessments}
             activeUser={activeUser}

@@ -79,29 +79,29 @@ export default function Dashboard({
   ];
 
   return (
-    <div className="space-y-6 animate-fade-in no-print text-slate-100 max-w-7xl mx-auto">
+    <div className="space-y-6 animate-fade-in no-print text-slate-800 max-w-7xl mx-auto">
       
       {/* 1. Main Hero Card: Health Score & Direct Assessment CTA */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
+      <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           
           {/* Left: Summary & Patient Status */}
           <div className="space-y-3 max-w-2xl">
             <div className="flex items-center gap-2">
-              <span className="px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-xs font-bold flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 {latestAssessment ? 'Latest Assessment Verified' : 'Ready for New Assessment'}
               </span>
-              <span className="text-xs text-slate-400 font-medium">
-                Patient: <strong className="text-white">{activeUser || 'Active Patient'}</strong>
+              <span className="text-xs text-slate-500 font-medium">
+                Patient: <strong className="text-slate-900">{activeUser || 'Active Patient'}</strong>
               </span>
             </div>
 
-            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
               {latestAssessment ? 'Cardiovascular Health Overview' : 'Check Your Heart Disease Risk in 2 Minutes'}
             </h2>
 
-            <p className="text-sm text-slate-300 font-medium leading-relaxed">
+            <p className="text-sm text-slate-600 font-medium leading-relaxed">
               {latestAssessment 
                 ? 'Your cardiovascular biomarkers and lifestyle habits indicate optimal heart health with low probability of coronary artery disease.'
                 : 'Evaluate your heart disease risk using 5 calibrated machine learning models. Enter your vitals to receive immediate clinical insights and actionable guidance.'}
@@ -114,7 +114,7 @@ export default function Dashboard({
                   soundFX.play('switch');
                   setCurrentTab('wizard');
                 }}
-                className="px-6 py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs inline-flex items-center gap-2 shadow-lg shadow-amber-500/20 transition cursor-pointer"
+                className="px-6 py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-black text-xs inline-flex items-center gap-2 shadow-sm shadow-amber-500/20 transition cursor-pointer"
               >
                 <HeartPulse className="w-4 h-4" />
                 <span>{latestAssessment ? 'Recalculate Heart Risk' : 'Start Heart Risk Check'}</span>
@@ -126,9 +126,9 @@ export default function Dashboard({
                     soundFX.play('switch');
                     setCurrentTab('results');
                   }}
-                  className="px-5 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs inline-flex items-center gap-2 border border-slate-700 transition cursor-pointer"
+                  className="px-5 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs inline-flex items-center gap-2 border border-slate-200 transition cursor-pointer"
                 >
-                  <Eye className="w-4 h-4 text-amber-400" />
+                  <Eye className="w-4 h-4 text-amber-600" />
                   <span>View Detailed Report</span>
                 </button>
               )}
@@ -136,13 +136,13 @@ export default function Dashboard({
           </div>
 
           {/* Right: Clean Heart Score Dial */}
-          <div className="flex flex-col items-center justify-center p-4 bg-slate-950/60 rounded-2xl border border-slate-800/80 min-w-50 shrink-0">
+          <div className="flex flex-col items-center justify-center p-5 bg-slate-50 rounded-2xl border border-slate-200 min-w-52 shrink-0 shadow-xs">
             <div className="relative w-28 h-28 flex items-center justify-center">
               <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="42" className="stroke-slate-800" strokeWidth="8" fill="none" />
+                <circle cx="50" cy="50" r="42" className="stroke-slate-200" strokeWidth="8" fill="none" />
                 <circle 
                   cx="50" cy="50" r="42" 
-                  className="stroke-amber-400 transition-all duration-1000" 
+                  className="stroke-amber-500 transition-all duration-1000" 
                   strokeWidth="8" 
                   strokeDasharray="264"
                   strokeDashoffset={264 - (264 * (latestAssessment?.results?.overallScore || 85)) / 100}
@@ -151,11 +151,11 @@ export default function Dashboard({
                 />
               </svg>
               <div className="absolute flex flex-col items-center">
-                <span className="text-2xl font-black text-white font-mono">{latestAssessment?.results?.overallScore || 85}</span>
-                <span className="text-[9px] text-slate-400 font-bold uppercase">/ 100 Score</span>
+                <span className="text-2xl font-black text-slate-900 font-mono">{latestAssessment?.results?.overallScore || 85}</span>
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">/ 100 Score</span>
               </div>
             </div>
-            <span className="text-xs font-bold text-emerald-400 mt-2">Optimal Heart Health</span>
+            <span className="text-xs font-bold text-emerald-600 mt-2.5">Optimal Heart Health</span>
           </div>
 
         </div>
@@ -166,15 +166,19 @@ export default function Dashboard({
         {vitals.map((v, idx) => {
           const Icon = v.icon;
           return (
-            <div key={idx} className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4.5 space-y-2">
+            <div key={idx} className="bg-white border border-slate-200 rounded-2xl p-4.5 space-y-2 shadow-xs">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-400">{v.label}</span>
-                <div className="p-1.5 rounded-lg bg-slate-800 text-amber-400">
+                <span className="text-xs font-bold text-slate-500">{v.label}</span>
+                <div className="p-1.5 rounded-lg bg-amber-50 text-amber-600">
                   <Icon className="w-4 h-4" />
                 </div>
               </div>
-              <div className="text-lg sm:text-xl font-black text-white font-mono">{v.value}</div>
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-block ${v.color}`}>
+              <div className="text-lg sm:text-xl font-black text-slate-900 font-mono">{v.value}</div>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-block ${
+                v.status === 'Normal' || v.status === 'Desirable' || v.status === 'Resting Sinus'
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                  : 'bg-amber-50 text-amber-700 border border-amber-200'
+              }`}>
                 {v.status}
               </span>
             </div>
@@ -186,16 +190,16 @@ export default function Dashboard({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Left: 6 Cardiovascular Risk Dimensions */}
-        <div className="lg:col-span-7 bg-slate-900/80 border border-slate-800 rounded-3xl p-6 space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="lg:col-span-7 bg-white border border-slate-200 rounded-3xl p-6 space-y-4 shadow-xs">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
-              <h3 className="font-bold text-base text-white flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-600" />
                 <span>Cardiovascular Risk Dimensions</span>
               </h3>
-              <p className="text-xs text-slate-400 mt-0.5">Calculated across 5 machine learning models</p>
+              <p className="text-xs text-slate-500 mt-0.5">Calculated across 5 machine learning models</p>
             </div>
-            <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+            <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
               Low Risk Range
             </span>
           </div>
@@ -204,91 +208,91 @@ export default function Dashboard({
             {risks.map((r, idx) => (
               <div key={idx} className="space-y-1.5">
                 <div className="flex justify-between items-center text-xs">
-                  <span className="font-bold text-slate-200">{r.label}</span>
-                  <span className="font-black text-emerald-400 font-mono">{r.value}% Risk</span>
+                  <span className="font-bold text-slate-700">{r.label}</span>
+                  <span className="font-black text-emerald-600 font-mono">{r.value}% Risk</span>
                 </div>
-                <div className="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
+                <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200">
                   <div 
-                    className="h-full bg-emerald-400 rounded-full transition-all duration-500" 
+                    className="h-full bg-emerald-500 rounded-full transition-all duration-500" 
                     style={{ width: `${Math.max(4, r.value)}%` }} 
                   />
                 </div>
-                <p className="text-[10px] text-slate-400 font-medium">{r.desc}</p>
+                <p className="text-[10px] text-slate-500 font-medium">{r.desc}</p>
               </div>
             ))}
           </div>
         </div>
 
         {/* Right: Quick What-If Simulator */}
-        <div className="lg:col-span-5 bg-slate-900/80 border border-slate-800 rounded-3xl p-6 space-y-5 flex flex-col justify-between">
+        <div className="lg:col-span-5 bg-white border border-slate-200 rounded-3xl p-6 space-y-5 flex flex-col justify-between shadow-xs">
           <div className="space-y-4">
-            <div className="border-b border-slate-800 pb-3">
-              <h3 className="font-bold text-base text-white flex items-center gap-2">
-                <Sliders className="w-4 h-4 text-amber-400" />
+            <div className="border-b border-slate-100 pb-3">
+              <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
+                <Sliders className="w-4 h-4 text-amber-600" />
                 <span>Quick "What-If" Habit Simulator</span>
               </h3>
-              <p className="text-xs text-slate-400 mt-0.5">Adjust habits to see projected heart score changes</p>
+              <p className="text-xs text-slate-500 mt-0.5">Adjust habits to see projected heart score changes</p>
             </div>
 
             {/* Slider 1: Systolic BP */}
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs font-bold">
-                <span className="text-slate-300">Systolic Blood Pressure</span>
-                <span className="text-amber-400 font-mono">{sliderBP} mmHg</span>
+                <span className="text-slate-600">Systolic Blood Pressure</span>
+                <span className="text-amber-600 font-mono">{sliderBP} mmHg</span>
               </div>
               <input 
                 type="range" min="100" max="180" step="2"
                 value={sliderBP}
                 onChange={e => setSliderBP(parseInt(e.target.value))}
-                className="w-full cursor-pointer accent-amber-400"
+                className="w-full cursor-pointer accent-amber-500"
               />
             </div>
 
             {/* Slider 2: Cholesterol */}
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs font-bold">
-                <span className="text-slate-300">Total Cholesterol</span>
-                <span className="text-amber-400 font-mono">{sliderChol} mg/dL</span>
+                <span className="text-slate-600">Total Cholesterol</span>
+                <span className="text-amber-600 font-mono">{sliderChol} mg/dL</span>
               </div>
               <input 
                 type="range" min="140" max="280" step="5"
                 value={sliderChol}
                 onChange={e => setSliderChol(parseInt(e.target.value))}
-                className="w-full cursor-pointer accent-amber-400"
+                className="w-full cursor-pointer accent-amber-500"
               />
             </div>
 
             {/* Slider 3: Sleep */}
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs font-bold">
-                <span className="text-slate-300">Daily Sleep Duration</span>
-                <span className="text-amber-400 font-mono">{sliderSleep} hrs</span>
+                <span className="text-slate-600">Daily Sleep Duration</span>
+                <span className="text-amber-600 font-mono">{sliderSleep} hrs</span>
               </div>
               <input 
                 type="range" min="4" max="10" step="0.5"
                 value={sliderSleep}
                 onChange={e => setSliderSleep(parseFloat(e.target.value))}
-                className="w-full cursor-pointer accent-amber-400"
+                className="w-full cursor-pointer accent-amber-500"
               />
             </div>
           </div>
 
           {/* Projected Outcome Box */}
-          <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
-            <div className="flex justify-between items-center text-xs font-bold text-slate-300">
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+            <div className="flex justify-between items-center text-xs font-bold text-slate-700">
               <span>Projected Heart Score:</span>
-              <span className="text-lg font-black text-amber-400 font-mono">{liveProjectedScore} / 100</span>
+              <span className="text-lg font-black text-amber-600 font-mono">{liveProjectedScore} / 100</span>
             </div>
-            <div className="flex justify-between items-center text-xs font-bold text-slate-300">
+            <div className="flex justify-between items-center text-xs font-bold text-slate-700">
               <span>Projected Heart Risk:</span>
-              <span className="text-sm font-black text-emerald-400 font-mono">{liveProjectedRisk}%</span>
+              <span className="text-sm font-black text-emerald-600 font-mono">{liveProjectedRisk}%</span>
             </div>
             <button
               onClick={() => {
                 soundFX.play('switch');
                 setCurrentTab('wizard');
               }}
-              className="w-full mt-2 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-850 text-amber-300 text-xs font-bold border border-slate-700 flex items-center justify-center gap-1.5 cursor-pointer transition"
+              className="w-full mt-2 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-amber-600 text-xs font-bold border border-slate-200 flex items-center justify-center gap-1.5 cursor-pointer transition shadow-xs"
             >
               <span>Test in Full Assessment</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -308,20 +312,20 @@ export default function Dashboard({
             soundFX.play('switch');
             setCurrentTab('wizard');
           }}
-          className="bg-slate-900/80 hover:bg-slate-850 border border-slate-800 hover:border-amber-500/40 rounded-3xl p-5 space-y-3 cursor-pointer transition-all hover:scale-[1.01] group"
+          className="bg-white hover:bg-slate-50 border border-slate-200 hover:border-amber-400 rounded-3xl p-5 space-y-3 cursor-pointer transition-all hover:scale-[1.01] group shadow-xs"
         >
-          <div className="w-10 h-10 rounded-2xl bg-amber-500/15 text-amber-400 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100">
             <HeartPulse className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="font-bold text-sm text-white group-hover:text-amber-400 transition-colors">
+            <h4 className="font-bold text-sm text-slate-900 group-hover:text-amber-600 transition-colors">
               Risk Assessor Wizard
             </h4>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-slate-500 mt-1">
               Step-by-step assessment calculating 6 heart risk sub-dimensions with 5 ML models.
             </p>
           </div>
-          <div className="text-xs font-bold text-amber-400 flex items-center gap-1 pt-1">
+          <div className="text-xs font-bold text-amber-600 flex items-center gap-1 pt-1">
             <span>Start Assessment</span>
             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
           </div>
@@ -333,20 +337,20 @@ export default function Dashboard({
             soundFX.play('switch');
             setCurrentTab('symptom_checker');
           }}
-          className="bg-slate-900/80 hover:bg-slate-850 border border-slate-800 hover:border-yellow-500/40 rounded-3xl p-5 space-y-3 cursor-pointer transition-all hover:scale-[1.01] group"
+          className="bg-white hover:bg-slate-50 border border-slate-200 hover:border-yellow-500/40 rounded-3xl p-5 space-y-3 cursor-pointer transition-all hover:scale-[1.01] group shadow-xs"
         >
-          <div className="w-10 h-10 rounded-2xl bg-yellow-500/15 text-yellow-400 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-2xl bg-yellow-50 text-yellow-600 flex items-center justify-center border border-yellow-100">
             <Stethoscope className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="font-bold text-sm text-white group-hover:text-yellow-400 transition-colors">
+            <h4 className="font-bold text-sm text-slate-900 group-hover:text-yellow-600 transition-colors">
               Symptom Checker & Triage
             </h4>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-slate-500 mt-1">
               Analyze chest pain, shortness of breath, or fatigue for immediate red-flag detection.
             </p>
           </div>
-          <div className="text-xs font-bold text-yellow-400 flex items-center gap-1 pt-1">
+          <div className="text-xs font-bold text-yellow-600 flex items-center gap-1 pt-1">
             <span>Check Symptoms</span>
             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
           </div>
@@ -358,20 +362,20 @@ export default function Dashboard({
             soundFX.play('switch');
             setCurrentTab('chatbot');
           }}
-          className="bg-slate-900/80 hover:bg-slate-850 border border-slate-800 hover:border-emerald-500/40 rounded-3xl p-5 space-y-3 cursor-pointer transition-all hover:scale-[1.01] group"
+          className="bg-white hover:bg-slate-50 border border-slate-200 hover:border-emerald-500/40 rounded-3xl p-5 space-y-3 cursor-pointer transition-all hover:scale-[1.01] group shadow-xs"
         >
-          <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
             <Bot className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="font-bold text-sm text-white group-hover:text-emerald-400 transition-colors">
+            <h4 className="font-bold text-sm text-slate-900 group-hover:text-emerald-600 transition-colors">
               HealthBot AI Assistant
             </h4>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-slate-500 mt-1">
               Ask questions on blood pressure, cholesterol management, DASH diet, and cardiac health.
             </p>
           </div>
-          <div className="text-xs font-bold text-emerald-400 flex items-center gap-1 pt-1">
+          <div className="text-xs font-bold text-emerald-600 flex items-center gap-1 pt-1">
             <span>Chat with AI</span>
             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
           </div>
@@ -382,3 +386,4 @@ export default function Dashboard({
     </div>
   );
 }
+

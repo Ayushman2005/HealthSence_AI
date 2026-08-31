@@ -352,7 +352,8 @@ export default function SimulatorModal({
           </div>
 
           {/* Real-time Dynamic Gauge & Risk Meters Right */}
-          <div className="lg:col-span-5 flex flex-col justify-between space-y-4 glass-panel rounded-2xl p-6 border border-slate-800 bg-slate-900/70">
+          {/* Real-time Dynamic Gauge & Risk Meters Right */}
+          <div className="lg:col-span-5 flex flex-col justify-between space-y-4 glass-panel rounded-2xl p-6 border border-slate-200 bg-white">
             {/* Simulated Overall Health Score Radial Meter */}
             <div className="flex flex-col items-center">
               <div className="relative w-32 h-32 flex items-center justify-center circle-progress-container">
@@ -361,7 +362,7 @@ export default function SimulatorModal({
                   viewBox="0 0 160 160"
                 >
                   <circle
-                    className="stroke-slate-800 fill-none"
+                    className="stroke-slate-200 fill-none"
                     cx="80"
                     cy="80"
                     r="68"
@@ -386,15 +387,16 @@ export default function SimulatorModal({
                   ></circle>
                 </svg>
                 <div className="absolute text-center">
-                  <div className="text-3xl font-black text-white font-mono">
+                  <div className="text-3xl font-black text-slate-900 font-mono">
                     {overallScore}
                   </div>
-                  <div className="text-[9px] uppercase tracking-widest text-slate-400 font-extrabold">
+                  <div className="text-[9px] uppercase tracking-widest text-slate-500 font-extrabold">
                     Simulated Score
                   </div>
                 </div>
               </div>
             </div>
+
 
             {/* 5 Cardiovascular Risk Live Progress Bars */}
             <div className="space-y-2.5">

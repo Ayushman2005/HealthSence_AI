@@ -112,11 +112,11 @@ export default function Results({
       </div>
 
       {/* Health Score Overview card */}
-      <div className="glass-panel rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-center gap-8 print-card border border-rose-500/25 shadow-xl bg-linear-to-r from-slate-950 via-slate-900 to-slate-950">
+      <div className="glass-panel rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-center gap-8 print-card border border-slate-200 shadow-xs bg-white">
         <div className="flex flex-col items-center shrink-0">
           <div className="circle-progress-container relative w-44 h-44 flex items-center justify-center cursor-pointer group">
-            <svg className="w-full h-full transform -rotate-90 filter drop-shadow-md" viewBox="0 0 160 160">
-              <circle className="stroke-slate-800 fill-none" cx="80" cy="80" r="70" strokeWidth="10"></circle>
+            <svg className="w-full h-full transform -rotate-90 filter drop-shadow-xs" viewBox="0 0 160 160">
+              <circle className="stroke-slate-200 fill-none" cx="80" cy="80" r="70" strokeWidth="10"></circle>
               <circle 
                 className="transition-all duration-1000 ease-out fill-none"
                 cx="80" 
@@ -130,8 +130,8 @@ export default function Results({
               ></circle>
             </svg>
             <div className="absolute text-center group-hover:scale-110 transition-transform">
-              <div className="text-4xl font-black text-white font-mono">{resultsAssessment.results.overallScore}</div>
-              <div className="text-[10px] uppercase tracking-widest text-slate-400 font-extrabold mt-1">Cardio Score</div>
+              <div className="text-4xl font-black text-slate-900 font-mono">{resultsAssessment.results.overallScore}</div>
+              <div className="text-[10px] uppercase tracking-widest text-slate-500 font-extrabold mt-1">Cardio Score</div>
             </div>
           </div>
           <span className={`text-xs font-black uppercase tracking-wider px-4 py-1.5 rounded-full mt-4 border ${getScoreBadgeStyles(resultsAssessment.results.overallScore).style}`}>
@@ -141,23 +141,24 @@ export default function Results({
 
         <div className="flex-1 space-y-3">
           <div className="flex items-center gap-3 flex-wrap">
-            <h3 className="font-black text-2xl text-white tracking-tight flex items-center gap-2">
+            <h3 className="font-black text-2xl text-slate-900 tracking-tight flex items-center gap-2">
               <Heart className="w-6 h-6 text-rose-500 animate-pulse" />
               <span>Cardiovascular & Heart Disease Diagnostic Report</span>
             </h3>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-black text-xs rounded-full shadow-xs">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" /> High Precision Cardiology Model
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 font-black text-xs rounded-full shadow-xs">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" /> High Precision Cardiology Model
             </span>
           </div>
-          <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-300">
-            <span className="bg-slate-900 text-white px-3 py-1 rounded-xl border border-slate-800">Patient: {resultsAssessment.name}</span>
-            <span className="bg-slate-900 text-slate-300 px-3 py-1 rounded-xl border border-slate-800">Age: {resultsAssessment.personal?.age} yrs</span>
-            <span className="bg-slate-900 text-slate-300 px-3 py-1 rounded-xl border border-slate-800">BMI: {resultsAssessment.personal?.bmi} kg/m²</span>
-            <span className="bg-slate-900 text-slate-300 px-3 py-1 rounded-xl border border-slate-800">Computed: {new Date(resultsAssessment.timestamp).toLocaleDateString()}</span>
+          <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-600">
+            <span className="bg-slate-50 text-slate-900 px-3 py-1 rounded-xl border border-slate-200">Patient: {resultsAssessment.name}</span>
+            <span className="bg-slate-50 text-slate-700 px-3 py-1 rounded-xl border border-slate-200">Age: {resultsAssessment.personal?.age} yrs</span>
+            <span className="bg-slate-50 text-slate-700 px-3 py-1 rounded-xl border border-slate-200">BMI: {resultsAssessment.personal?.bmi} kg/m²</span>
+            <span className="bg-slate-50 text-slate-700 px-3 py-1 rounded-xl border border-slate-200">Computed: {new Date(resultsAssessment.timestamp).toLocaleDateString()}</span>
           </div>
-          <p className="text-xs text-slate-300 leading-relaxed font-medium">
+          <p className="text-xs text-slate-600 leading-relaxed font-medium">
             Physiological biomarkers analyzed by the Heart Disease ML ensemble. Risk probabilities pinpoint targeted coronary, hemodynamic, and electrophysiological dimensions.
           </p>
+
           <div className="flex items-center gap-2 pt-1 flex-wrap">
             <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Cardio Ensemble:</span>
             <span className="text-[10px] font-black bg-slate-900 text-amber-300 border border-amber-500/20 px-2.5 py-0.5 rounded-md">XGBoost 96.8%</span>

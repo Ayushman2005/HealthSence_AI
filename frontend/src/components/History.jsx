@@ -45,16 +45,16 @@ export default function History({
 
       {/* History grid table */}
       {filteredAssessments.length === 0 ? (
-        <div className="glass-panel rounded-3xl p-12 text-center flex flex-col items-center gap-4 border border-amber-500/20">
+        <div className="glass-panel rounded-3xl p-12 text-center flex flex-col items-center gap-4 border border-slate-200 bg-white">
           <Inbox className="w-16 h-16 text-amber-500 animate-pulse" />
-          <h3 className="font-black text-xl text-slate-900 dark:text-white">No logs found</h3>
-          <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">No diagnostic assessments fit the selected query parameters.</p>
+          <h3 className="font-black text-xl text-slate-900">No logs found</h3>
+          <p className="text-sm text-slate-600 font-medium">No diagnostic assessments fit the selected query parameters.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto border border-amber-500/20 rounded-3xl glass-panel shadow-sm">
+        <div className="overflow-x-auto border border-slate-200 rounded-3xl glass-panel shadow-xs bg-white">
           <table className="w-full text-left border-collapse text-sm">
             <thead>
-              <tr className="bg-amber-500/10 border-b border-amber-500/20 text-slate-700 dark:text-slate-200 font-black">
+              <tr className="bg-amber-50/60 border-b border-slate-200 text-slate-700 font-black">
                 <th className="p-4 px-6">Patient Profile</th>
                 <th className="p-4">Calculated Date</th>
                 <th className="p-4">Cardio Score</th>
@@ -66,7 +66,7 @@ export default function History({
                 <th className="p-4 px-6 text-center">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-amber-500/10">
+            <tbody className="divide-y divide-slate-100">
               {filteredAssessments.map(item => {
                 const heartVal = item.results.risks.heartDisease ?? item.results.risks.heart ?? 15;
                 const rDetails = getRiskLevelDetails(heartVal);
@@ -74,24 +74,25 @@ export default function History({
                 const dateFormatted = `${dateObj.toLocaleDateString()} ${dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
                 
                 return (
-                  <tr key={item.id} className="hover:bg-amber-500/5 transition">
+                  <tr key={item.id} className="hover:bg-slate-50 transition">
                     <td className="p-4 px-6">
                       <div className="flex flex-col">
-                        <span className="font-black text-slate-900 dark:text-white">{item.name}</span>
-                        <span className="text-xs text-slate-500 dark:text-slate-400 font-bold">{item.personal.gender.toUpperCase()}, {item.personal.age} yrs</span>
+                        <span className="font-black text-slate-900">{item.name}</span>
+                        <span className="text-xs text-slate-500 font-bold">{item.personal.gender.toUpperCase()}, {item.personal.age} yrs</span>
                       </div>
                     </td>
-                    <td className="p-4 font-bold text-slate-600 dark:text-slate-300">{dateFormatted}</td>
-                    <td className="p-4 font-black text-amber-500">{item.results.overallScore}/100</td>
-                    <td className="p-4 font-extrabold text-rose-400">{heartVal}%</td>
-                    <td className="p-4 font-extrabold text-slate-800 dark:text-slate-200">{item.medical?.bpSystolic}/{item.medical?.bpDiastolic} mmHg</td>
-                    <td className="p-4 font-extrabold text-slate-800 dark:text-slate-200">{item.medical?.cholesterol} mg/dL</td>
-                    <td className="p-4 font-extrabold text-slate-800 dark:text-slate-200">{item.medical?.heartRate || 70} BPM</td>
+                    <td className="p-4 font-bold text-slate-600">{dateFormatted}</td>
+                    <td className="p-4 font-black text-amber-600">{item.results.overallScore}/100</td>
+                    <td className="p-4 font-extrabold text-rose-600">{heartVal}%</td>
+                    <td className="p-4 font-extrabold text-slate-800">{item.medical?.bpSystolic}/{item.medical?.bpDiastolic} mmHg</td>
+                    <td className="p-4 font-extrabold text-slate-800">{item.medical?.cholesterol} mg/dL</td>
+                    <td className="p-4 font-extrabold text-slate-800">{item.medical?.heartRate || 70} BPM</td>
                     <td className="p-4">
                       <span className={`text-[10px] font-black uppercase tracking-wider border rounded-full px-2.5 py-0.5 ${rDetails.badge}`}>
                         {rDetails.label.split(' ')[0]}
                       </span>
                     </td>
+
                     <td className="p-4 px-6">
                       <div className="flex justify-center gap-2">
                         <button 
