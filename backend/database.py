@@ -74,25 +74,43 @@ def get_db_connection():
 def sync_supabase_schema():
     """Auto-synchronizes supabase_schema.sql with Supabase Cloud Database."""
     schema_path = os.path.join(BASE_DIR, "supabase_schema.sql")
-    if not os.path.exists(schema_path):
-        return
 
     try:
         db_url = os.environ.get("SUPABASE_DB_URL", "").strip() or os.environ.get("POSTGRES_URL", "").strip()
         if db_url and HAS_PSYCOPG2:
             import psycopg2
-            print("Auto-synchronizing supabase_schema.sql with Supabase PostgreSQL database...")
-            with open(schema_path, "r", encoding="utf-8") as f:
-                sql_content = f.read()
+            print("Auto-synchronizing schema with Supabase PostgreSQL database...")
             conn = psycopg2.connect(db_url)
+            conn.autocommit = True
             cursor = conn.cursor()
-            cursor.execute(sql_content)
-            conn.commit()
+            
+            # 1. Ensure username column exists on assessments table
+            try:
+                cursor.execute("ALTER TABLE public.assessments ADD COLUMN IF NOT EXISTS username TEXT NOT NULL DEFAULT 'admin';")
+            except Exception as e:
+                print(f"Notice on column migration: {e}")
+
+            # 2. Synchronize full schema file if exists
+            if os.path.exists(schema_path):
+                try:
+                    with open(schema_path, "r", encoding="utf-8") as f:
+                        sql_content = f.read()
+                    cursor.execute(sql_content)
+                except Exception as s_err:
+                    print(f"Notice on schema SQL execution: {s_err}")
+
+            # 3. Reload PostgREST schema cache
+            try:
+                cursor.execute("NOTIFY pgrst, 'reload schema';")
+            except Exception:
+                pass
+
             cursor.close()
             conn.close()
-            print("Successfully synchronized supabase_schema.sql with Supabase Cloud Database!")
+            print("Successfully synchronized schema with Supabase Cloud Database!")
     except Exception as err:
         print(f"Notice during automatic schema synchronization: {err}")
+
 
 def init_db():
     global DB_MODE, USE_SQLITE, supabase_client
@@ -388,15 +406,32 @@ def db_fetchall(query: str, params: tuple = None) -> List[Dict[str, Any]]:
             elif "FROM ASSESSMENTS" in query_upper:
                 if "SELECT ID FROM ASSESSMENTS" in query_upper:
                     res = supabase_client.table("assessments").select("id").execute()
+                    return res.data or []
                 elif "WHERE USERNAME =" in query_upper or "WHERE LOWER(USERNAME) =" in query_upper:
                     username = str(params[0]) if params else ""
-                    res = supabase_client.table("assessments").select("*").ilike("username", username).order("timestamp", desc=True).execute()
+                    try:
+                        res = supabase_client.table("assessments").select("*").ilike("username", username).order("timestamp", desc=True).execute()
+                        return res.data or []
+                    except Exception as select_err:
+                        err_msg = str(select_err).lower()
+                        if "username" in err_msg or "42703" in err_msg:
+                            res = supabase_client.table("assessments").select("*").order("timestamp", desc=True).execute()
+                            all_data = res.data or []
+                            filtered = [
+                                row for row in all_data
+                                if (row.get('username') and str(row.get('username')).lower() == username.lower())
+                                or (isinstance(row.get('personal'), dict) and str(row.get('personal', {}).get('name', '')).lower() == username.lower())
+                                or str(row.get('name', '')).lower() == username.lower()
+                            ]
+                            return filtered
+                        raise select_err
                 else:
                     res = supabase_client.table("assessments").select("*").order("timestamp", desc=True).execute()
-                return res.data or []
+                    return res.data or []
         except Exception as sb_fa_err:
             logger.exception("Supabase db_fetchall error")
             raise sb_fa_err
+
 
     if USE_SQLITE:
         sqlite_query = _format_sqlite_query(query)
