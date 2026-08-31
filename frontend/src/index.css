@@ -749,6 +749,31 @@ button.bg-amber-500.text-slate-950,
   color: #0284c7 !important;
 }
 
+.bg-cyan-500\/10, .bg-cyan-500\/15, .bg-cyan-500\/20 {
+  background-color: #ecfeff !important;
+  border-color: #a5f3fc !important;
+}
+.text-cyan-400, .text-cyan-300, .text-cyan-200 {
+  color: #0e7490 !important;
+}
+
+.bg-teal-500\/10, .bg-teal-500\/15, .bg-teal-500\/20 {
+  background-color: #f0fdfa !important;
+  border-color: #99f6e4 !important;
+}
+.text-teal-400, .text-teal-300, .text-teal-200 {
+  color: #0f766e !important;
+}
+
+.bg-purple-500\/10, .bg-purple-500\/15, .bg-purple-500\/20 {
+  background-color: #faf5ff !important;
+  border-color: #e9d5ff !important;
+}
+.text-purple-400, .text-purple-300, .text-purple-200 {
+  color: #7e22ce !important;
+}
+
+
 /* Modals Backdrop Light Mode */
 .fixed.inset-0.bg-black\/80,
 .fixed.inset-0.bg-black\/70,

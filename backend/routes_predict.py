@@ -12,7 +12,7 @@ from auth import (
     get_auth_token, get_admin_token, extract_username_from_auth,
     extract_role_from_auth, is_admin_user
 )
-from database import db_execute, db_fetchall, db_fetchone
+from database import db_execute, db_fetchall, db_fetchone, log_audit_event
 import ml_engine
 import secrets
 
@@ -322,6 +322,14 @@ async def predict(
         except Exception as db_err:
             logger.exception("Failed to write assessment to database")
             
+        log_audit_event(
+            "ASSESSMENT_CREATE", 
+            "CLINICAL_ASSESSMENT", 
+            current_username, 
+            f"Assessment calculated: Cardio Risk: {heart_risk_val}% | Score: {health_score}/100 | Patient: {name}", 
+            status="SUCCESS"
+        )
+
         return {
             'success': True,
             'assessment': {
@@ -403,9 +411,11 @@ async def delete_assessment(
         # IDOR Ownership Guard: Only the owner or an administrator can delete
         record_owner = record.get('username', '')
         if not is_admin_user(current_username) and record_owner.lower() != current_username.lower():
+            log_audit_event("IDOR_VIOLATION_ATTEMPT", "SECURITY", current_username, f"Unauthorized delete attempt on assessment {id} owned by {record_owner}", status="FAILED")
             raise HTTPException(status_code=403, detail="Forbidden: You do not have permission to delete this assessment record.")
 
         db_execute("DELETE FROM assessments WHERE id = %s", (id,))
+        log_audit_event("ASSESSMENT_DELETE", "CLINICAL_ASSESSMENT", current_username, f"Deleted assessment record {id} (Owner: {record_owner})", status="SUCCESS")
         return {'success': True, 'message': f'Record {id} successfully deleted from database.'}
     except HTTPException:
         raise
@@ -435,6 +445,7 @@ async def retrain(token: str = Depends(get_admin_token)):
         metrics_data = run_training_pipeline()
         
         ml_engine.load_ml_assets()
+        log_audit_event("MODEL_RETRAIN", "ML_ENGINE", "admin", "Successfully retrained 5 cardiovascular ML models via training pipeline", status="SUCCESS")
         
         return {
             'success': True,
@@ -446,3 +457,4 @@ async def retrain(token: str = Depends(get_admin_token)):
     except Exception as e:
         logger.exception("Retraining pipeline error")
         raise HTTPException(status_code=500, detail=f"Retraining failed: {str(e)}")
+

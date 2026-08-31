@@ -4,7 +4,7 @@ from typing import Optional
 
 from config import ADMIN_USERNAME, SUPABASE_URL
 from auth import get_auth_token, extract_username_from_auth, is_admin_user
-from database import db_fetchall, DB_MODE
+from database import db_fetchall, db_execute, log_audit_event, DB_MODE
 import ml_engine
 
 logger = logging.getLogger("admin_routes")
@@ -86,3 +86,43 @@ async def admin_system_status(
     except Exception as e:
         logger.exception("Error getting system status")
         raise HTTPException(status_code=500, detail="Failed to retrieve system status telemetry.")
+
+@router.get('/api/admin/audit-logs')
+async def admin_get_audit_logs(
+    authorization: Optional[str] = Header(None),
+    token: str = Depends(get_auth_token)
+):
+    username = extract_username_from_auth(authorization)
+    if not is_admin_user(username):
+        raise HTTPException(status_code=403, detail='Forbidden: Administrator access required')
+    
+    try:
+        logs = db_fetchall("SELECT * FROM audit_logs ORDER BY timestamp DESC") or []
+        return {
+            'success': True,
+            'audit_logs': logs,
+            'total_logs': len(logs)
+        }
+    except Exception as e:
+        logger.exception("Error fetching audit logs")
+        raise HTTPException(status_code=500, detail="Failed to retrieve audit logs telemetry.")
+
+@router.delete('/api/admin/audit-logs')
+async def admin_clear_audit_logs(
+    authorization: Optional[str] = Header(None),
+    token: str = Depends(get_auth_token)
+):
+    username = extract_username_from_auth(authorization)
+    if not is_admin_user(username):
+        raise HTTPException(status_code=403, detail='Forbidden: Administrator access required')
+    
+    try:
+        db_execute("DELETE FROM audit_logs")
+        log_audit_event("AUDIT_LOGS_PURGED", "SECURITY", username, "Administrator purged system audit logs", status="SUCCESS")
+        return {
+            'success': True,
+            'message': 'Audit logs successfully cleared.'
+        }
+    except Exception as e:
+        logger.exception("Error clearing audit logs")
+        raise HTTPException(status_code=500, detail="Failed to clear audit logs.")

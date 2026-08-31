@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
+from database import log_audit_event
 
 router = APIRouter()
 
@@ -19,6 +20,7 @@ async def chat_assistant(payload: ChatRequest):
 
         msg_lower = user_msg.lower()
         ctx = payload.patient_context or {}
+
 
         category = "General Healthcare"
         response_text = ""
@@ -149,6 +151,14 @@ async def chat_assistant(payload: ChatRequest):
                 "How does exercise improve heart health?"
             ]
 
+        log_audit_event(
+            "AI_CHAT_QUERY",
+            "AI_ASSISTANT",
+            str(ctx.get("name") or "anonymous_user"),
+            f"Category: {category} | Specialist: {specialist_rec} | Query: '{user_msg[:60]}...'",
+            status="SUCCESS"
+        )
+
         return {
             "success": True,
             "category": category,
@@ -157,6 +167,7 @@ async def chat_assistant(payload: ChatRequest):
             "suggested_prompts": suggested_prompts,
             "disclaimer": "HealthBot AI provides educational health information and does not replace emergency medical care or direct physician evaluation."
         }
+
     except HTTPException:
         raise
     except Exception as e:

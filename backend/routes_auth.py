@@ -1,60 +1,61 @@
 import time
 import logging
-from collections import defaultdict
+import threading
+from typing import Optional, Dict, List
 from fastapi import APIRouter, Request, HTTPException, Depends, Header
 from pydantic import BaseModel, Field
-from typing import Optional
 
 from config import ADMIN_USERNAME
 from auth import (
     hash_password, verify_password, generate_token, get_auth_token,
     extract_username_from_auth, extract_role_from_auth, is_admin_user
 )
-from database import db_fetchone, db_execute
+from database import db_fetchone, db_execute, log_audit_event
 
 logger = logging.getLogger("auth_routes")
 router = APIRouter()
 
-# In-Memory Rate Limiting for Auth Endpoints (5 failed attempts / 30 requests per minute per IP)
-_auth_request_history = defaultdict(list)
-_auth_failure_history = defaultdict(list)
+# In-memory sliding-window IP rate limiter
+_FAILED_ATTEMPTS: Dict[str, List[float]] = {}
+_RATE_LIMIT_LOCK = threading.Lock()
+_MAX_FAILED_ATTEMPTS = 5
+_WINDOW_SECONDS = 60.0
 
-def _check_rate_limit(client_ip: str, max_requests: int = 30, window_secs: int = 60):
+def _check_rate_limit(client_ip: str):
     now = time.time()
-    # Prune older records
-    _auth_request_history[client_ip] = [t for t in _auth_request_history[client_ip] if now - t < window_secs]
-    _auth_failure_history[client_ip] = [t for t in _auth_failure_history[client_ip] if now - t < window_secs]
-    
-    if len(_auth_failure_history[client_ip]) >= 5:
-        raise HTTPException(
-            status_code=429,
-            detail="Too many failed login attempts. Please wait 60 seconds before trying again."
-        )
-    if len(_auth_request_history[client_ip]) >= max_requests:
-        raise HTTPException(
-            status_code=429,
-            detail="Rate limit exceeded. Please slow down your authentication requests."
-        )
-    _auth_request_history[client_ip].append(now)
+    with _RATE_LIMIT_LOCK:
+        attempts = _FAILED_ATTEMPTS.get(client_ip, [])
+        attempts = [t for t in attempts if now - t < _WINDOW_SECONDS]
+        _FAILED_ATTEMPTS[client_ip] = attempts
+        if len(attempts) >= _MAX_FAILED_ATTEMPTS:
+            raise HTTPException(
+                status_code=429, 
+                detail="Too many failed authentication attempts. Please try again in 1 minute."
+            )
 
 def _record_auth_failure(client_ip: str):
-    _auth_failure_history[client_ip].append(time.time())
+    now = time.time()
+    with _RATE_LIMIT_LOCK:
+        if client_ip not in _FAILED_ATTEMPTS:
+            _FAILED_ATTEMPTS[client_ip] = []
+        _FAILED_ATTEMPTS[client_ip].append(now)
 
 class RegisterRequest(BaseModel):
-    username: str = Field(..., min_length=3, max_length=100)
-    password: str = Field(..., min_length=6, max_length=128)
-    name: str = Field(..., min_length=2, max_length=100)
+
+    username: str = Field(..., min_length=3, max_length=50)
+    password: str = Field(..., min_length=6)
+    name: str = Field(..., min_length=1, max_length=100)
 
 class LoginRequest(BaseModel):
-    username: str = Field(..., min_length=1, max_length=100)
-    password: str = Field(..., min_length=1, max_length=128)
+    username: str = Field(..., min_length=1)
+    password: str = Field(..., min_length=1)
 
 class ProfileUpdateRequest(BaseModel):
-    name: str = Field(..., min_length=2, max_length=100)
+    name: str = Field(..., min_length=1, max_length=100)
 
 class PasswordUpdateRequest(BaseModel):
-    current_password: str = Field(..., min_length=1, max_length=128)
-    new_password: str = Field(..., min_length=6, max_length=128)
+    current_password: str = Field(..., min_length=1)
+    new_password: str = Field(..., min_length=6)
 
 @router.post('/api/register')
 async def register(req: RegisterRequest, request: Request):
@@ -68,16 +69,19 @@ async def register(req: RegisterRequest, request: Request):
         
         if username.lower() == ADMIN_USERNAME.lower():
             _record_auth_failure(client_ip)
+            log_audit_event("REGISTER_FAILED", "SECURITY", username, "Registration rejected (reserved admin username)", status="FAILED", ip_address=client_ip)
             raise HTTPException(status_code=400, detail='Username already exists')
             
         existing_user = db_fetchone("SELECT id FROM users WHERE LOWER(username) = LOWER(%s)", (username,))
         if existing_user:
             _record_auth_failure(client_ip)
+            log_audit_event("REGISTER_FAILED", "SECURITY", username, "Registration rejected (username taken)", status="FAILED", ip_address=client_ip)
             raise HTTPException(status_code=400, detail='Username already exists')
             
         password_hash = hash_password(password)
         db_execute("INSERT INTO users (username, password_hash, name) VALUES (%s, %s, %s)", (username, password_hash, name))
         
+        log_audit_event("USER_REGISTER", "AUTHENTICATION", username, f"Account registered for {name}", status="SUCCESS", ip_address=client_ip)
         token = generate_token(username, role='user')
         return {
             'success': True,
@@ -108,6 +112,7 @@ async def login(req: LoginRequest, request: Request):
             stored_hash = admin_rec.get('password_hash', '')
             if verify_password(password, stored_hash):
                 token = generate_token(admin_rec['username'], role='admin')
+                log_audit_event("ADMIN_LOGIN", "AUTHENTICATION", admin_rec['username'], "Administrator signed in to management portal", status="SUCCESS", ip_address=client_ip)
                 return {
                     'success': True,
                     'token': token,
@@ -127,6 +132,7 @@ async def login(req: LoginRequest, request: Request):
                     except Exception:
                         pass
                     token = generate_token(admin_rec['username'], role='admin')
+                    log_audit_event("ADMIN_LOGIN", "AUTHENTICATION", admin_rec['username'], "Administrator signed in (upgraded hash to bcrypt)", status="SUCCESS", ip_address=client_ip)
                     return {
                         'success': True,
                         'token': token,
@@ -137,9 +143,11 @@ async def login(req: LoginRequest, request: Request):
                     }
                 else:
                     _record_auth_failure(client_ip)
+                    log_audit_event("LOGIN_FAILED", "SECURITY", username, "Invalid administrator password attempt", status="FAILED", ip_address=client_ip)
                     raise HTTPException(status_code=401, detail='Invalid username or password')
             else:
                 _record_auth_failure(client_ip)
+                log_audit_event("LOGIN_FAILED", "SECURITY", username, "Invalid administrator credentials", status="FAILED", ip_address=client_ip)
                 raise HTTPException(status_code=401, detail='Invalid username or password')
 
 
@@ -149,6 +157,7 @@ async def login(req: LoginRequest, request: Request):
             stored_hash = user.get('password_hash', '')
             if verify_password(password, stored_hash):
                 token = generate_token(user['username'], role='user')
+                log_audit_event("USER_LOGIN", "AUTHENTICATION", user['username'], f"User signed in ({user.get('name', user['username'])})", status="SUCCESS", ip_address=client_ip)
                 return {
                     'success': True,
                     'token': token,
@@ -159,6 +168,7 @@ async def login(req: LoginRequest, request: Request):
                 }
 
         _record_auth_failure(client_ip)
+        log_audit_event("LOGIN_FAILED", "SECURITY", username, "Failed authentication attempt (unknown user or wrong password)", status="FAILED", ip_address=client_ip)
         raise HTTPException(status_code=401, detail='Invalid username or password')
     except HTTPException:
         raise
@@ -212,6 +222,7 @@ async def update_user_profile(
             
         new_name = req.name.strip()
         db_execute("UPDATE users SET name = %s WHERE LOWER(username) = LOWER(%s)", (new_name, username))
+        log_audit_event("PROFILE_UPDATE", "ACCOUNT", username, f"Updated profile display name to '{new_name}'", status="SUCCESS")
         return {'success': True, 'message': 'Profile updated successfully', 'name': new_name}
     except HTTPException:
         raise
@@ -238,10 +249,12 @@ async def update_user_password(
         
         user = db_fetchone("SELECT * FROM users WHERE LOWER(username) = LOWER(%s)", (username,))
         if not user or not verify_password(current_password, user.get('password_hash', '')):
+            log_audit_event("PASSWORD_UPDATE_FAILED", "SECURITY", username, "Password update failed: incorrect current password", status="FAILED")
             raise HTTPException(status_code=401, detail='Incorrect current password')
             
         new_hash = hash_password(new_password)
         db_execute("UPDATE users SET password_hash = %s WHERE LOWER(username) = LOWER(%s)", (new_hash, username))
+        log_audit_event("PASSWORD_UPDATE", "SECURITY", username, "User changed account password", status="SUCCESS")
         return {'success': True, 'message': 'Password updated successfully'}
     except HTTPException:
         raise
@@ -265,6 +278,7 @@ async def delete_user_account(
         # Delete user assessments and user record
         db_execute("DELETE FROM assessments WHERE LOWER(username) = LOWER(%s)", (username,))
         db_execute("DELETE FROM users WHERE LOWER(username) = LOWER(%s)", (username,))
+        log_audit_event("ACCOUNT_DELETE", "ACCOUNT", username, "User account and all health assessments permanently deleted", status="SUCCESS")
         return {'success': True, 'message': 'Account and associated assessments deleted successfully'}
     except HTTPException:
         raise

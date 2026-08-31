@@ -1,8 +1,10 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional, List
+from database import log_audit_event
 
 router = APIRouter()
+
 
 class SymptomCheckRequest(BaseModel):
     symptoms: List[str] = []
@@ -175,19 +177,29 @@ async def check_symptom(payload: SymptomCheckRequest):
             red_flags.append("Symptoms persisting or progressively deteriorating over 5+ consecutive days.")
             red_flags.append("Development of new severe acute symptoms (high fever, severe localized pain).")
 
+        primary_cond = matched_conditions[0]["name"] if matched_conditions else "General Physiological Strain"
+        log_audit_event(
+            "SYMPTOM_CHECK",
+            "CLINICAL_TRIAGE",
+            "anonymous_patient",
+            f"Triage: {triage_level} | Specialist: {specialist} | Primary: {primary_cond} | Symptoms: {', '.join(raw_symptoms[:4]) if raw_symptoms else 'custom description'}",
+            status="WARNING" if triage_level in ["EMERGENCY", "URGENT"] else "SUCCESS"
+        )
+
         return {
             "success": True,
             "triage_level": triage_level,
             "urgency_title": urgency_title,
             "badge_color": badge_color,
             "specialist": specialist,
-            "primary_condition": matched_conditions[0]["name"] if matched_conditions else "General Physiological Strain",
+            "primary_condition": primary_cond,
             "matched_conditions": matched_conditions,
             "home_remedies": home_remedies,
             "red_flags": red_flags,
             "analyzed_symptoms": raw_symptoms if raw_symptoms else ["General Malaise"],
             "disclaimer": "AI Symptom Triage is an automated decision-support tool and does not constitute formal medical diagnosis or emergency treatment. In life-threatening emergencies, call your local emergency services (911 / 112) immediately."
         }
+
     except HTTPException:
         raise
     except Exception as e:

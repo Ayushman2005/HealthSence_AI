@@ -6,6 +6,8 @@ import pymysql
 import threading
 import queue
 import logging
+import secrets
+from datetime import datetime
 from typing import Optional, Any, List, Dict
 
 from config import (
@@ -72,7 +74,7 @@ def get_db_connection():
     return mysql_pool.get_connection()
 
 def sync_supabase_schema():
-    """Auto-synchronizes supabase_schema.sql with Supabase Cloud Database."""
+    """Auto-synchronizes schema with Supabase Cloud Database."""
     schema_path = os.path.join(BASE_DIR, "supabase_schema.sql")
 
     try:
@@ -88,9 +90,27 @@ def sync_supabase_schema():
             try:
                 cursor.execute("ALTER TABLE public.assessments ADD COLUMN IF NOT EXISTS username TEXT NOT NULL DEFAULT 'admin';")
             except Exception as e:
-                print(f"Notice on column migration: {e}")
+                print(f"Notice on assessments column migration: {e}")
 
-            # 2. Synchronize full schema file if exists
+            # 2. Ensure audit_logs table exists
+            try:
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS public.audit_logs (
+                        id TEXT PRIMARY KEY,
+                        timestamp TEXT NOT NULL,
+                        username TEXT NOT NULL,
+                        action TEXT NOT NULL,
+                        category TEXT NOT NULL,
+                        details TEXT NOT NULL,
+                        ip_address TEXT NOT NULL DEFAULT '127.0.0.1',
+                        status TEXT NOT NULL DEFAULT 'SUCCESS',
+                        created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+                    );
+                """)
+            except Exception as e:
+                print(f"Notice on audit_logs table migration: {e}")
+
+            # 3. Synchronize full schema file if exists
             if os.path.exists(schema_path):
                 try:
                     with open(schema_path, "r", encoding="utf-8") as f:
@@ -99,7 +119,7 @@ def sync_supabase_schema():
                 except Exception as s_err:
                     print(f"Notice on schema SQL execution: {s_err}")
 
-            # 3. Reload PostgREST schema cache
+            # 4. Reload PostgREST schema cache
             try:
                 cursor.execute("NOTIFY pgrst, 'reload schema';")
             except Exception:
@@ -110,7 +130,6 @@ def sync_supabase_schema():
             print("Successfully synchronized schema with Supabase Cloud Database!")
     except Exception as err:
         print(f"Notice during automatic schema synchronization: {err}")
-
 
 def init_db():
     global DB_MODE, USE_SQLITE, supabase_client
@@ -151,7 +170,6 @@ def init_db():
             print(f"Supabase connection check failed: {sb_err}")
             print("Supabase unavailable or not configured. Falling back to MySQL / SQLite.")
 
-
     # 2. Try MySQL connection
     try:
         conn = pymysql.connect(
@@ -180,7 +198,6 @@ def init_db():
                     results JSON NOT NULL
                 )
             """)
-            # Auto-migration: ensure username column exists
             try:
                 cursor.execute("ALTER TABLE assessments ADD COLUMN username VARCHAR(100) NOT NULL DEFAULT 'admin'")
             except Exception:
@@ -201,6 +218,18 @@ def init_db():
                     username VARCHAR(100) NOT NULL UNIQUE,
                     password_hash VARCHAR(255) NOT NULL,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS audit_logs (
+                    id VARCHAR(50) PRIMARY KEY,
+                    timestamp VARCHAR(50) NOT NULL,
+                    username VARCHAR(100) NOT NULL,
+                    action VARCHAR(100) NOT NULL,
+                    category VARCHAR(100) NOT NULL,
+                    details TEXT NOT NULL,
+                    ip_address VARCHAR(50) NOT NULL DEFAULT '127.0.0.1',
+                    status VARCHAR(20) NOT NULL DEFAULT 'SUCCESS'
                 )
             """)
             cursor.execute("SELECT COUNT(*) as cnt FROM admin_credentials")
@@ -243,7 +272,6 @@ def init_db():
                 results TEXT NOT NULL
             )
         """)
-        # Auto-migration: ensure username column exists
         try:
             cursor.execute("ALTER TABLE assessments ADD COLUMN username TEXT NOT NULL DEFAULT 'admin'")
         except Exception:
@@ -264,6 +292,18 @@ def init_db():
                 username TEXT NOT NULL UNIQUE,
                 password_hash TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS audit_logs (
+                id TEXT PRIMARY KEY,
+                timestamp TEXT NOT NULL,
+                username TEXT NOT NULL,
+                action TEXT NOT NULL,
+                category TEXT NOT NULL,
+                details TEXT NOT NULL,
+                ip_address TEXT NOT NULL DEFAULT '127.0.0.1',
+                status TEXT NOT NULL DEFAULT 'SUCCESS'
             )
         """)
         cursor.execute("SELECT COUNT(*) FROM admin_credentials")
@@ -287,6 +327,27 @@ def _format_sqlite_query(query: str) -> str:
     """Safely replaces parameter placeholders (%s) with SQLite (?) without replacing % inside literals."""
     return re.sub(r'(?<!%)(%s)', '?', query)
 
+def log_audit_event(action: str, category: str, username: str, details: str, status: str = 'SUCCESS', ip_address: str = '127.0.0.1'):
+    """Utility to record high-fidelity telemetry and security audit logs."""
+    try:
+        log_id = f"audit-{secrets.token_hex(6)}"
+        ts = datetime.now().isoformat()
+        db_execute(
+            "INSERT INTO audit_logs (id, timestamp, username, action, category, details, ip_address, status) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+            (
+                log_id,
+                ts,
+                str(username or 'anonymous'),
+                str(action),
+                str(category),
+                str(details),
+                str(ip_address or '127.0.0.1'),
+                str(status)
+            )
+        )
+    except Exception as err:
+        logger.warning(f"Could not write audit log event: {err}")
+
 def db_execute(query: str, params: tuple = None):
     if params is None:
         params = ()
@@ -298,9 +359,23 @@ def db_execute(query: str, params: tuple = None):
 
     if DB_MODE == 'SUPABASE' and supabase_client is not None:
         try:
-            if "INSERT INTO ASSESSMENTS" in query_upper:
+            if "INSERT INTO AUDIT_LOGS" in query_upper:
                 p = params
-                # Handles (id, username, name, timestamp, personal, lifestyle, medical, results)
+                payload = {
+                    "id": str(p[0]),
+                    "timestamp": str(p[1]),
+                    "username": str(p[2]),
+                    "action": str(p[3]),
+                    "category": str(p[4]),
+                    "details": str(p[5]),
+                    "ip_address": str(p[6]),
+                    "status": str(p[7])
+                }
+                supabase_client.table("audit_logs").insert(payload).execute()
+                return
+
+            elif "INSERT INTO ASSESSMENTS" in query_upper:
+                p = params
                 if len(p) >= 8:
                     assess_id, username, name, timestamp, p_personal, p_lifestyle, p_medical, p_results = p[:8]
                 else:
@@ -368,6 +443,10 @@ def db_execute(query: str, params: tuple = None):
                 assess_id = params[0]
                 supabase_client.table("assessments").delete().eq("id", str(assess_id)).execute()
                 return
+
+            elif "DELETE FROM AUDIT_LOGS" in query_upper:
+                supabase_client.table("audit_logs").delete().neq("id", "none").execute()
+                return
         except Exception as sb_ex_err:
             logger.exception("Supabase db_execute error")
             raise sb_ex_err
@@ -395,7 +474,11 @@ def db_fetchall(query: str, params: tuple = None) -> List[Dict[str, Any]]:
     if DB_MODE == 'SUPABASE' and supabase_client is not None:
         try:
             query_upper = query.strip().upper()
-            if "FROM USERS" in query_upper:
+            if "FROM AUDIT_LOGS" in query_upper:
+                res = supabase_client.table("audit_logs").select("*").order("timestamp", desc=True).limit(200).execute()
+                return res.data or []
+
+            elif "FROM USERS" in query_upper:
                 res = supabase_client.table("users").select("username, name, created_at").order("created_at", desc=True).execute()
                 data = res.data or []
                 for row in data:
@@ -431,7 +514,6 @@ def db_fetchall(query: str, params: tuple = None) -> List[Dict[str, Any]]:
         except Exception as sb_fa_err:
             logger.exception("Supabase db_fetchall error")
             raise sb_fa_err
-
 
     if USE_SQLITE:
         sqlite_query = _format_sqlite_query(query)
