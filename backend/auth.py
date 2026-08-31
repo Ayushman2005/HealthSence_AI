@@ -1,14 +1,29 @@
 import hmac
 import hashlib
 import time
+import bcrypt
 from typing import Optional
 from fastapi import HTTPException, Header
 
 from config import JWT_SECRET, ADMIN_USERNAME
 
 def hash_password(password: str) -> str:
-    salt = "healthrisk-ai-salt-2026"
-    return hashlib.sha256((password + salt).encode()).hexdigest()
+    salt = bcrypt.gensalt(rounds=12)
+    return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    if not plain_password or not hashed_password:
+        return False
+    try:
+        if hashed_password.startswith('$2b$') or hashed_password.startswith('$2a$') or hashed_password.startswith('$2y$'):
+            return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
+        else:
+            # Backward-compatible fallback verification for legacy salted SHA-256 hashes
+            legacy_salt = "healthrisk-ai-salt-2026"
+            legacy_hash = hashlib.sha256((plain_password + legacy_salt).encode()).hexdigest()
+            return hmac.compare_digest(legacy_hash, hashed_password)
+    except Exception:
+        return False
 
 def generate_token(username: str) -> str:
     timestamp = str(int(time.time()))
@@ -45,7 +60,8 @@ def verify_token(token: str) -> bool:
                 user = db_fetchone("SELECT * FROM users WHERE LOWER(username) = LOWER(%s)", (username,))
                 return user is not None
             except Exception:
-                return True
+                # Security checks MUST FAIL CLOSED on database/connection exceptions
+                return False
 
     except Exception:
         pass
@@ -63,10 +79,12 @@ def get_auth_token(authorization: Optional[str] = Header(None)) -> str:
     return token
 
 def extract_username_from_auth(authorization: Optional[str] = Header(None)) -> Optional[str]:
-    if authorization:
-        parts = authorization.split()
-        if len(parts) == 2:
-            token = parts[1]
+    if not authorization:
+        return None
+    parts = authorization.split()
+    if len(parts) == 2 and parts[0].lower() == "bearer":
+        token = parts[1]
+        if verify_token(token):
             return token.split(':')[0]
     return None
 
@@ -88,3 +106,4 @@ def get_admin_token(authorization: Optional[str] = Header(None)) -> str:
     if not is_admin_user(username):
         raise HTTPException(status_code=403, detail="Forbidden: Administrator privileges required to access this resource")
     return token
+

@@ -7,22 +7,41 @@ import numpy as np
 from fastapi import APIRouter, Request, HTTPException, Depends
 
 from config import BASE_DIR, MODELS_DIR
-from auth import get_auth_token, get_admin_token
+from auth import get_auth_token, get_admin_token, extract_username_from_auth
 from database import db_execute, db_fetchall
 import ml_engine
+import secrets
 
 router = APIRouter()
 
 @router.post('/api/predict')
-async def predict(request: Request):
+async def predict(request: Request, token: str = Depends(get_auth_token)):
     try:
         data = await request.json()
         if not data:
             raise HTTPException(status_code=400, detail='No input payload provided')
             
-        name = data.get('name', 'Anonymous')
-        height = float(data.get('height', 170))
-        weight = float(data.get('weight', 70))
+        personal = data.get('personal') if isinstance(data.get('personal'), dict) else {}
+        lifestyle = data.get('lifestyle') if isinstance(data.get('lifestyle'), dict) else {}
+        medical = data.get('medical') if isinstance(data.get('medical'), dict) else {}
+        
+        name = str(data.get('name') or personal.get('name') or 'Anonymous').strip()
+        height = float(personal.get('height') or data.get('height', 170))
+        weight = float(personal.get('weight') or data.get('weight', 70))
+        age = int(personal.get('age') or data.get('age', 35))
+        gender = str(personal.get('gender') or data.get('gender', 'male')).lower()
+        
+        smoking = str(lifestyle.get('smoking') or data.get('smoking', 'no')).lower()
+        alcohol = str(lifestyle.get('alcohol') or data.get('alcohol', 'low')).lower()
+        activity = str(lifestyle.get('physicalActivity') or data.get('physicalActivity', 'moderate')).lower()
+        sleep = float(lifestyle.get('sleepDuration') or data.get('sleepDuration', 7))
+        
+        bp_systolic = int(medical.get('bpSystolic') or data.get('bpSystolic', 120))
+        bp_diastolic = int(medical.get('bpDiastolic') or data.get('bpDiastolic', 80))
+        cholesterol = int(medical.get('cholesterol') or data.get('cholesterol', 180))
+        glucose = int(medical.get('glucose') or data.get('glucose', 90))
+        insulin = int(medical.get('insulin') or data.get('insulin', 8))
+        heart_rate = int(medical.get('heartRate') or data.get('heartRate', 70))
         
         if height <= 0:
             raise HTTPException(status_code=400, detail='Height must be positive')
@@ -30,7 +49,14 @@ async def predict(request: Request):
         height_meters = height / 100
         bmi = round(weight / (height_meters * height_meters), 1)
         
-        X = ml_engine.encode_input(data, bmi)
+        flat_input = {
+            'age': age, 'height': height, 'weight': weight,
+            'sleepDuration': sleep, 'bpSystolic': bp_systolic, 'bpDiastolic': bp_diastolic,
+            'cholesterol': cholesterol, 'glucose': glucose, 'insulin': insulin, 'heartRate': heart_rate,
+            'gender': gender, 'smoking': smoking, 'alcohol': alcohol, 'physicalActivity': activity
+        }
+        
+        X = ml_engine.encode_input(flat_input, bmi)
         
         if ml_engine.scaler is None:
             ml_engine.load_ml_assets()
@@ -70,19 +96,7 @@ async def predict(request: Request):
         print(f"Predictions run. Selected algorithms: {selected_algorithms}")
             
         heart_risk_val = predictions.get('heart_disease', 20)
-        
-        age = int(data.get('age', 35))
-        gender = str(data.get('gender', 'male')).lower()
-        glucose = int(data.get('glucose', 90))
-        insulin = int(data.get('insulin', 8))
-        bp_systolic = int(data.get('bpSystolic', 120))
-        bp_diastolic = int(data.get('bpDiastolic', 80))
-        cholesterol = int(data.get('cholesterol', 180))
-        smoking = str(data.get('smoking', 'no')).lower()
-        alcohol = str(data.get('alcohol', 'low')).lower()
-        activity = str(data.get('physicalActivity', 'moderate')).lower()
-        sleep = float(data.get('sleepDuration', 7))
-        heart_rate = int(data.get('heartRate', 70))
+
         
         # Calculate Cardiovascular Sub-Risk Dimensions
         # 1. Coronary Artery Disease (CAD) Risk
@@ -235,7 +249,7 @@ async def predict(request: Request):
         }
         
         alg_suffix = passed_alg if passed_alg in ml_engine.algs else 'auto'
-        assess_id = f"assess-{int(np.round(np.random.rand() * 1000000))}-{alg_suffix}"
+        assess_id = f"assess-{secrets.token_hex(4)}-{alg_suffix}"
         timestamp_str = datetime.now().isoformat()
         
         personal_info = {'name': name, 'age': age, 'gender': gender, 'height': height, 'weight': weight, 'bmi': bmi}
@@ -267,7 +281,26 @@ async def predict(request: Request):
         results_with_metadata['lifestyle'] = lifestyle_info
         results_with_metadata['medical'] = medical_info
         
-        return results_with_metadata
+        return {
+            'success': True,
+            'assessment': {
+                'id': assess_id,
+                'name': name,
+                'timestamp': timestamp_str,
+                'personal': personal_info,
+                'lifestyle': lifestyle_info,
+                'medical': medical_info,
+                'results': results
+            },
+            'results': results,
+            'id': assess_id,
+            'name': name,
+            'timestamp': timestamp_str,
+            'personal': personal_info,
+            'lifestyle': lifestyle_info,
+            'medical': medical_info
+        }
+
         
     except HTTPException:
         raise

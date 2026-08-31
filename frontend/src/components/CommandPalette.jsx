@@ -17,88 +17,99 @@ export default function CommandPalette({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef(null);
 
-  const actions = [
-    {
-      id: 'wizard',
-      title: 'Start Cardiovascular Risk Assessment',
-      subtitle: 'Evaluate Heart Disease, CAD, & hemodynamic risk dimensions',
-      icon: HeartPulse,
-      category: 'Diagnostic Engine',
-      action: () => {
-        if (resetWizard) resetWizard();
-        setCurrentTab('wizard');
-      }
-    },
-    {
-      id: 'simulator',
-      title: 'Open Real-Time Biometrics Simulator',
-      subtitle: 'Live interactive what-if parameters and risk delta knobs',
-      icon: Zap,
-      category: 'Interactive Tools',
-      action: () => {
-        setShowSimulatorModal(true);
-      }
-    },
-    {
-      id: 'symptom_checker',
-      title: 'Symptom Checker & Triage Engine',
-      subtitle: 'Analyze symptoms and review differential conditions',
-      icon: Stethoscope,
-      category: 'Clinical Intelligence',
-      action: () => setCurrentTab('symptom_checker')
-    },
-    {
-      id: 'chatbot',
-      title: 'HealthBot Clinical AI Assistant',
-      subtitle: '24/7 interactive clinical assistant and medical guidance',
-      icon: Bot,
-      category: 'AI Chat',
-      action: () => setCurrentTab('chatbot')
-    },
-    {
-      id: 'dashboard',
-      title: 'Clinical Overview Dashboard',
-      subtitle: 'Review overall health score and organ risk profiles',
-      icon: TrendingUp,
-      category: 'Analytics',
-      action: () => setCurrentTab('dashboard')
-    },
-    {
-      id: 'history',
-      title: 'Patient Medical History Audit',
-      subtitle: 'Inspect past risk evaluations and longitudinal records',
-      icon: ClipboardList,
-      category: 'Patient Records',
-      action: () => setCurrentTab('history')
-    },
-    {
-      id: 'insights',
-      title: 'Longitudinal Health Analytics',
-      subtitle: 'View trends and multi-patient biometric charts',
-      icon: Cpu,
-      category: 'Analytics',
-      action: () => setCurrentTab('insights')
-    },
-    {
-      id: 'account',
-      title: 'User Account & Security',
-      subtitle: 'Manage profile information and authentication credentials',
-      icon: Settings,
-      category: 'System',
-      action: () => setCurrentTab('account')
-    }
-  ];
+  const isAdmin = userProfile?.role === 'admin';
 
-  if (userProfile?.role === 'admin') {
-    actions.push({
-      id: 'admin_portal',
-      title: 'Administrator Control Center',
-      subtitle: 'Manage ML models, pipeline retrain, & user databases',
-      icon: ShieldAlert,
-      category: 'Administration',
-      action: () => setCurrentTab('admin_portal')
-    });
-  }
+  const actions = isAdmin
+    ? [
+        {
+          id: 'admin_portal',
+          title: 'Administrator Control Center',
+          subtitle: 'Manage ML models, pipeline retrain, & user databases',
+          icon: ShieldAlert,
+          category: 'Administration',
+          action: () => setCurrentTab('admin_portal')
+        },
+        {
+          id: 'account',
+          title: 'Admin Account & Security',
+          subtitle: 'Manage profile credentials and system session',
+          icon: Settings,
+          category: 'System',
+          action: () => setCurrentTab('account')
+        }
+      ]
+    : [
+        {
+          id: 'wizard',
+          title: 'Start Cardiovascular Risk Assessment',
+          subtitle: 'Evaluate Heart Disease, CAD, & hemodynamic risk dimensions',
+          icon: HeartPulse,
+          category: 'Diagnostic Engine',
+          action: () => {
+            if (resetWizard) resetWizard();
+            setCurrentTab('wizard');
+          }
+        },
+        {
+          id: 'simulator',
+          title: 'Open Real-Time Biometrics Simulator',
+          subtitle: 'Live interactive what-if parameters and risk delta knobs',
+          icon: Zap,
+          category: 'Interactive Tools',
+          action: () => {
+            setShowSimulatorModal(true);
+          }
+        },
+        {
+          id: 'symptom_checker',
+          title: 'Symptom Checker & Triage Engine',
+          subtitle: 'Analyze symptoms and review differential conditions',
+          icon: Stethoscope,
+          category: 'Clinical Intelligence',
+          action: () => setCurrentTab('symptom_checker')
+        },
+        {
+          id: 'chatbot',
+          title: 'HealthBot Clinical AI Assistant',
+          subtitle: '24/7 interactive clinical assistant and medical guidance',
+          icon: Bot,
+          category: 'AI Chat',
+          action: () => setCurrentTab('chatbot')
+        },
+        {
+          id: 'dashboard',
+          title: 'Clinical Overview Dashboard',
+          subtitle: 'Review overall health score and organ risk profiles',
+          icon: TrendingUp,
+          category: 'Analytics',
+          action: () => setCurrentTab('dashboard')
+        },
+        {
+          id: 'history',
+          title: 'Patient Medical History Audit',
+          subtitle: 'Inspect past risk evaluations and longitudinal records',
+          icon: ClipboardList,
+          category: 'Patient Records',
+          action: () => setCurrentTab('history')
+        },
+        {
+          id: 'insights',
+          title: 'Longitudinal Health Analytics',
+          subtitle: 'View trends and multi-patient biometric charts',
+          icon: Cpu,
+          category: 'Analytics',
+          action: () => setCurrentTab('insights')
+        },
+        {
+          id: 'account',
+          title: 'User Account & Security',
+          subtitle: 'Manage profile information and authentication credentials',
+          icon: Settings,
+          category: 'System',
+          action: () => setCurrentTab('account')
+        }
+      ];
+
 
   const filteredActions = actions.filter(a => 
     a.title.toLowerCase().includes(query.toLowerCase()) ||
@@ -116,14 +127,9 @@ export default function CommandPalette({
   }, [isOpen]);
 
   useEffect(() => {
-    const handleKeyDown = (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        soundFX.play('switch');
-        setIsOpen(prev => !prev);
-      }
-      if (!isOpen) return;
+    if (!isOpen) return;
 
+    const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
         setIsOpen(false);
       } else if (e.key === 'ArrowDown') {
@@ -145,6 +151,7 @@ export default function CommandPalette({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, filteredActions, selectedIndex, setIsOpen]);
+
 
   if (!isOpen) return null;
 

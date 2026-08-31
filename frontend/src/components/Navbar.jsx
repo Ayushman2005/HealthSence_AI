@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   LayoutDashboard, HeartPulse, Stethoscope, Bot, 
   ClipboardList, Settings, ShieldAlert, LogOut, 
-  User, Menu, X, ChevronDown, Activity, Zap
+  Menu, X, ChevronDown, Zap
 } from 'lucide-react';
 import { soundFX } from '../utils/audioFX';
 
@@ -19,22 +19,25 @@ export default function Navbar({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
-  const navLinks = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'wizard', label: 'Check Heart Risk', icon: HeartPulse, onClick: resetWizard },
-    { id: 'symptom_checker', label: 'Symptom Checker', icon: Stethoscope },
-    { id: 'chatbot', label: 'Cardio AI', icon: Bot },
-    { id: 'history', label: 'History', icon: ClipboardList }
-  ];
+  const isAdmin = userProfile?.role === 'admin';
 
-  if (userProfile?.role === 'admin') {
-    navLinks.push({
-      id: 'admin_portal',
-      label: 'Admin Console',
-      icon: ShieldAlert,
-      isAdmin: true
-    });
-  }
+  // For Admin role: ONLY display the Admin Console tab. For regular clinicians: display standard medical tabs.
+  const navLinks = isAdmin
+    ? [
+        {
+          id: 'admin_portal',
+          label: 'Admin Console',
+          icon: ShieldAlert,
+          isAdmin: true
+        }
+      ]
+    : [
+        { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { id: 'wizard', label: 'Check Heart Risk', icon: HeartPulse, onClick: resetWizard },
+        { id: 'symptom_checker', label: 'Symptom Checker', icon: Stethoscope },
+        { id: 'chatbot', label: 'Cardio AI', icon: Bot },
+        { id: 'history', label: 'History', icon: ClipboardList }
+      ];
 
   const handleNavClick = (link) => {
     soundFX.play('switch');
@@ -52,7 +55,7 @@ export default function Navbar({
           <div 
             onClick={() => {
               soundFX.play('switch');
-              setCurrentTab('dashboard');
+              setCurrentTab(isAdmin ? 'admin_portal' : 'dashboard');
             }}
             className="flex items-center gap-3 cursor-pointer select-none group shrink-0"
           >
@@ -66,12 +69,12 @@ export default function Navbar({
                 HealthSence <span className="text-amber-400">AI</span>
               </span>
               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider -mt-0.5">
-                Cardiovascular Health
+                {isAdmin ? 'System Admin Control' : 'Cardiovascular Health'}
               </span>
             </div>
           </div>
 
-          {/* Desktop Navigation Links (Simple, Direct Tab Bar) */}
+          {/* Desktop Navigation Links */}
           <nav className="hidden md:flex items-center gap-1.5 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-800/80">
             {navLinks.map((link) => {
               const Icon = link.icon;
@@ -100,18 +103,20 @@ export default function Navbar({
           {/* Right Action Area (Simulator + User Profile / Sign In) */}
           <div className="flex items-center gap-2.5">
             
-            {/* Quick Simulator Button */}
-            <button
-              onClick={() => {
-                soundFX.play('click');
-                setShowSimulatorModal(true);
-              }}
-              className="hidden lg:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 text-amber-300 text-xs font-bold transition cursor-pointer"
-              title="Open What-If Risk Simulator"
-            >
-              <Zap className="w-3.5 h-3.5 text-amber-400" />
-              <span>Simulator</span>
-            </button>
+            {/* Quick Simulator Button (Only shown for non-admin clinicians) */}
+            {!isAdmin && (
+              <button
+                onClick={() => {
+                  soundFX.play('click');
+                  setShowSimulatorModal(true);
+                }}
+                className="hidden lg:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 text-amber-300 text-xs font-bold transition cursor-pointer"
+                title="Open What-If Risk Simulator"
+              >
+                <Zap className="w-3.5 h-3.5 text-amber-400" />
+                <span>Simulator</span>
+              </button>
+            )}
 
             {/* Profile Avatar / User Account Dropdown */}
             {authToken ? (
@@ -123,15 +128,19 @@ export default function Navbar({
                   }}
                   className="flex items-center gap-2 p-1.5 pl-2.5 rounded-xl border border-slate-800 hover:border-slate-700 bg-slate-900/90 text-left transition cursor-pointer"
                 >
-                  <div className="w-7 h-7 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-400 font-black text-xs flex items-center justify-center">
+                  <div className={`w-7 h-7 rounded-lg font-black text-xs flex items-center justify-center ${
+                    isAdmin 
+                      ? 'bg-rose-500/20 border border-rose-500/40 text-rose-400' 
+                      : 'bg-amber-500/20 border border-amber-500/40 text-amber-400'
+                  }`}>
                     {userProfile?.name ? userProfile.name.charAt(0).toUpperCase() : 'U'}
                   </div>
                   <div className="hidden sm:flex flex-col">
                     <span className="text-xs font-bold text-white max-w-25 truncate">
                       {userProfile?.name || activeUser || 'User'}
                     </span>
-                    <span className="text-[9px] text-slate-400 font-bold uppercase">
-                      {userProfile?.role === 'admin' ? '👑 Admin' : 'Clinician'}
+                    <span className={`text-[9px] font-bold uppercase ${isAdmin ? 'text-rose-400' : 'text-slate-400'}`}>
+                      {isAdmin ? '👑 Admin' : 'Clinician'}
                     </span>
                   </div>
                   <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${profileDropdownOpen ? 'rotate-180 text-amber-400' : ''}`} />
@@ -147,7 +156,7 @@ export default function Navbar({
                       <p className="text-[10px] text-slate-400 font-medium">@{userProfile?.username || 'user'}</p>
                     </div>
 
-                    {userProfile?.role === 'admin' && (
+                    {isAdmin && (
                       <button
                         onClick={() => {
                           soundFX.play('switch');

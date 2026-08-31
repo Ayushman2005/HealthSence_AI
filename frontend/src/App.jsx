@@ -411,13 +411,18 @@ export default function App() {
   }, [authToken]);
 
   useEffect(() => {
-    if (currentTab === 'admin_portal') {
+    if (userProfile?.role === 'admin') {
+      if (currentTab !== 'admin_portal' && currentTab !== 'account') {
+        setCurrentTab('admin_portal');
+      }
+    } else if (currentTab === 'admin_portal') {
       if (!authToken || (userProfile && userProfile.role !== 'admin')) {
         setCurrentTab('dashboard');
         showToast('Access Denied: Administrator privileges required to view Admin Management Portal.', 'danger');
       }
     }
   }, [currentTab, userProfile, authToken]);
+
 
   useEffect(() => {
     if (activeUser && assessments.length > 0) {
@@ -819,11 +824,16 @@ export default function App() {
       });
       if (res.ok) {
         const data = await res.json();
-        if (data.success) computedResults = data.assessment.results;
+        if (data?.assessment?.results) {
+          computedResults = data.assessment.results;
+        } else if (data?.results) {
+          computedResults = data.results;
+        }
       }
     } catch (err) {
       console.warn("Backend API unavailable. Using fallback predictive model logic.", err);
     }
+
 
     if (!computedResults) {
       computedResults = calculateFallbackRisks(payload.medical, payload.personal.bmi);

@@ -18,16 +18,27 @@ export default function Results({
   const [simBpReduction, setSimBpReduction] = useState(10);
   const [simBmiReduction, setSimBmiReduction] = useState(2);
   const [simExerciseAdd, setSimExerciseAdd] = useState(3);
-  const [simQuitSmoking, setSimQuitSmoking] = useState(resultsAssessment?.lifestyle?.smoking === 'yes');
+  const [simQuitSmoking, setSimQuitSmoking] = useState(() => resultsAssessment?.lifestyle?.smoking === 'yes');
 
-  if (!resultsAssessment) return null;
-
-  // Real-time projected improvements for Cardiovascular Health
+  // Real-time projected improvements for Cardiovascular Health (Called Unconditionally)
   const projectedImprovements = useMemo(() => {
+    if (!resultsAssessment || !resultsAssessment.results) {
+      return {
+        scoreBoost: 0,
+        projectedScore: 85,
+        projectedHeart: 10,
+        projectedCad: 10,
+        projectedHyp: 10,
+        heartDrop: 0,
+        cadDrop: 0,
+        hypDrop: 0
+      };
+    }
+
     const baseScore = resultsAssessment.results.overallScore || 80;
-    const baseHeart = resultsAssessment.results.risks.heartDisease ?? resultsAssessment.results.risks.heart ?? 15;
-    const baseCad = resultsAssessment.results.risks.coronaryArtery || 12;
-    const baseHyp = resultsAssessment.results.risks.hypertensiveHeart || 14;
+    const baseHeart = resultsAssessment.results.risks?.heartDisease ?? resultsAssessment.results.risks?.heart ?? 15;
+    const baseCad = resultsAssessment.results.risks?.coronaryArtery || 12;
+    const baseHyp = resultsAssessment.results.risks?.hypertensiveHeart || 14;
 
     const bpEffect = simBpReduction * 0.55;
     const bmiEffect = simBmiReduction * 1.8;
@@ -47,11 +58,14 @@ export default function Results({
       projectedHeart,
       projectedCad,
       projectedHyp,
-      heartDrop: baseHeart - projectedHeart,
-      cadDrop: baseCad - projectedCad,
-      hypDrop: baseHyp - projectedHyp
+      heartDrop: Math.max(0, baseHeart - projectedHeart),
+      cadDrop: Math.max(0, baseCad - projectedCad),
+      hypDrop: Math.max(0, baseHyp - projectedHyp)
     };
   }, [resultsAssessment, simBpReduction, simBmiReduction, simExerciseAdd, simQuitSmoking]);
+
+  if (!resultsAssessment) return null;
+
 
   // AI Models Consensus for Heart Disease
   const modelConsensus = [
@@ -235,7 +249,29 @@ export default function Results({
                 className="w-full cursor-pointer"
               />
             </div>
+
+            {/* Smoking Cessation Toggle */}
+            <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+              <div>
+                <span className="text-xs font-bold text-slate-300 block">Tobacco Smoking Cessation</span>
+                <span className="text-[10px] text-slate-400 font-medium">Projected 50% coronary plaque risk reduction</span>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={simQuitSmoking}
+                  onChange={e => {
+                    soundFX.play('switch');
+                    setSimQuitSmoking(e.target.checked);
+                  }}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+              </label>
+
+            </div>
           </div>
+
 
           {/* Projected Outcomes Card */}
           <div className="glass-panel rounded-2xl p-5 border border-emerald-500/30 bg-emerald-500/5 space-y-4 flex flex-col justify-between">
@@ -429,7 +465,7 @@ export default function Results({
       <div className="space-y-6">
         
         {/* URGENT IMMEDIATE MEDICAL ATTS */}
-        {resultsAssessment.results.recommendations.immediate?.length > 0 && (
+        {resultsAssessment.results?.recommendations?.immediate?.length > 0 && (
           <div className="bg-rose-500/10 border border-rose-500/30 rounded-3xl p-6 print-card shadow-sm">
             <div className="flex items-center gap-3 font-black text-rose-400 mb-4">
               <AlertOctagon className="w-6 h-6 text-rose-500" />
@@ -444,7 +480,7 @@ export default function Results({
         )}
 
         {/* LIFESTYLE DIET RECOMMENDATIONS */}
-        {resultsAssessment.results.recommendations.lifestyle?.length > 0 && (
+        {resultsAssessment.results?.recommendations?.lifestyle?.length > 0 && (
           <div className="bg-amber-500/10 border border-amber-500/30 rounded-3xl p-6 print-card shadow-sm">
             <div className="flex items-center gap-3 font-black text-amber-400 mb-4">
               <Sparkles className="w-6 h-6 text-amber-400" />
@@ -459,7 +495,7 @@ export default function Results({
         )}
 
         {/* CLINICAL MONITORING PLAN */}
-        {resultsAssessment.results.recommendations.medical?.length > 0 && (
+        {resultsAssessment.results?.recommendations?.medical?.length > 0 && (
           <div className="glass-panel border border-slate-800 rounded-3xl p-6 print-card">
             <div className="flex items-center gap-3 font-black text-white mb-4">
               <Stethoscope className="w-6 h-6 text-amber-400" />
@@ -472,6 +508,7 @@ export default function Results({
             </ul>
           </div>
         )}
+
 
       </div>
 

@@ -4,7 +4,7 @@ from typing import Optional
 
 from config import ADMIN_USERNAME, ADMIN_PASSWORD
 from auth import (
-    hash_password, generate_token, get_auth_token, extract_username_from_auth
+    hash_password, verify_password, generate_token, get_auth_token, extract_username_from_auth
 )
 from database import db_fetchone, db_execute
 
@@ -66,7 +66,7 @@ async def register(req: RegisterRequest):
         raise
     except Exception as e:
         print(f"Error during registration: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Registration failed due to a server error.")
 
 @router.post('/api/login')
 async def login(req: LoginRequest):
@@ -82,7 +82,8 @@ async def login(req: LoginRequest):
         # Check admin credentials table first
         admin_rec = db_fetchone("SELECT * FROM admin_credentials WHERE LOWER(username) = LOWER(%s)", (username,))
         if admin_rec:
-            if admin_rec.get('password_hash') == hash_password(password):
+            stored_hash = admin_rec.get('password_hash', '')
+            if verify_password(password, stored_hash):
                 token = generate_token(admin_rec['username'])
                 return {
                     'success': True,
@@ -105,8 +106,15 @@ async def login(req: LoginRequest):
 
         user = db_fetchone("SELECT * FROM users WHERE LOWER(username) = LOWER(%s)", (username,))
         if user:
-            password_hash = hash_password(password)
-            if user['password_hash'] == password_hash:
+            stored_hash = user.get('password_hash', '')
+            if verify_password(password, stored_hash):
+                # Auto-upgrade legacy hash to bcrypt if needed
+                if not stored_hash.startswith('$2b$') and not stored_hash.startswith('$2a$'):
+                    try:
+                        new_bcrypt_hash = hash_password(password)
+                        db_execute("UPDATE users SET password_hash = %s WHERE username = %s", (new_bcrypt_hash, user['username']))
+                    except Exception:
+                        pass
                 token = generate_token(user['username'])
                 return {
                     'success': True,
@@ -122,7 +130,8 @@ async def login(req: LoginRequest):
         raise
     except Exception as e:
         print(f"Error during login: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Login failed due to a server error.")
+
 
 @router.get('/api/user/profile')
 async def get_user_profile(
@@ -200,7 +209,7 @@ async def update_user_password(
             raise HTTPException(status_code=400, detail='New password must be at least 6 characters long')
             
         user = db_fetchone("SELECT * FROM users WHERE username = %s", (username,))
-        if not user or user['password_hash'] != hash_password(current_password):
+        if not user or not verify_password(current_password, user.get('password_hash', '')):
             raise HTTPException(status_code=401, detail='Incorrect current password')
             
         new_hash = hash_password(new_password)
@@ -209,7 +218,7 @@ async def update_user_password(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Failed to update password.")
 
 @router.delete('/api/user/account')
 async def delete_user_account(
