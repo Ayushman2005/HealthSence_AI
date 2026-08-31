@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Bot, RefreshCw, User, Stethoscope, Send, Sparkles, Mic, MicOff, 
-  Volume2, VolumeX, Copy, Check, Heart, Droplets, ShieldAlert, Activity
+  Volume2, Copy, Check, Heart, Droplets, ShieldAlert, Activity
 } from 'lucide-react';
 import { soundFX } from '../utils/audioFX';
+
 
 export default function HealthChatbot({
   chatMessages,

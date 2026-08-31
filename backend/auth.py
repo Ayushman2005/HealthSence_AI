@@ -1,11 +1,11 @@
-import hmac
-import hashlib
 import time
 import bcrypt
-from typing import Optional
-from fastapi import HTTPException, Header
+import jwt
+from datetime import datetime, timezone, timedelta
+from typing import Optional, Dict, Any
+from fastapi import HTTPException, Header, Depends
 
-from config import JWT_SECRET, ADMIN_USERNAME
+from config import JWT_SECRET, JWT_ALGORITHM, JWT_EXPIRATION_HOURS, ADMIN_USERNAME
 
 def hash_password(password: str) -> str:
     salt = bcrypt.gensalt(rounds=12)
@@ -15,57 +15,45 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     if not plain_password or not hashed_password:
         return False
     try:
-        if hashed_password.startswith('$2b$') or hashed_password.startswith('$2a$') or hashed_password.startswith('$2y$'):
-            return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
-        else:
-            # Backward-compatible fallback verification for legacy salted SHA-256 hashes
-            legacy_salt = "healthrisk-ai-salt-2026"
-            legacy_hash = hashlib.sha256((plain_password + legacy_salt).encode()).hexdigest()
-            return hmac.compare_digest(legacy_hash, hashed_password)
+        return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
     except Exception:
         return False
 
-def generate_token(username: str) -> str:
-    timestamp = str(int(time.time()))
-    payload = f"{username}:{timestamp}"
-    signature = hmac.new(JWT_SECRET.encode(), payload.encode(), hashlib.sha256).hexdigest()
-    return f"{payload}:{signature}"
+def generate_token(username: str, role: str = 'user') -> str:
+    now = datetime.now(timezone.utc)
+    payload = {
+        "sub": username,
+        "role": role,
+        "iat": now,
+        "exp": now + timedelta(hours=JWT_EXPIRATION_HOURS)
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+def decode_token(token: str) -> Optional[Dict[str, Any]]:
+    if not token:
+        return None
+    try:
+        return jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError, Exception):
+        return None
 
 def verify_token(token: str) -> bool:
-    if not token:
+    payload = decode_token(token)
+    if not payload or not payload.get('sub'):
         return False
+    username = payload.get('sub')
+    if username.lower() == ADMIN_USERNAME.lower():
+        return True
     try:
-        parts = token.split(':')
-        if len(parts) != 3:
-            return False
-        username, timestamp, signature = parts
-        
-        token_time = int(timestamp)
-        now = int(time.time())
-        if now - token_time > 86400 or now - token_time < -300:
-            return False
-            
-        payload = f"{username}:{timestamp}"
-        expected_sig = hmac.new(JWT_SECRET.encode(), payload.encode(), hashlib.sha256).hexdigest()
-        
-        if hmac.compare_digest(signature, expected_sig):
-            # Dynamic circular import check handled safely
-            from database import db_fetchone
-            if username.lower() == ADMIN_USERNAME.lower():
-                return True
-            try:
-                admin = db_fetchone("SELECT * FROM admin_credentials WHERE LOWER(username) = LOWER(%s)", (username,))
-                if admin:
-                    return True
-                user = db_fetchone("SELECT * FROM users WHERE LOWER(username) = LOWER(%s)", (username,))
-                return user is not None
-            except Exception:
-                # Security checks MUST FAIL CLOSED on database/connection exceptions
-                return False
-
+        from database import db_fetchone
+        admin = db_fetchone("SELECT * FROM admin_credentials WHERE LOWER(username) = LOWER(%s)", (username,))
+        if admin:
+            return True
+        user = db_fetchone("SELECT * FROM users WHERE LOWER(username) = LOWER(%s)", (username,))
+        return user is not None
     except Exception:
-        pass
-    return False
+        # Security check fails closed on error
+        return False
 
 def get_auth_token(authorization: Optional[str] = Header(None)) -> str:
     if not authorization:
@@ -74,7 +62,8 @@ def get_auth_token(authorization: Optional[str] = Header(None)) -> str:
     if len(parts) != 2 or parts[0].lower() != "bearer":
         raise HTTPException(status_code=401, detail="Authorization header must be Bearer token")
     token = parts[1]
-    if not verify_token(token):
+    payload = decode_token(token)
+    if not payload or not payload.get('sub'):
         raise HTTPException(status_code=401, detail="Unauthorized or token expired")
     return token
 
@@ -84,8 +73,20 @@ def extract_username_from_auth(authorization: Optional[str] = Header(None)) -> O
     parts = authorization.split()
     if len(parts) == 2 and parts[0].lower() == "bearer":
         token = parts[1]
-        if verify_token(token):
-            return token.split(':')[0]
+        payload = decode_token(token)
+        if payload and payload.get('sub'):
+            return str(payload.get('sub'))
+    return None
+
+def extract_role_from_auth(authorization: Optional[str] = Header(None)) -> Optional[str]:
+    if not authorization:
+        return None
+    parts = authorization.split()
+    if len(parts) == 2 and parts[0].lower() == "bearer":
+        token = parts[1]
+        payload = decode_token(token)
+        if payload:
+            return str(payload.get('role', 'user'))
     return None
 
 def is_admin_user(username: Optional[str]) -> bool:
@@ -106,4 +107,3 @@ def get_admin_token(authorization: Optional[str] = Header(None)) -> str:
     if not is_admin_user(username):
         raise HTTPException(status_code=403, detail="Forbidden: Administrator privileges required to access this resource")
     return token
-

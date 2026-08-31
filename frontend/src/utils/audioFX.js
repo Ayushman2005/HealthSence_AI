@@ -129,10 +129,12 @@ class SoundFXManager {
         default:
           break;
       }
-    } catch (e) {
+    } catch {
       // Audio playback fails gracefully if browser audio is blocked
     }
   }
 }
+
+
 
 export const soundFX = new SoundFXManager();

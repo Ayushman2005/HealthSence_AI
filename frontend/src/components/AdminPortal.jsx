@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   ShieldAlert, Cpu, Zap, User, Lock, ArrowRight, RefreshCw, 
-  Activity, Database, HeartPulse, Stethoscope, Bot, ClipboardList, TrendingUp, CheckCircle2
+  Activity, Database, HeartPulse, Stethoscope, Bot, ClipboardList, TrendingUp
 } from 'lucide-react';
 import { soundFX } from '../utils/audioFX';
 
@@ -19,7 +19,7 @@ export default function AdminPortal({
   const [systemStatus, setSystemStatus] = useState(null);
   const [statusLoading, setStatusLoading] = useState(false);
 
-  const fetchSystemStatus = async () => {
+  const fetchSystemStatus = useCallback(async () => {
     if (!authToken || userProfile?.role !== 'admin') return;
     setStatusLoading(true);
     try {
@@ -35,11 +35,12 @@ export default function AdminPortal({
     } finally {
       setStatusLoading(false);
     }
-  };
+  }, [authToken, userProfile, API_BASE_URL]);
 
   useEffect(() => {
     fetchSystemStatus();
-  }, [authToken, userProfile]);
+  }, [fetchSystemStatus]);
+
 
   // Strict Access Guard for Non-Admin Users
   if (!userProfile || userProfile.role !== 'admin') {

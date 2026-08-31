@@ -1,15 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import { 
   HeartPulse, Stethoscope, Bot, ArrowRight, Activity, 
-  ShieldCheck, AlertTriangle, Zap, CheckCircle2, TrendingUp,
-  Droplet, Sliders, RefreshCw, Eye
+  ShieldCheck, Zap, Droplet, Sliders, Eye
 } from 'lucide-react';
 import { soundFX } from '../utils/audioFX';
 
 export default function Dashboard({
-  assessments,
   activeUser,
   latestAssessment,
+
   overviewRadarData: _overviewRadarData,
   overviewTrendData: _overviewTrendData,
   getScoreBadgeStyles: _getScoreBadgeStyles,

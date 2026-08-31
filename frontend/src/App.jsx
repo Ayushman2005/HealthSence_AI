@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, 
   BarElement, RadialLinearScale, Title, Tooltip, Legend, Filler
 } from 'chart.js';
+
 
 import Navbar from './components/Navbar';
 import SplashLoader from './components/SplashLoader';
@@ -58,7 +59,8 @@ export default function App() {
   const [assessments, setAssessments] = useState([]);
   const [activeUser, setActiveUser] = useState('');
   const [latestAssessment, setLatestAssessment] = useState(null);
-  const [metrics, setMetrics] = useState(null);
+  const [_metrics, setMetrics] = useState(null);
+
 
   // User Profile state
   const [userProfile, setUserProfile] = useState(null);
@@ -265,6 +267,7 @@ export default function App() {
         showToast(data.error || "Login failed", "danger");
       }
     } catch (err) {
+      console.warn("Login failed:", err);
       setLoginError("Cannot reach authentication server");
       showToast("Authentication server offline", "danger");
     } finally {
@@ -304,12 +307,14 @@ export default function App() {
         showToast(data.error || "Registration failed", "danger");
       }
     } catch (err) {
+      console.warn("Registration error:", err);
       setRegisterError("Cannot reach authentication server");
       showToast("Authentication server offline", "danger");
     } finally {
       setRegisterLoading(false);
     }
   };
+
 
   const handleLogout = () => {
     sessionStorage.removeItem('healthrisk_auth_token');
@@ -320,7 +325,8 @@ export default function App() {
   };
 
   // Data fetching effects
-  const fetchAssessments = async () => {
+  const fetchAssessments = useCallback(async () => {
+    if (!authToken) return;
     try {
       const res = await fetch(`${API_BASE_URL}/api/assessments`, {
         headers: { "Authorization": `Bearer ${authToken}` }
@@ -342,12 +348,13 @@ export default function App() {
     } catch (err) {
       console.warn("Could not fetch assessments from backend API.", err);
     }
-  };
+  }, [authToken]);
 
-  const fetchMetrics = async () => {
+  const fetchMetrics = useCallback(async () => {
+    if (!authToken) return;
     try {
       const res = await fetch(`${API_BASE_URL}/api/metrics`, {
-        headers: authToken ? { "Authorization": `Bearer ${authToken}` } : {}
+        headers: { "Authorization": `Bearer ${authToken}` }
       });
       if (res.status === 401) {
         handleLogout();
@@ -358,9 +365,29 @@ export default function App() {
     } catch (err) {
       console.warn("Could not fetch ML metrics.", err);
     }
-  };
+  }, [authToken]);
 
-  const fetchUserProfile = async () => {
+  const fetchAdminUsersList = useCallback(async () => {
+    if (!authToken) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/users`, {
+        headers: { "Authorization": `Bearer ${authToken}` }
+      });
+      if (res.status === 401) {
+        handleLogout();
+        return;
+      }
+      const data = await res.json();
+      if (res.ok && data.success && Array.isArray(data.users)) {
+        setAdminUsersList(data.users);
+      }
+    } catch (err) {
+      console.warn("Admin users fetch failed.", err);
+    }
+  }, [authToken]);
+
+  const fetchUserProfile = useCallback(async () => {
+    if (!authToken) return;
     try {
       const res = await fetch(`${API_BASE_URL}/api/user/profile`, {
         headers: { "Authorization": `Bearer ${authToken}` }
@@ -378,25 +405,7 @@ export default function App() {
     } catch (err) {
       console.warn("Could not fetch user profile.", err);
     }
-  };
-
-  const fetchAdminUsersList = async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/users`, {
-        headers: { "Authorization": `Bearer ${authToken}` }
-      });
-      if (res.status === 401) {
-        handleLogout();
-        return;
-      }
-      const data = await res.json();
-      if (res.ok && data.success && Array.isArray(data.users)) {
-        setAdminUsersList(data.users);
-      }
-    } catch (err) {
-      console.warn("Admin users fetch failed.", err);
-    }
-  };
+  }, [authToken, fetchAdminUsersList]);
 
   useEffect(() => {
     if (authToken) {
@@ -408,7 +417,9 @@ export default function App() {
       setMetrics(null);
       setUserProfile(null);
     }
-  }, [authToken]);
+  }, [authToken, fetchAssessments, fetchMetrics, fetchUserProfile]);
+
+
 
   useEffect(() => {
     if (userProfile?.role === 'admin') {
@@ -457,6 +468,7 @@ export default function App() {
         showToast(data.error || "Profile update failed.", "danger");
       }
     } catch (err) {
+      console.warn("Profile update error:", err);
       setProfileError("Cannot reach authentication server");
       showToast("Server unreachable", "danger");
     } finally {
@@ -499,6 +511,7 @@ export default function App() {
         showToast(data.error || "Password update failed.", "danger");
       }
     } catch (err) {
+      console.warn("Password update error:", err);
       setPasswordError("Cannot reach authentication server");
       showToast("Server unreachable", "danger");
     }
@@ -521,6 +534,7 @@ export default function App() {
         showToast(data.error || "Failed to delete account.", "danger");
       }
     } catch (err) {
+      console.warn("Account delete error:", err);
       showToast("Server unreachable", "danger");
     }
   };
@@ -555,6 +569,7 @@ export default function App() {
         showToast(data.detail || "Symptom check failed", "danger");
       }
     } catch (err) {
+      console.warn("Symptom check error:", err);
       showToast("Failed to connect to symptom checker service", "danger");
     } finally {
       setAnalyzingSymptom(false);
@@ -605,11 +620,13 @@ export default function App() {
         showToast(data.detail || "Chat response failed", "danger");
       }
     } catch (err) {
+      console.warn("Chatbot request error:", err);
       showToast("Failed to connect to HealthBot AI server", "danger");
     } finally {
       setChatLoading(false);
     }
   };
+
 
   // ML Retrain API handler
   const handleRetrain = async () => {
@@ -813,6 +830,7 @@ export default function App() {
     };
 
     let computedResults = null;
+    let serverRecord = null;
     try {
       const res = await fetch(`${API_BASE_URL}/api/predict`, {
         method: "POST",
@@ -824,9 +842,11 @@ export default function App() {
       });
       if (res.ok) {
         const data = await res.json();
-        if (data?.assessment?.results) {
+        if (data?.assessment) {
+          serverRecord = data.assessment;
           computedResults = data.assessment.results;
         } else if (data?.results) {
+          serverRecord = data;
           computedResults = data.results;
         }
       }
@@ -834,14 +854,13 @@ export default function App() {
       console.warn("Backend API unavailable. Using fallback predictive model logic.", err);
     }
 
-
     if (!computedResults) {
       computedResults = calculateFallbackRisks(payload.medical, payload.personal.bmi);
     }
 
     const newRecord = {
-      id: Date.now().toString(),
-      timestamp: new Date().toISOString(),
+      id: serverRecord?.id || Date.now().toString(),
+      timestamp: serverRecord?.timestamp || new Date().toISOString(),
       ...payload,
       results: computedResults
     };

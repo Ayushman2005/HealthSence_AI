@@ -188,6 +188,10 @@ async def check_symptom(payload: SymptomCheckRequest):
             "analyzed_symptoms": raw_symptoms if raw_symptoms else ["General Malaise"],
             "disclaimer": "AI Symptom Triage is an automated decision-support tool and does not constitute formal medical diagnosis or emergency treatment. In life-threatening emergencies, call your local emergency services (911 / 112) immediately."
         }
+    except HTTPException:
+        raise
     except Exception as e:
-        print(f"Error during symptom checking: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        import logging
+        logging.getLogger("symptom_routes").exception("Error during symptom checking")
+        raise HTTPException(status_code=500, detail="Symptom checking service encountered an unexpected error.")
+

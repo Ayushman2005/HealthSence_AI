@@ -1,52 +1,105 @@
 import os
 import json
-import subprocess
-import sys
+import logging
 from datetime import datetime
 import numpy as np
-from fastapi import APIRouter, Request, HTTPException, Depends
+from typing import Optional, Dict, Any, List
+from fastapi import APIRouter, Request, HTTPException, Depends, Header
+from pydantic import BaseModel, Field
 
 from config import BASE_DIR, MODELS_DIR
-from auth import get_auth_token, get_admin_token, extract_username_from_auth
-from database import db_execute, db_fetchall
+from auth import (
+    get_auth_token, get_admin_token, extract_username_from_auth,
+    extract_role_from_auth, is_admin_user
+)
+from database import db_execute, db_fetchall, db_fetchone
 import ml_engine
 import secrets
 
+logger = logging.getLogger("predict_routes")
 router = APIRouter()
 
+class PersonalData(BaseModel):
+    name: Optional[str] = 'Anonymous'
+    age: int = Field(35, ge=1, le=120)
+    gender: str = Field('male')
+    height: float = Field(170.0, gt=0, le=300)
+    weight: float = Field(70.0, gt=0, le=500)
+
+class LifestyleData(BaseModel):
+    smoking: str = Field('no')
+    alcohol: str = Field('low')
+    physicalActivity: str = Field('moderate')
+    sleepDuration: float = Field(7.0, ge=0, le=24)
+
+class MedicalData(BaseModel):
+    bpSystolic: int = Field(120, ge=50, le=300)
+    bpDiastolic: int = Field(80, ge=30, le=200)
+    cholesterol: int = Field(180, ge=50, le=600)
+    glucose: int = Field(90, ge=30, le=600)
+    insulin: int = Field(8, ge=0, le=300)
+    heartRate: int = Field(70, ge=30, le=250)
+
+class PredictRequest(BaseModel):
+    name: Optional[str] = None
+    personal: Optional[PersonalData] = None
+    lifestyle: Optional[LifestyleData] = None
+    medical: Optional[MedicalData] = None
+    algorithm: Optional[str] = 'auto'
+    # Optional flat fields for backward compatibility
+    age: Optional[int] = Field(None, ge=1, le=120)
+    height: Optional[float] = Field(None, gt=0, le=300)
+    weight: Optional[float] = Field(None, gt=0, le=500)
+    gender: Optional[str] = None
+    smoking: Optional[str] = None
+    alcohol: Optional[str] = None
+    physicalActivity: Optional[str] = None
+    sleepDuration: Optional[float] = Field(None, ge=0, le=24)
+    bpSystolic: Optional[int] = Field(None, ge=50, le=300)
+    bpDiastolic: Optional[int] = Field(None, ge=30, le=200)
+    cholesterol: Optional[int] = Field(None, ge=50, le=600)
+    glucose: Optional[int] = Field(None, ge=30, le=600)
+    insulin: Optional[int] = Field(None, ge=0, le=300)
+    heartRate: Optional[int] = Field(None, ge=30, le=250)
+
 @router.post('/api/predict')
-async def predict(request: Request, token: str = Depends(get_auth_token)):
+async def predict(
+    payload: PredictRequest,
+    authorization: Optional[str] = Header(None),
+    token: str = Depends(get_auth_token)
+):
     try:
-        data = await request.json()
-        if not data:
-            raise HTTPException(status_code=400, detail='No input payload provided')
-            
-        personal = data.get('personal') if isinstance(data.get('personal'), dict) else {}
-        lifestyle = data.get('lifestyle') if isinstance(data.get('lifestyle'), dict) else {}
-        medical = data.get('medical') if isinstance(data.get('medical'), dict) else {}
+        current_username = extract_username_from_auth(authorization) or 'user'
+
+        # Extract structured parameters with clean fallback defaults
+        personal_obj = payload.personal or PersonalData()
+        lifestyle_obj = payload.lifestyle or LifestyleData()
+        medical_obj = payload.medical or MedicalData()
+
+        name = str(payload.name or personal_obj.name or 'Anonymous').strip()
+        height = float(payload.height or personal_obj.height or 170.0)
+        weight = float(payload.weight or personal_obj.weight or 70.0)
+        age = int(payload.age or personal_obj.age or 35)
+        gender = str(payload.gender or personal_obj.gender or 'male').lower()
         
-        name = str(data.get('name') or personal.get('name') or 'Anonymous').strip()
-        height = float(personal.get('height') or data.get('height', 170))
-        weight = float(personal.get('weight') or data.get('weight', 70))
-        age = int(personal.get('age') or data.get('age', 35))
-        gender = str(personal.get('gender') or data.get('gender', 'male')).lower()
+        smoking = str(payload.smoking or lifestyle_obj.smoking or 'no').lower()
+        alcohol = str(payload.alcohol or lifestyle_obj.alcohol or 'low').lower()
+        activity = str(payload.physicalActivity or lifestyle_obj.physicalActivity or 'moderate').lower()
+        sleep = float(payload.sleepDuration or lifestyle_obj.sleepDuration or 7.0)
         
-        smoking = str(lifestyle.get('smoking') or data.get('smoking', 'no')).lower()
-        alcohol = str(lifestyle.get('alcohol') or data.get('alcohol', 'low')).lower()
-        activity = str(lifestyle.get('physicalActivity') or data.get('physicalActivity', 'moderate')).lower()
-        sleep = float(lifestyle.get('sleepDuration') or data.get('sleepDuration', 7))
-        
-        bp_systolic = int(medical.get('bpSystolic') or data.get('bpSystolic', 120))
-        bp_diastolic = int(medical.get('bpDiastolic') or data.get('bpDiastolic', 80))
-        cholesterol = int(medical.get('cholesterol') or data.get('cholesterol', 180))
-        glucose = int(medical.get('glucose') or data.get('glucose', 90))
-        insulin = int(medical.get('insulin') or data.get('insulin', 8))
-        heart_rate = int(medical.get('heartRate') or data.get('heartRate', 70))
+        bp_systolic = int(payload.bpSystolic or medical_obj.bpSystolic or 120)
+        bp_diastolic = int(payload.bpDiastolic or medical_obj.bpDiastolic or 80)
+        cholesterol = int(payload.cholesterol or medical_obj.cholesterol or 180)
+        glucose = int(payload.glucose or medical_obj.glucose or 90)
+        insulin = int(payload.insulin or medical_obj.insulin or 8)
+        heart_rate = int(payload.heartRate or medical_obj.heartRate or 70)
         
         if height <= 0:
-            raise HTTPException(status_code=400, detail='Height must be positive')
+            raise HTTPException(status_code=400, detail='Height must be greater than zero')
+        if weight <= 0:
+            raise HTTPException(status_code=400, detail='Weight must be greater than zero')
             
-        height_meters = height / 100
+        height_meters = height / 100.0
         bmi = round(weight / (height_meters * height_meters), 1)
         
         flat_input = {
@@ -67,7 +120,7 @@ async def predict(request: Request, token: str = Depends(get_auth_token)):
         X_scaled = X.copy()
         X_scaled[:, :11] = X_num_scaled
         
-        passed_alg = str(data.get('algorithm', 'auto')).lower()
+        passed_alg = str(payload.algorithm or 'auto').lower()
         
         predictions = {}
         selected_algorithms = {}
@@ -93,10 +146,7 @@ async def predict(request: Request, token: str = Depends(get_auth_token)):
             prob = model.predict_proba(X_scaled)[0][1]
             predictions[disease] = int(round(prob * 100))
             
-        print(f"Predictions run. Selected algorithms: {selected_algorithms}")
-            
         heart_risk_val = predictions.get('heart_disease', 20)
-
         
         # Calculate Cardiovascular Sub-Risk Dimensions
         # 1. Coronary Artery Disease (CAD) Risk
@@ -135,7 +185,6 @@ async def predict(request: Request, token: str = Depends(get_auth_token)):
             'cardioMetabolic': []
         }
         
-        # Clinical Explanations for Heart Disease
         if bp_systolic >= 130 or bp_diastolic >= 85:
             explanations['heartDisease'].append(f"Elevated blood pressure ({bp_systolic}/{bp_diastolic} mmHg) increases myocardial workload and arterial stiffness.")
         if cholesterol > 200:
@@ -258,9 +307,10 @@ async def predict(request: Request, token: str = Depends(get_auth_token)):
         
         try:
             db_execute(
-                "INSERT INTO assessments (id, name, timestamp, personal, lifestyle, medical, results) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                "INSERT INTO assessments (id, username, name, timestamp, personal, lifestyle, medical, results) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
                 (
                     assess_id,
+                    current_username,
                     name,
                     timestamp_str,
                     json.dumps(personal_info),
@@ -269,22 +319,14 @@ async def predict(request: Request, token: str = Depends(get_auth_token)):
                     json.dumps(results)
                 )
             )
-            print(f"Saved assessment {assess_id} to database successfully.")
         except Exception as db_err:
-            print(f"Failed to write to database: {db_err}")
+            logger.exception("Failed to write assessment to database")
             
-        results_with_metadata = results.copy()
-        results_with_metadata['id'] = assess_id
-        results_with_metadata['name'] = name
-        results_with_metadata['timestamp'] = timestamp_str
-        results_with_metadata['personal'] = personal_info
-        results_with_metadata['lifestyle'] = lifestyle_info
-        results_with_metadata['medical'] = medical_info
-        
         return {
             'success': True,
             'assessment': {
                 'id': assess_id,
+                'username': current_username,
                 'name': name,
                 'timestamp': timestamp_str,
                 'personal': personal_info,
@@ -294,24 +336,34 @@ async def predict(request: Request, token: str = Depends(get_auth_token)):
             },
             'results': results,
             'id': assess_id,
+            'username': current_username,
             'name': name,
             'timestamp': timestamp_str,
             'personal': personal_info,
             'lifestyle': lifestyle_info,
             'medical': medical_info
         }
-
-        
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error during prediction: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("Error during prediction")
+        raise HTTPException(status_code=500, detail="Prediction calculation failed due to an internal server error.")
 
 @router.get('/api/assessments')
-async def get_assessments(token: str = Depends(get_auth_token)):
+async def get_assessments(
+    authorization: Optional[str] = Header(None),
+    token: str = Depends(get_auth_token)
+):
     try:
-        records = db_fetchall("SELECT * FROM assessments ORDER BY timestamp DESC")
+        current_username = extract_username_from_auth(authorization)
+        if not current_username:
+            raise HTTPException(status_code=401, detail="Invalid authorization token")
+
+        # Multi-Tenant User Scoping: Admin sees all records, regular user sees only their own
+        if is_admin_user(current_username):
+            records = db_fetchall("SELECT * FROM assessments ORDER BY timestamp DESC")
+        else:
+            records = db_fetchall("SELECT * FROM assessments WHERE LOWER(username) = LOWER(%s) ORDER BY timestamp DESC", (current_username,))
         
         for r in records:
             r['personal'] = json.loads(r['personal']) if isinstance(r['personal'], str) else r['personal']
@@ -330,19 +382,36 @@ async def get_assessments(token: str = Depends(get_auth_token)):
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error retrieving database logs: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("Error retrieving assessments")
+        raise HTTPException(status_code=500, detail="Failed to retrieve assessments log.")
 
 @router.delete('/api/assessments/{id}')
-async def delete_assessment(id: str, token: str = Depends(get_auth_token)):
+async def delete_assessment(
+    id: str,
+    authorization: Optional[str] = Header(None),
+    token: str = Depends(get_auth_token)
+):
     try:
+        current_username = extract_username_from_auth(authorization)
+        if not current_username:
+            raise HTTPException(status_code=401, detail="Invalid authorization token")
+
+        record = db_fetchone("SELECT id, username FROM assessments WHERE id = %s", (id,))
+        if not record:
+            raise HTTPException(status_code=404, detail=f"Assessment record with id '{id}' not found.")
+
+        # IDOR Ownership Guard: Only the owner or an administrator can delete
+        record_owner = record.get('username', '')
+        if not is_admin_user(current_username) and record_owner.lower() != current_username.lower():
+            raise HTTPException(status_code=403, detail="Forbidden: You do not have permission to delete this assessment record.")
+
         db_execute("DELETE FROM assessments WHERE id = %s", (id,))
         return {'success': True, 'message': f'Record {id} successfully deleted from database.'}
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error deleting record {id} from database: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("Error deleting assessment")
+        raise HTTPException(status_code=500, detail="Failed to delete assessment record.")
 
 @router.get('/api/metrics')
 async def get_metrics(token: str = Depends(get_auth_token)):
@@ -353,37 +422,27 @@ async def get_metrics(token: str = Depends(get_auth_token)):
                 metrics_data = json.load(f)
             return metrics_data
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f'Failed to read metrics: {e}')
+            logger.exception("Failed to read model metrics")
+            raise HTTPException(status_code=500, detail="Failed to read metrics file.")
     else:
         raise HTTPException(status_code=404, detail='Model metrics file not found. Please train models first.')
 
 @router.post('/api/retrain')
 async def retrain(token: str = Depends(get_admin_token)):
     try:
-        print("Received retraining request. Executing train_models.py...")
-        train_script = os.path.join(BASE_DIR, "train_models.py")
-        result = subprocess.run([sys.executable, train_script], capture_output=True, text=True, check=True, cwd=BASE_DIR)
-        print("Retraining completed successfully.")
+        print("Received retraining request. Executing pipeline_trainer.py...")
+        from pipeline_trainer import run_training_pipeline
+        metrics_data = run_training_pipeline()
         
         ml_engine.load_ml_assets()
         
-        metrics_path = os.path.join(MODELS_DIR, "model_metrics.json")
-        if os.path.exists(metrics_path):
-            with open(metrics_path, "r") as f:
-                metrics_data = json.load(f)
-            return {
-                'success': True,
-                'message': 'Models retrained and reloaded successfully.',
-                'metrics': metrics_data
-            }
-        else:
-            return {'success': True, 'message': 'Models retrained but metrics file not found.'}
-            
-    except subprocess.CalledProcessError as e:
-        print(f"Retraining script failed: {e.stderr}")
-        raise HTTPException(status_code=500, detail=f'Training script execution failed: {e.stderr}')
+        return {
+            'success': True,
+            'message': 'Models retrained and reloaded successfully.',
+            'metrics': metrics_data
+        }
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Retraining error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("Retraining pipeline error")
+        raise HTTPException(status_code=500, detail=f"Retraining failed: {str(e)}")

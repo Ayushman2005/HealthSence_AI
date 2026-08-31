@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
-import { ArrowLeft, ArrowRight, Activity, Check, HeartPulse, Sparkles, User, Flame, Sliders, Cpu } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Activity, Check, HeartPulse, Sparkles, Flame, Cpu } from 'lucide-react';
 import { soundFX } from '../utils/audioFX';
+
 
 export default function Wizard({
   wizardStep,

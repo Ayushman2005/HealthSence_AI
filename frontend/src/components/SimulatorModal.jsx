@@ -2,13 +2,10 @@ import React from "react";
 import {
   Zap,
   X,
-  Sparkles,
-  Activity,
-  ShieldCheck,
-  HeartPulse,
-  Sliders,
+  Sparkles
 } from "lucide-react";
 import { soundFX } from "../utils/audioFX";
+
 
 export default function SimulatorModal({
   showSimulatorModal,

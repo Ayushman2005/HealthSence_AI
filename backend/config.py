@@ -1,5 +1,6 @@
 import os
 import sys
+import secrets
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODELS_DIR = os.path.join(BASE_DIR, "models")
@@ -28,17 +29,20 @@ ENVIRONMENT = os.environ.get('ENVIRONMENT', 'development').lower()
 IS_PRODUCTION = ENVIRONMENT in ['production', 'prod'] or os.environ.get('RENDER', '') == 'true'
 
 # Admin credentials & security configuration
-ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'admin')
-ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'admin123')
+ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'Ayushman24')
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'Ayushman@#2005')
 
-# JWT Secret Key Validation
+# JWT Secret Key Validation & Algorithm
+JWT_ALGORITHM = "HS256"
+JWT_EXPIRATION_HOURS = 24
+
 JWT_SECRET = os.environ.get('JWT_SECRET', '').strip()
 if not JWT_SECRET:
     if IS_PRODUCTION:
         raise RuntimeError("CRITICAL SECURITY ERROR: 'JWT_SECRET' environment variable must be set in production mode.")
     else:
-        JWT_SECRET = 'healthsence_dev_insecure_secret_key_change_in_prod'
-        print("WARNING: JWT_SECRET environment variable is unset. Using development fallback secret.")
+        JWT_SECRET = 'healthrisk-ai-secret-default-2026'
+        print("WARNING: JWT_SECRET environment variable is unset. Using default secret key.")
 
 # Allowed CORS Origins Whitelist
 raw_origins = os.environ.get('ALLOWED_ORIGINS', '').strip()
@@ -71,4 +75,3 @@ try:
     HAS_PSYCOPG2 = True
 except ImportError:
     HAS_PSYCOPG2 = False
-

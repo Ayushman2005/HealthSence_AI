@@ -2,9 +2,10 @@ import React, { useState, useMemo } from 'react';
 import { 
   LayoutDashboard, Printer, ShieldCheck, ClipboardList, Droplet, Heart, 
   ShieldAlert, Activity, Stethoscope, AlertOctagon, ChevronUp, ChevronDown, 
-  Sparkles, Sliders, ArrowRight, Bot, Cpu, CheckCircle2, TrendingUp, Zap
+  Sparkles, Sliders, ArrowRight, Bot, Cpu, TrendingUp, Zap
 } from 'lucide-react';
 import { soundFX } from '../utils/audioFX';
+
 
 export default function Results({
   resultsAssessment,

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { 
-  Stethoscope, Search, Activity, Pill, ShieldAlert, AlertOctagon, 
-  AlertTriangle, CheckCircle2, CheckCircle, ArrowRight, Zap, Sparkles, User,
-  Brain, Heart, Droplets, Wind, ShieldCheck, Bot
+  Stethoscope, Search, Activity, Pill, AlertOctagon, 
+  AlertTriangle, CheckCircle2, CheckCircle, ArrowRight, Bot
 } from 'lucide-react';
 import { soundFX } from '../utils/audioFX';
+
+
 
 export default function SymptomChecker({
   symptomTags,

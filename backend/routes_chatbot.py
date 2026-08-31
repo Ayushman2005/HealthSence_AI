@@ -160,5 +160,7 @@ async def chat_assistant(payload: ChatRequest):
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error in chat assistant API: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        import logging
+        logging.getLogger("chatbot_routes").exception("Error in chat assistant API")
+        raise HTTPException(status_code=500, detail="HealthBot AI assistant encountered an unexpected error.")
+

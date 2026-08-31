@@ -1,8 +1,12 @@
 import os
+import re
 import json
 import sqlite3
 import pymysql
-from typing import Optional, Any
+import threading
+import queue
+import logging
+from typing import Optional, Any, List, Dict
 
 from config import (
     BASE_DIR, MODELS_DIR, load_dotenv, ADMIN_USERNAME, ADMIN_PASSWORD,
@@ -10,19 +14,62 @@ from config import (
 )
 from auth import hash_password
 
+logger = logging.getLogger("database")
+
 DB_MODE = 'SQLITE'  # Modes: 'SUPABASE', 'MYSQL', or 'SQLITE'
 USE_SQLITE = False
 supabase_client: Optional[Any] = None
 
+# =====================================================================
+# Thread-Safe MySQL Connection Pool Manager
+# =====================================================================
+class MySQLConnectionPool:
+    def __init__(self, max_connections: int = 10):
+        self.max_connections = max_connections
+        self._pool = queue.Queue(maxsize=max_connections)
+        self._lock = threading.Lock()
+        self._created_connections = 0
+
+    def _create_new_connection(self):
+        return pymysql.connect(
+            host=os.environ.get('MYSQL_HOST', 'localhost'),
+            user=os.environ.get('MYSQL_USER', 'root'),
+            password=os.environ.get('MYSQL_PASSWORD', ''),
+            database=os.environ.get('MYSQL_DB', 'health_risk_db'),
+            charset='utf8mb4',
+            cursorclass=pymysql.cursors.DictCursor,
+            autocommit=False
+        )
+
+    def get_connection(self):
+        try:
+            conn = self._pool.get_nowait()
+            try:
+                conn.ping(reconnect=True)
+                return conn
+            except Exception:
+                return self._create_new_connection()
+        except queue.Empty:
+            with self._lock:
+                if self._created_connections < self.max_connections:
+                    self._created_connections += 1
+                    return self._create_new_connection()
+            return self._pool.get(timeout=10)
+
+    def release_connection(self, conn):
+        if conn:
+            try:
+                self._pool.put_nowait(conn)
+            except queue.Full:
+                try:
+                    conn.close()
+                except Exception:
+                    pass
+
+mysql_pool = MySQLConnectionPool(max_connections=10)
+
 def get_db_connection():
-    return pymysql.connect(
-        host=os.environ.get('MYSQL_HOST', 'localhost'),
-        user=os.environ.get('MYSQL_USER', 'root'),
-        password=os.environ.get('MYSQL_PASSWORD', ''),
-        database=os.environ.get('MYSQL_DB', 'health_risk_db'),
-        charset='utf8mb4',
-        cursorclass=pymysql.cursors.DictCursor
-    )
+    return mysql_pool.get_connection()
 
 def sync_supabase_schema():
     """Auto-synchronizes supabase_schema.sql with Supabase Cloud Database."""
@@ -66,10 +113,26 @@ def init_db():
             USE_SQLITE = False
             print("Supabase Cloud Database connected and verified successfully. DB_MODE = 'SUPABASE'")
             sync_supabase_schema()
+
+            # Ensure admin credentials in Supabase use valid bcrypt hash
+            try:
+                admin_user = os.environ.get('ADMIN_USERNAME', 'Ayushman24')
+                admin_pass = os.environ.get('ADMIN_PASSWORD', 'Ayushman@#2005')
+                admin_res = client.table('admin_credentials').select('*').ilike('username', admin_user).execute()
+                if not admin_res.data:
+                    client.table('admin_credentials').insert({'username': admin_user, 'password_hash': hash_password(admin_pass)}).execute()
+                else:
+                    stored_hash = admin_res.data[0].get('password_hash', '')
+                    if not stored_hash.startswith('$2b$') and not stored_hash.startswith('$2a$'):
+                        client.table('admin_credentials').update({'password_hash': hash_password(admin_pass)}).ilike('username', admin_user).execute()
+            except Exception as ad_err:
+                print(f"Notice during Supabase admin credential sync: {ad_err}")
+
             return
         except Exception as sb_err:
             print(f"Supabase connection check failed: {sb_err}")
             print("Supabase unavailable or not configured. Falling back to MySQL / SQLite.")
+
 
     # 2. Try MySQL connection
     try:
@@ -82,7 +145,7 @@ def init_db():
         )
         with conn.cursor() as cursor:
             db_name = os.environ.get('MYSQL_DB', 'health_risk_db')
-            cursor.execute(f"CREATE DATABASE IF NOT EXISTS {db_name}")
+            cursor.execute("CREATE DATABASE IF NOT EXISTS health_risk_db")
         conn.close()
         
         conn = get_db_connection()
@@ -90,6 +153,7 @@ def init_db():
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS assessments (
                     id VARCHAR(50) PRIMARY KEY,
+                    username VARCHAR(100) NOT NULL DEFAULT 'admin',
                     name VARCHAR(100) NOT NULL,
                     timestamp VARCHAR(50) NOT NULL,
                     personal JSON NOT NULL,
@@ -98,6 +162,12 @@ def init_db():
                     results JSON NOT NULL
                 )
             """)
+            # Auto-migration: ensure username column exists
+            try:
+                cursor.execute("ALTER TABLE assessments ADD COLUMN username VARCHAR(100) NOT NULL DEFAULT 'admin'")
+            except Exception:
+                pass
+
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS users (
                     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -118,8 +188,8 @@ def init_db():
             cursor.execute("SELECT COUNT(*) as cnt FROM admin_credentials")
             row = cursor.fetchone()
             if row and row['cnt'] == 0:
-                admin_user = os.environ.get('ADMIN_USERNAME', 'admin')
-                admin_pass = os.environ.get('ADMIN_PASSWORD', 'admin123')
+                admin_user = os.environ.get('ADMIN_USERNAME', 'Ayushman24')
+                admin_pass = os.environ.get('ADMIN_PASSWORD', 'Ayushman@#2005')
                 admin_hash = hash_password(admin_pass)
                 cursor.execute("INSERT INTO admin_credentials (username, password_hash) VALUES (%s, %s)", (admin_user, admin_hash))
             try:
@@ -127,7 +197,7 @@ def init_db():
             except Exception:
                 pass
         conn.commit()
-        conn.close()
+        mysql_pool.release_connection(conn)
         print("MySQL database and tables verified/created successfully. DB_MODE = 'MYSQL'")
         DB_MODE = 'MYSQL'
         USE_SQLITE = False
@@ -146,6 +216,7 @@ def init_db():
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS assessments (
                 id TEXT PRIMARY KEY,
+                username TEXT NOT NULL DEFAULT 'admin',
                 name TEXT NOT NULL,
                 timestamp TEXT NOT NULL,
                 personal TEXT NOT NULL,
@@ -154,6 +225,12 @@ def init_db():
                 results TEXT NOT NULL
             )
         """)
+        # Auto-migration: ensure username column exists
+        try:
+            cursor.execute("ALTER TABLE assessments ADD COLUMN username TEXT NOT NULL DEFAULT 'admin'")
+        except Exception:
+            pass
+
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -174,8 +251,8 @@ def init_db():
         cursor.execute("SELECT COUNT(*) FROM admin_credentials")
         cnt = cursor.fetchone()[0]
         if cnt == 0:
-            admin_user = os.environ.get('ADMIN_USERNAME', 'admin')
-            admin_pass = os.environ.get('ADMIN_PASSWORD', 'admin123')
+            admin_user = os.environ.get('ADMIN_USERNAME', 'Ayushman24')
+            admin_pass = os.environ.get('ADMIN_PASSWORD', 'Ayushman@#2005')
             admin_hash = hash_password(admin_pass)
             cursor.execute("INSERT INTO admin_credentials (username, password_hash) VALUES (?, ?)", (admin_user, admin_hash))
         try:
@@ -187,6 +264,10 @@ def init_db():
         print("SQLite local database and tables verified/created successfully. DB_MODE = 'SQLITE'")
     except Exception as sq_err:
         print(f"Critical Error: Failed to initialize SQLite local database: {sq_err}")
+
+def _format_sqlite_query(query: str) -> str:
+    """Safely replaces parameter placeholders (%s) with SQLite (?) without replacing % inside literals."""
+    return re.sub(r'(?<!%)(%s)', '?', query)
 
 def db_execute(query: str, params: tuple = None):
     if params is None:
@@ -201,15 +282,23 @@ def db_execute(query: str, params: tuple = None):
         try:
             if "INSERT INTO ASSESSMENTS" in query_upper:
                 p = params
-                p_personal = json.loads(p[3]) if isinstance(p[3], str) else p[3]
-                p_lifestyle = json.loads(p[4]) if isinstance(p[4], str) else p[4]
-                p_medical = json.loads(p[5]) if isinstance(p[5], str) else p[5]
-                p_results = json.loads(p[6]) if isinstance(p[6], str) else p[6]
+                # Handles (id, username, name, timestamp, personal, lifestyle, medical, results)
+                if len(p) >= 8:
+                    assess_id, username, name, timestamp, p_personal, p_lifestyle, p_medical, p_results = p[:8]
+                else:
+                    assess_id, name, timestamp, p_personal, p_lifestyle, p_medical, p_results = p[:7]
+                    username = 'admin'
+
+                p_personal = json.loads(p_personal) if isinstance(p_personal, str) else p_personal
+                p_lifestyle = json.loads(p_lifestyle) if isinstance(p_lifestyle, str) else p_lifestyle
+                p_medical = json.loads(p_medical) if isinstance(p_medical, str) else p_medical
+                p_results = json.loads(p_results) if isinstance(p_results, str) else p_results
                 
                 payload = {
-                    "id": str(p[0]),
-                    "name": str(p[1]),
-                    "timestamp": str(p[2]),
+                    "id": str(assess_id),
+                    "username": str(username),
+                    "name": str(name),
+                    "timestamp": str(timestamp),
                     "personal": p_personal,
                     "lifestyle": p_lifestyle,
                     "medical": p_medical,
@@ -239,29 +328,34 @@ def db_execute(query: str, params: tuple = None):
                 
             elif "UPDATE USERS SET NAME =" in query_upper:
                 new_name, username = params
-                supabase_client.table("users").update({"name": str(new_name)}).eq("username", str(username)).execute()
+                supabase_client.table("users").update({"name": str(new_name)}).ilike("username", str(username)).execute()
                 return
                 
             elif "UPDATE USERS SET PASSWORD_HASH =" in query_upper:
                 new_hash, username = params
-                supabase_client.table("users").update({"password_hash": str(new_hash)}).eq("username", str(username)).execute()
+                supabase_client.table("users").update({"password_hash": str(new_hash)}).ilike("username", str(username)).execute()
                 return
                 
-            elif "DELETE FROM USERS WHERE USERNAME =" in query_upper:
+            elif "DELETE FROM USERS WHERE" in query_upper:
                 username = params[0]
-                supabase_client.table("users").delete().eq("username", str(username)).execute()
+                supabase_client.table("users").delete().ilike("username", str(username)).execute()
                 return
                 
+            elif "DELETE FROM ASSESSMENTS WHERE LOWER(USERNAME) =" in query_upper:
+                username = params[0]
+                supabase_client.table("assessments").delete().ilike("username", str(username)).execute()
+                return
+
             elif "DELETE FROM ASSESSMENTS WHERE ID =" in query_upper:
                 assess_id = params[0]
                 supabase_client.table("assessments").delete().eq("id", str(assess_id)).execute()
                 return
         except Exception as sb_ex_err:
-            print(f"Supabase db_execute error: {sb_ex_err}")
+            logger.exception("Supabase db_execute error")
             raise sb_ex_err
 
     if USE_SQLITE:
-        sqlite_query = query.replace("%s", "?")
+        sqlite_query = _format_sqlite_query(query)
         conn = sqlite3.connect(os.path.join(MODELS_DIR, "local_storage.db"))
         cursor = conn.cursor()
         cursor.execute(sqlite_query, params)
@@ -269,12 +363,14 @@ def db_execute(query: str, params: tuple = None):
         conn.close()
     else:
         conn = get_db_connection()
-        with conn.cursor() as cursor:
-            cursor.execute(query, params)
-        conn.commit()
-        conn.close()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(query, params)
+            conn.commit()
+        finally:
+            mysql_pool.release_connection(conn)
 
-def db_fetchall(query: str, params: tuple = None):
+def db_fetchall(query: str, params: tuple = None) -> List[Dict[str, Any]]:
     if params is None:
         params = ()
 
@@ -292,15 +388,18 @@ def db_fetchall(query: str, params: tuple = None):
             elif "FROM ASSESSMENTS" in query_upper:
                 if "SELECT ID FROM ASSESSMENTS" in query_upper:
                     res = supabase_client.table("assessments").select("id").execute()
+                elif "WHERE USERNAME =" in query_upper or "WHERE LOWER(USERNAME) =" in query_upper:
+                    username = str(params[0]) if params else ""
+                    res = supabase_client.table("assessments").select("*").ilike("username", username).order("timestamp", desc=True).execute()
                 else:
                     res = supabase_client.table("assessments").select("*").order("timestamp", desc=True).execute()
                 return res.data or []
         except Exception as sb_fa_err:
-            print(f"Supabase db_fetchall error: {sb_fa_err}")
+            logger.exception("Supabase db_fetchall error")
             raise sb_fa_err
 
     if USE_SQLITE:
-        sqlite_query = query.replace("%s", "?")
+        sqlite_query = _format_sqlite_query(query)
         conn = sqlite3.connect(os.path.join(MODELS_DIR, "local_storage.db"))
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
@@ -311,13 +410,15 @@ def db_fetchall(query: str, params: tuple = None):
         return result
     else:
         conn = get_db_connection()
-        with conn.cursor() as cursor:
-            cursor.execute(query, params)
-            result = cursor.fetchall()
-        conn.close()
-        return result
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(query, params)
+                result = cursor.fetchall()
+            return result
+        finally:
+            mysql_pool.release_connection(conn)
 
-def db_fetchone(query: str, params: tuple = None):
+def db_fetchone(query: str, params: tuple = None) -> Optional[Dict[str, Any]]:
     if params is None:
         params = ()
 
@@ -338,7 +439,7 @@ def db_fetchone(query: str, params: tuple = None):
             elif "FROM USERS" in query_upper:
                 username = str(params[0]) if params else ""
                 if "SELECT USERNAME, NAME, CREATED_AT" in query_upper:
-                    res = supabase_client.table("users").select("username, name, created_at").eq("username", username).execute()
+                    res = supabase_client.table("users").select("username, name, created_at").ilike("username", username).execute()
                 else:
                     res = supabase_client.table("users").select("*").ilike("username", username).execute()
                 data = res.data
@@ -348,12 +449,20 @@ def db_fetchone(query: str, params: tuple = None):
                         user_record['created_at'] = str(user_record['created_at'])
                     return user_record
                 return None
+
+            elif "FROM ASSESSMENTS" in query_upper:
+                assess_id = str(params[0]) if params else ""
+                res = supabase_client.table("assessments").select("*").eq("id", assess_id).execute()
+                data = res.data
+                if data and len(data) > 0:
+                    return dict(data[0])
+                return None
         except Exception as sb_fo_err:
-            print(f"Supabase db_fetchone error: {sb_fo_err}")
+            logger.exception("Supabase db_fetchone error")
             raise sb_fo_err
 
     if USE_SQLITE:
-        sqlite_query = query.replace("%s", "?")
+        sqlite_query = _format_sqlite_query(query)
         conn = sqlite3.connect(os.path.join(MODELS_DIR, "local_storage.db"))
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
@@ -364,8 +473,10 @@ def db_fetchone(query: str, params: tuple = None):
         return result
     else:
         conn = get_db_connection()
-        with conn.cursor() as cursor:
-            cursor.execute(query, params)
-            result = cursor.fetchone()
-        conn.close()
-        return result
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(query, params)
+                result = cursor.fetchone()
+            return result
+        finally:
+            mysql_pool.release_connection(conn)
