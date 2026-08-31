@@ -105,7 +105,7 @@ export default function App() {
   const [insightsUser, setInsightsUser] = useState('');
 
   // Symptom Checker state
-  const [symptomTags, setSymptomTags] = useState(['Stomach ache']);
+  const [symptomTags, setSymptomTags] = useState([]);
   const [symptomInput, setSymptomInput] = useState('');
   const [symptomDesc, setSymptomDesc] = useState('');
   const [symptomDuration, setSymptomDuration] = useState('1-3 days');

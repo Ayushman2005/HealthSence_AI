@@ -21,8 +21,8 @@ export default function Dashboard({
   const [sliderChol, setSliderChol] = useState(latestAssessment?.medical?.cholesterol || 180);
   const [sliderSleep, setSliderSleep] = useState(latestAssessment?.lifestyle?.sleepDuration || 7.5);
 
-  const baseScore = latestAssessment?.results?.overallScore || 85;
-  const baseHeartRisk = latestAssessment?.results?.risks?.heartDisease ?? latestAssessment?.results?.risks?.heart ?? 6;
+  const baseScore = latestAssessment?.results?.overallScore || 80;
+  const baseHeartRisk = latestAssessment?.results?.risks?.heartDisease ?? latestAssessment?.results?.risks?.heart ?? 10;
 
   // Real-time projected score based on quick sliders
   const liveProjectedScore = useMemo(() => {
@@ -41,41 +41,41 @@ export default function Dashboard({
   const vitals = [
     {
       label: 'Blood Pressure',
-      value: latestAssessment?.medical?.bpSystolic ? `${latestAssessment.medical.bpSystolic} / ${latestAssessment.medical.bpDiastolic} mmHg` : '120 / 80 mmHg',
-      status: (latestAssessment?.medical?.bpSystolic || 120) < 130 ? 'Normal' : 'Elevated',
-      color: (latestAssessment?.medical?.bpSystolic || 120) < 130 ? 'text-emerald-400 bg-emerald-500/10' : 'text-amber-400 bg-amber-500/10',
+      value: latestAssessment?.medical?.bpSystolic ? `${latestAssessment.medical.bpSystolic} / ${latestAssessment.medical.bpDiastolic} mmHg` : '--',
+      status: latestAssessment?.medical?.bpSystolic ? ((latestAssessment.medical.bpSystolic || 120) < 130 ? 'Normal' : 'Elevated') : 'No Data',
+      color: latestAssessment?.medical?.bpSystolic ? ((latestAssessment.medical.bpSystolic || 120) < 130 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200') : 'bg-slate-100 text-slate-500 border border-slate-200',
       icon: Activity
     },
     {
       label: 'Total Cholesterol',
-      value: latestAssessment?.medical?.cholesterol ? `${latestAssessment.medical.cholesterol} mg/dL` : '180 mg/dL',
-      status: (latestAssessment?.medical?.cholesterol || 180) < 200 ? 'Desirable' : 'Borderline',
-      color: (latestAssessment?.medical?.cholesterol || 180) < 200 ? 'text-emerald-400 bg-emerald-500/10' : 'text-amber-400 bg-amber-500/10',
+      value: latestAssessment?.medical?.cholesterol ? `${latestAssessment.medical.cholesterol} mg/dL` : '--',
+      status: latestAssessment?.medical?.cholesterol ? ((latestAssessment.medical.cholesterol || 180) < 200 ? 'Desirable' : 'Borderline') : 'No Data',
+      color: latestAssessment?.medical?.cholesterol ? ((latestAssessment.medical.cholesterol || 180) < 200 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200') : 'bg-slate-100 text-slate-500 border border-slate-200',
       icon: Droplet
     },
     {
       label: 'Fasting Glucose',
-      value: latestAssessment?.medical?.glucose ? `${latestAssessment.medical.glucose} mg/dL` : '92 mg/dL',
-      status: (latestAssessment?.medical?.glucose || 92) < 100 ? 'Normal' : 'Elevated',
-      color: (latestAssessment?.medical?.glucose || 92) < 100 ? 'text-emerald-400 bg-emerald-500/10' : 'text-amber-400 bg-amber-500/10',
+      value: latestAssessment?.medical?.glucose ? `${latestAssessment.medical.glucose} mg/dL` : '--',
+      status: latestAssessment?.medical?.glucose ? ((latestAssessment.medical.glucose || 92) < 100 ? 'Normal' : 'Elevated') : 'No Data',
+      color: latestAssessment?.medical?.glucose ? ((latestAssessment.medical.glucose || 92) < 100 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200') : 'bg-slate-100 text-slate-500 border border-slate-200',
       icon: Zap
     },
     {
       label: 'Resting Heart Rate',
-      value: latestAssessment?.medical?.heartRate ? `${latestAssessment.medical.heartRate} BPM` : '72 BPM',
-      status: 'Resting Sinus',
-      color: 'text-emerald-400 bg-emerald-500/10',
+      value: latestAssessment?.medical?.heartRate ? `${latestAssessment.medical.heartRate} BPM` : '--',
+      status: latestAssessment?.medical?.heartRate ? 'Resting Sinus' : 'No Data',
+      color: latestAssessment?.medical?.heartRate ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200',
       icon: HeartPulse
     }
   ];
 
   const risks = [
-    { label: 'Heart Disease Likelihood (Core ML)', value: latestAssessment?.results?.risks?.heartDisease ?? 5, desc: 'Ensemble probability of cardiovascular events' },
-    { label: 'Coronary Artery Disease (CAD)', value: latestAssessment?.results?.risks?.coronaryArtery ?? 4, desc: 'Arterial stenosis and myocardial perfusion' },
-    { label: 'Hypertensive Heart Strain', value: latestAssessment?.results?.risks?.hypertensiveHeart ?? 4, desc: 'Left ventricular workload & vascular resistance' },
-    { label: 'Atherosclerosis Plaque Index', value: latestAssessment?.results?.risks?.atherosclerosis ?? 4, desc: 'Vascular stiffness & oxidized LDL lipids' },
-    { label: 'Cardiac Rhythm & Stability', value: latestAssessment?.results?.risks?.arrhythmia ?? 3, desc: 'Resting rhythm & autonomic electrophysiology' },
-    { label: 'Cardio-Metabolic Endothelium', value: latestAssessment?.results?.risks?.cardioMetabolic ?? 4, desc: 'Microvascular glycemic & insulin resilience' }
+    { label: 'Heart Disease Likelihood (Core ML)', value: latestAssessment?.results?.risks?.heartDisease, desc: 'Ensemble probability of cardiovascular events' },
+    { label: 'Coronary Artery Disease (CAD)', value: latestAssessment?.results?.risks?.coronaryArtery, desc: 'Arterial stenosis and myocardial perfusion' },
+    { label: 'Hypertensive Heart Strain', value: latestAssessment?.results?.risks?.hypertensiveHeart, desc: 'Left ventricular workload & vascular resistance' },
+    { label: 'Atherosclerosis Plaque Index', value: latestAssessment?.results?.risks?.atherosclerosis, desc: 'Vascular stiffness & oxidized LDL lipids' },
+    { label: 'Cardiac Rhythm & Stability', value: latestAssessment?.results?.risks?.arrhythmia, desc: 'Resting rhythm & autonomic electrophysiology' },
+    { label: 'Cardio-Metabolic Endothelium', value: latestAssessment?.results?.risks?.cardioMetabolic, desc: 'Microvascular glycemic & insulin resilience' }
   ];
 
   return (
@@ -88,8 +88,12 @@ export default function Dashboard({
           {/* Left: Summary & Patient Status */}
           <div className="space-y-3 max-w-2xl">
             <div className="flex items-center gap-2">
-              <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 border ${
+                latestAssessment 
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                  : 'bg-slate-100 text-slate-600 border-slate-200'
+              }`}>
+                <span className={`w-2 h-2 rounded-full ${latestAssessment ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
                 {latestAssessment ? 'Latest Assessment Verified' : 'Ready for New Assessment'}
               </span>
               <span className="text-xs text-slate-500 font-medium">
@@ -103,7 +107,7 @@ export default function Dashboard({
 
             <p className="text-sm text-slate-600 font-medium leading-relaxed">
               {latestAssessment 
-                ? 'Your cardiovascular biomarkers and lifestyle habits indicate optimal heart health with low probability of coronary artery disease.'
+                ? 'Your cardiovascular biomarkers and lifestyle habits indicate your latest calibrated assessment summary.'
                 : 'Evaluate your heart disease risk using 5 calibrated machine learning models. Enter your vitals to receive immediate clinical insights and actionable guidance.'}
             </p>
 
@@ -145,17 +149,23 @@ export default function Dashboard({
                   className="stroke-amber-500 transition-all duration-1000" 
                   strokeWidth="8" 
                   strokeDasharray="264"
-                  strokeDashoffset={264 - (264 * (latestAssessment?.results?.overallScore || 85)) / 100}
+                  strokeDashoffset={latestAssessment?.results?.overallScore ? (264 - (264 * latestAssessment.results.overallScore) / 100) : 264}
                   strokeLinecap="round" 
                   fill="none" 
                 />
               </svg>
               <div className="absolute flex flex-col items-center">
-                <span className="text-2xl font-black text-slate-900 font-mono">{latestAssessment?.results?.overallScore || 85}</span>
+                <span className="text-2xl font-black text-slate-900 font-mono">
+                  {latestAssessment?.results?.overallScore != null ? latestAssessment.results.overallScore : '--'}
+                </span>
                 <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">/ 100 Score</span>
               </div>
             </div>
-            <span className="text-xs font-bold text-emerald-600 mt-2.5">Optimal Heart Health</span>
+            <span className="text-xs font-bold text-slate-600 mt-2.5">
+              {latestAssessment 
+                ? (latestAssessment.results?.overallScore >= 70 ? 'Optimal Heart Health' : 'Moderate / Elevated Risk') 
+                : 'No Assessment Recorded'}
+            </span>
           </div>
 
         </div>
@@ -174,11 +184,7 @@ export default function Dashboard({
                 </div>
               </div>
               <div className="text-lg sm:text-xl font-black text-slate-900 font-mono">{v.value}</div>
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-block ${
-                v.status === 'Normal' || v.status === 'Desirable' || v.status === 'Resting Sinus'
-                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                  : 'bg-amber-50 text-amber-700 border border-amber-200'
-              }`}>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-block ${v.color}`}>
                 {v.status}
               </span>
             </div>
@@ -200,7 +206,7 @@ export default function Dashboard({
               <p className="text-xs text-slate-500 mt-0.5">Calculated across 5 machine learning models</p>
             </div>
             <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-              Low Risk Range
+              {latestAssessment ? 'Verified Parameters' : 'Pending Assessment'}
             </span>
           </div>
 
@@ -209,12 +215,14 @@ export default function Dashboard({
               <div key={idx} className="space-y-1.5">
                 <div className="flex justify-between items-center text-xs">
                   <span className="font-bold text-slate-700">{r.label}</span>
-                  <span className="font-black text-emerald-600 font-mono">{r.value}% Risk</span>
+                  <span className="font-black text-slate-900 font-mono">
+                    {r.value != null ? `${r.value}% Risk` : '--'}
+                  </span>
                 </div>
                 <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200">
                   <div 
                     className="h-full bg-emerald-500 rounded-full transition-all duration-500" 
-                    style={{ width: `${Math.max(4, r.value)}%` }} 
+                    style={{ width: `${r.value != null ? Math.max(4, r.value) : 0}%` }} 
                   />
                 </div>
                 <p className="text-[10px] text-slate-500 font-medium">{r.desc}</p>
@@ -222,6 +230,7 @@ export default function Dashboard({
             ))}
           </div>
         </div>
+
 
         {/* Right: Quick What-If Simulator */}
         <div className="lg:col-span-5 bg-white border border-slate-200 rounded-3xl p-6 space-y-5 flex flex-col justify-between shadow-xs">
