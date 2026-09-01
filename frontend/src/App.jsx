@@ -10,7 +10,6 @@ import SplashLoader from './components/SplashLoader';
 import ToastContainer from './components/ToastContainer';
 import AuthModal from './components/AuthModal';
 import SimulatorModal from './components/SimulatorModal';
-import ChatWidget from './components/ChatWidget';
 import Dashboard from './components/Dashboard';
 import Wizard from './components/Wizard';
 import SymptomChecker from './components/SymptomChecker';
@@ -133,7 +132,6 @@ export default function App() {
   ]);
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
-  const [isChatWidgetOpen, setIsChatWidgetOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
 
   // Global keyboard shortcut for Command Palette (Ctrl+K / Cmd+K)
@@ -1425,17 +1423,6 @@ export default function App() {
         liveSimResults={liveSimResults}
         setFormData={setFormData}
         setCurrentTab={setCurrentTab}
-      />
-
-      {/* Floating Chat Widget Drawer */}
-      <ChatWidget
-        isChatWidgetOpen={isChatWidgetOpen}
-        setIsChatWidgetOpen={setIsChatWidgetOpen}
-        chatMessages={chatMessages}
-        chatInput={chatInput}
-        setChatInput={setChatInput}
-        chatLoading={chatLoading}
-        handleSendChatMessage={handleSendChatMessage}
       />
 
     </div>
