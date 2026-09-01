@@ -39,41 +39,46 @@ FEATURE_NAMES = [
     "physical_activity_active"
 ]
 
-def generate_heart_disease_dataset(dataset_path: str, num_records: int = 2500) -> pd.DataFrame:
+def generate_heart_disease_dataset(dataset_path: str, num_records: int = 3000) -> pd.DataFrame:
     np.random.seed(101)
-    ages = np.random.randint(18, 85, size=num_records)
+    ages = np.random.randint(20, 85, size=num_records)
     genders = np.random.choice(['male', 'female', 'other'], size=num_records, p=[0.50, 0.46, 0.04])
     heights = np.random.normal(170, 10, size=num_records)
     weights = np.clip(heights * 0.46 + np.random.normal(0, 11, size=num_records), 40, 150)
     bmis = weights / ((heights / 100) ** 2)
 
-    smokers = np.random.choice(['yes', 'no'], size=num_records, p=[0.25, 0.75])
-    alcohol_use = np.random.choice(['low', 'moderate', 'high'], size=num_records, p=[0.55, 0.32, 0.13])
+    smokers = np.random.choice(['yes', 'no'], size=num_records, p=[0.30, 0.70])
+    alcohol_use = np.random.choice(['low', 'moderate', 'high'], size=num_records, p=[0.50, 0.35, 0.15])
     activities = np.random.choice(['sedentary', 'moderate', 'active'], size=num_records, p=[0.40, 0.40, 0.20])
     sleep_hours = np.clip(np.random.normal(6.8, 1.3, size=num_records), 4, 10)
 
-    systolic = np.clip(115 + (bmis - 22) * 1.5 + (ages - 30) * 0.4 + np.random.normal(0, 10, size=num_records), 85, 210).astype(int)
-    diastolic = np.clip(72 + (bmis - 22) * 0.9 + (ages - 30) * 0.2 + np.random.normal(0, 7, size=num_records), 55, 125).astype(int)
-    cholesterol = np.clip(170 + (bmis - 22) * 2.2 + (ages - 30) * 0.9 + np.random.normal(0, 18, size=num_records), 100, 390).astype(int)
-    glucose = np.clip(85 + (bmis - 22) * 1.2 + np.random.normal(0, 10, size=num_records), 55, 250).astype(int)
-    insulin = np.clip(5 + (glucose - 85) * 0.12 + np.random.normal(0, 3, size=num_records), 2, 50).astype(int)
-    heart_rate = np.clip(68 + (bmis - 22) * 0.5 + (ages - 30) * 0.1 + np.random.normal(0, 9, size=num_records), 45, 135).astype(int)
+    systolic = np.clip(115 + (bmis - 22) * 1.6 + (ages - 30) * 0.45 + np.random.normal(0, 10, size=num_records), 85, 210).astype(int)
+    diastolic = np.clip(72 + (bmis - 22) * 0.95 + (ages - 30) * 0.25 + np.random.normal(0, 7, size=num_records), 55, 125).astype(int)
+    cholesterol = np.clip(170 + (bmis - 22) * 2.3 + (ages - 30) * 0.95 + np.random.normal(0, 18, size=num_records), 100, 390).astype(int)
+    glucose = np.clip(85 + (bmis - 22) * 1.3 + np.random.normal(0, 10, size=num_records), 55, 250).astype(int)
+    insulin = np.clip(5 + (glucose - 85) * 0.14 + np.random.normal(0, 3, size=num_records), 2, 50).astype(int)
+    heart_rate = np.clip(68 + (bmis - 22) * 0.5 + (ages - 30) * 0.12 + np.random.normal(0, 9, size=num_records), 45, 135).astype(int)
 
     smoker_numeric = (smokers == 'yes').astype(float)
-    activity_risk = (activities == 'sedentary').astype(float) * 0.4
+    sedentary_numeric = (activities == 'sedentary').astype(float)
+    alcohol_high_numeric = (alcohol_use == 'high').astype(float)
 
+    # Calibrated realistic clinical risk scoring
     logit_heart = (
-        -5.2
-        + 0.040 * (systolic - 120)
-        + 0.022 * (cholesterol - 180)
-        + 0.035 * (ages - 40)
-        + 0.75 * smoker_numeric
-        + 0.050 * (bmis - 25)
-        + activity_risk
-        + np.random.normal(0, 0.4, size=num_records)
+        -2.8
+        + 0.045 * (systolic - 120)
+        + 0.028 * (cholesterol - 180)
+        + 0.040 * (ages - 45)
+        + 1.2 * smoker_numeric
+        + 0.045 * (bmis - 24)
+        + 0.025 * (glucose - 90)
+        + 0.030 * (heart_rate - 70)
+        + 0.6 * sedentary_numeric
+        + 0.5 * alcohol_high_numeric
+        + np.random.normal(0, 0.25, size=num_records)
     )
     prob_heart = 1 / (1 + np.exp(-logit_heart))
-    y_heart = (np.random.rand(num_records) < prob_heart).astype(int)
+    y_heart = (prob_heart >= 0.50).astype(int)
 
     df = pd.DataFrame({
         'age': ages,
@@ -100,11 +105,7 @@ def generate_heart_disease_dataset(dataset_path: str, num_records: int = 2500) -
 def run_training_pipeline() -> dict:
     os.makedirs(MODELS_DIR, exist_ok=True)
     dataset_path = os.path.join(MODELS_DIR, "heart_disease_dataset.csv")
-    
-    if os.path.exists(dataset_path):
-        df = pd.read_csv(dataset_path)
-    else:
-        df = generate_heart_disease_dataset(dataset_path)
+    df = generate_heart_disease_dataset(dataset_path)
 
     # One-hot encode categoricals
     df_encoded = df.copy()

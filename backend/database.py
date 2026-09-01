@@ -198,10 +198,17 @@ def init_db():
                     results JSON NOT NULL
                 )
             """)
+            conn.commit()
+            
+            # Ensure username column exists
             try:
-                cursor.execute("ALTER TABLE assessments ADD COLUMN username VARCHAR(100) NOT NULL DEFAULT 'admin'")
+                cursor.execute("SELECT username FROM assessments LIMIT 1")
             except Exception:
-                pass
+                try:
+                    cursor.execute("ALTER TABLE assessments ADD COLUMN username VARCHAR(100) NOT NULL DEFAULT 'admin'")
+                    conn.commit()
+                except Exception:
+                    pass
 
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS users (
@@ -212,6 +219,8 @@ def init_db():
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
+            conn.commit()
+            
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS admin_credentials (
                     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -220,6 +229,8 @@ def init_db():
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
+            conn.commit()
+            
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS audit_logs (
                     id VARCHAR(50) PRIMARY KEY,
@@ -232,6 +243,8 @@ def init_db():
                     status VARCHAR(20) NOT NULL DEFAULT 'SUCCESS'
                 )
             """)
+            conn.commit()
+            
             cursor.execute("SELECT COUNT(*) as cnt FROM admin_credentials")
             row = cursor.fetchone()
             if row and row['cnt'] == 0:
@@ -239,11 +252,12 @@ def init_db():
                 admin_pass = os.environ.get('ADMIN_PASSWORD', 'Ayushman@#2005')
                 admin_hash = hash_password(admin_pass)
                 cursor.execute("INSERT INTO admin_credentials (username, password_hash) VALUES (%s, %s)", (admin_user, admin_hash))
+                conn.commit()
             try:
                 cursor.execute("ALTER TABLE users ADD COLUMN name VARCHAR(100) DEFAULT 'User'")
+                conn.commit()
             except Exception:
                 pass
-        conn.commit()
         mysql_pool.release_connection(conn)
         print("MySQL database and tables verified/created successfully. DB_MODE = 'MYSQL'")
         DB_MODE = 'MYSQL'

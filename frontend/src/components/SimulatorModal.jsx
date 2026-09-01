@@ -400,7 +400,7 @@ export default function SimulatorModal({
               {/* Heart Disease Overall */}
               <div className="space-y-1">
                 <div className="flex justify-between text-xs font-bold">
-                  <span className="text-slate-300">Heart Disease (Core ML)</span>
+                  <span className="text-slate-300">Heart Disease Risk</span>
                   <span
                     className={
                       heartRisk > 65

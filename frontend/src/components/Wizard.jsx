@@ -23,8 +23,7 @@ export default function Wizard({
       data: {
         name: 'Alex Rivera', age: 25, gender: 'male', height: 178, weight: 70,
         smoking: 'no', alcohol: 'low', physicalActivity: 'active', sleepDuration: 8,
-        bpSystolic: 112, bpDiastolic: 74, cholesterol: 165, glucose: 84, insulin: 5, heartRate: 54,
-        algorithm: 'auto'
+        bpSystolic: 112, bpDiastolic: 74, cholesterol: 165, glucose: 84, insulin: 5, heartRate: 54
       }
     },
     {
@@ -32,8 +31,7 @@ export default function Wizard({
       data: {
         name: 'David Miller', age: 45, gender: 'male', height: 175, weight: 88,
         smoking: 'no', alcohol: 'moderate', physicalActivity: 'sedentary', sleepDuration: 6,
-        bpSystolic: 136, bpDiastolic: 88, cholesterol: 228, glucose: 118, insulin: 16, heartRate: 78,
-        algorithm: 'auto'
+        bpSystolic: 136, bpDiastolic: 88, cholesterol: 228, glucose: 118, insulin: 16, heartRate: 78
       }
     },
     {
@@ -41,8 +39,7 @@ export default function Wizard({
       data: {
         name: 'Elena Rostova', age: 60, gender: 'female', height: 162, weight: 82,
         smoking: 'yes', alcohol: 'moderate', physicalActivity: 'sedentary', sleepDuration: 5.5,
-        bpSystolic: 164, bpDiastolic: 102, cholesterol: 265, glucose: 155, insulin: 28, heartRate: 92,
-        algorithm: 'auto'
+        bpSystolic: 164, bpDiastolic: 102, cholesterol: 265, glucose: 155, insulin: 28, heartRate: 92
       }
     }
   ];
@@ -432,41 +429,6 @@ export default function Wizard({
                   })}
                 </div>
 
-                {/* Algorithm Selection */}
-                <div className="pt-3 border-t border-slate-800">
-                  <label className="text-xs font-extrabold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                    <Cpu className="w-4 h-4 text-amber-400" />
-                    <span>Select Predictive Model Algorithm</span>
-                  </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {[
-                      { id: 'auto', name: 'Auto Ensemble', badge: 'Recommended' },
-                      { id: 'xgboost', name: 'XGBoost', badge: 'High Accuracy' },
-                      { id: 'random_forest', name: 'Random Forest', badge: 'Robust' },
-                      { id: 'logistic_regression', name: 'Logistic Regression', badge: 'Linear' },
-                      { id: 'lightgbm', name: 'LightGBM', badge: 'Fast Tree' },
-                      { id: 'gradient_boosting', name: 'Gradient Boosting', badge: 'Ensemble' }
-                    ].map(alg => (
-                      <button
-                        key={alg.id}
-                        type="button"
-                        onClick={() => {
-                          soundFX.play('click');
-                          setFormData(prev => ({ ...prev, algorithm: alg.id }));
-                        }}
-                        className={`p-2.5 rounded-xl text-left border transition cursor-pointer ${
-                          formData.algorithm === alg.id 
-                            ? 'bg-amber-500/15 border-amber-400 text-white shadow-xs'
-                            : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
-                        }`}
-                      >
-                        <div className="font-black text-xs">{alg.name}</div>
-                        <div className="text-[9px] text-amber-400/80 font-bold mt-0.5">{alg.badge}</div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
               </div>
             )}
 
@@ -575,7 +537,7 @@ export default function Wizard({
           <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 flex gap-3 items-start">
             <HeartPulse className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
             <p className="text-xs text-slate-300 font-medium leading-relaxed">
-              Biomarkers are securely analyzed using the verified Heart Disease ML ensemble to compute precision cardiovascular risk scores and clinical triage recommendations.
+              Biomarkers are securely analyzed to compute precision cardiovascular risk scores and clinical triage recommendations.
             </p>
           </div>
         </div>

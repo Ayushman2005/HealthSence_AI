@@ -69,7 +69,7 @@ export default function Dashboard({
   ];
 
   const risks = [
-    { label: 'Heart Disease Likelihood (Core ML)', value: latestAssessment?.results?.risks?.heartDisease, desc: 'Ensemble probability of cardiovascular events' },
+    { label: 'Heart Disease Likelihood', value: latestAssessment?.results?.risks?.heartDisease, desc: 'Comprehensive probability of cardiovascular events' },
     { label: 'Coronary Artery Disease (CAD)', value: latestAssessment?.results?.risks?.coronaryArtery, desc: 'Arterial stenosis and myocardial perfusion' },
     { label: 'Hypertensive Heart Strain', value: latestAssessment?.results?.risks?.hypertensiveHeart, desc: 'Left ventricular workload & vascular resistance' },
     { label: 'Atherosclerosis Plaque Index', value: latestAssessment?.results?.risks?.atherosclerosis, desc: 'Vascular stiffness & oxidized LDL lipids' },
@@ -107,7 +107,7 @@ export default function Dashboard({
             <p className="text-sm text-slate-600 font-medium leading-relaxed">
               {latestAssessment 
                 ? 'Your cardiovascular biomarkers and lifestyle habits indicate your latest calibrated assessment summary.'
-                : 'Evaluate your heart disease risk using 5 calibrated machine learning models. Enter your vitals to receive immediate clinical insights and actionable guidance.'}
+                : 'Evaluate your heart disease risk using clinical vital signs and biomarkers. Enter your vitals to receive immediate clinical insights and actionable guidance.'}
             </p>
 
             {/* CTA Action Buttons */}
@@ -202,7 +202,7 @@ export default function Dashboard({
                 <ShieldCheck className="w-4 h-4 text-emerald-600" />
                 <span>Cardiovascular Risk Dimensions</span>
               </h3>
-              <p className="text-xs text-slate-500 mt-0.5">Calculated across 5 machine learning models</p>
+              <p className="text-xs text-slate-500 mt-0.5">Calculated across comprehensive clinical biomarkers</p>
             </div>
             <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
               {latestAssessment ? 'Verified Parameters' : 'Pending Assessment'}
@@ -330,7 +330,7 @@ export default function Dashboard({
               Risk Assessor Wizard
             </h4>
             <p className="text-xs text-slate-500 mt-1">
-              Step-by-step assessment calculating 6 heart risk sub-dimensions with 5 ML models.
+              Step-by-step assessment calculating 6 targeted cardiovascular risk sub-dimensions.
             </p>
           </div>
           <div className="text-xs font-bold text-amber-600 flex items-center gap-1 pt-1">

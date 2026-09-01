@@ -120,33 +120,11 @@ async def predict(
         X_scaled = X.copy()
         X_scaled[:, :11] = X_num_scaled
         
-        passed_alg = str(payload.algorithm or 'auto').lower()
-        
-        predictions = {}
-        selected_algorithms = {}
-        for disease in ml_engine.diseases:
-            if passed_alg in ml_engine.algs:
-                best_alg = passed_alg
-            else:
-                best_alg = ml_engine.select_best_algorithm_for_disease(disease)
-                
-            selected_algorithms[disease] = best_alg
-            
-            disease_models = ml_engine.models.get(disease, {})
-            model = disease_models.get(best_alg)
-            if model is None:
-                model = disease_models.get('random_forest') or disease_models.get('xgboost')
-                if model is None and len(disease_models) > 0:
-                    model = list(disease_models.values())[0]
-                if model is None:
-                    raise HTTPException(status_code=500, detail=f'Model for {disease} not found')
-                best_alg = 'random_forest'
-                selected_algorithms[disease] = best_alg
-                
-            prob = model.predict_proba(X_scaled)[0][1]
-            predictions[disease] = int(round(prob * 100))
-            
-        heart_risk_val = predictions.get('heart_disease', 20)
+        # Execute ALL 5 ML algorithms simultaneously and compute calibrated ensemble consensus
+        consensus_data = ml_engine.predict_all_algorithms('heart_disease', X_scaled)
+        heart_risk_val = consensus_data['master_risk']
+        model_consensus = consensus_data['models']
+        consensus_agreement = consensus_data['consensus_agreement']
         
         # Calculate Cardiovascular Sub-Risk Dimensions
         # 1. Coronary Artery Disease (CAD) Risk
@@ -285,6 +263,8 @@ async def predict(
             },
             'overallScore': health_score,
             'confidence': confidence,
+            'consensusAgreement': consensus_agreement,
+            'modelConsensus': model_consensus,
             'recommendations': recs,
             'explanations': {
                 'heart': explanations['heartDisease'],
@@ -297,8 +277,7 @@ async def predict(
             }
         }
         
-        alg_suffix = passed_alg if passed_alg in ml_engine.algs else 'auto'
-        assess_id = f"assess-{secrets.token_hex(4)}-{alg_suffix}"
+        assess_id = f"assess-{secrets.token_hex(4)}-consensus"
         timestamp_str = datetime.now().isoformat()
         
         personal_info = {'name': name, 'age': age, 'gender': gender, 'height': height, 'weight': weight, 'bmi': bmi}
