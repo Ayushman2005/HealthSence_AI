@@ -69,6 +69,7 @@ backend/*.py,cover
 backend/.hypothesis/
 backend/.pytest_cache/
 backend/cover/
+backend/test_db.py
 
 # Translations
 backend/*.mo
