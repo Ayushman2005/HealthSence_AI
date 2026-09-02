@@ -21,7 +21,7 @@ export default function Navbar({
 
   const isAdmin = userProfile?.role === 'admin';
 
-  // For Admin role: ONLY display the Admin Console tab. For regular clinicians: display standard medical tabs.
+  // For Admin role: display Admin Console tab + standard clinical tabs. For regular clinicians: display standard medical tabs.
   const navLinks = isAdmin
     ? [
         {
@@ -29,7 +29,12 @@ export default function Navbar({
           label: 'Admin Console',
           icon: ShieldAlert,
           isAdmin: true
-        }
+        },
+        { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { id: 'wizard', label: 'Check Heart Risk', icon: HeartPulse, onClick: resetWizard },
+        { id: 'symptom_checker', label: 'Symptom Checker', icon: Stethoscope },
+        { id: 'chatbot', label: 'Cardio AI', icon: Bot },
+        { id: 'history', label: 'History', icon: ClipboardList }
       ]
     : [
         { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -85,15 +90,11 @@ export default function Navbar({
                   onClick={() => handleNavClick(link)}
                   className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
                     isActive
-                      ? link.isAdmin 
-                        ? 'bg-rose-500 text-white shadow-xs' 
-                        : 'bg-white text-slate-900 font-black shadow-sm border border-slate-200/80'
-                      : link.isAdmin
-                        ? 'text-rose-600 hover:text-rose-700 hover:bg-rose-50'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+                      ? 'bg-white text-slate-900 font-black shadow-sm border border-slate-200/80'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? (link.isAdmin ? 'text-white' : 'text-amber-600') : (link.isAdmin ? 'text-rose-500' : 'text-slate-500')}`} />
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-amber-600' : 'text-slate-500'}`} />
                   <span>{link.label}</span>
                 </button>
               );
@@ -103,20 +104,18 @@ export default function Navbar({
           {/* Right Action Area (Simulator + User Profile / Sign In) */}
           <div className="flex items-center gap-2.5">
             
-            {/* Quick Simulator Button (Only shown for non-admin clinicians) */}
-            {!isAdmin && (
-              <button
-                onClick={() => {
-                  soundFX.play('click');
-                  setShowSimulatorModal(true);
-                }}
-                className="hidden lg:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 hover:border-amber-500/50 text-slate-700 text-xs font-bold transition shadow-xs cursor-pointer"
-                title="Open What-If Risk Simulator"
-              >
-                <Zap className="w-3.5 h-3.5 text-amber-500" />
-                <span>Simulator</span>
-              </button>
-            )}
+            {/* Quick Simulator Button */}
+            <button
+              onClick={() => {
+                soundFX.play('click');
+                setShowSimulatorModal(true);
+              }}
+              className="hidden lg:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 hover:border-amber-500/50 text-slate-700 text-xs font-bold transition shadow-xs cursor-pointer"
+              title="Open What-If Risk Simulator"
+            >
+              <Zap className="w-3.5 h-3.5 text-amber-500" />
+              <span>Simulator</span>
+            </button>
 
             {/* Profile Avatar / User Account Dropdown */}
             {authToken ? (
@@ -128,18 +127,14 @@ export default function Navbar({
                   }}
                   className="flex items-center gap-2 p-1.5 pl-2.5 rounded-xl border border-slate-200 hover:border-slate-300 bg-white text-left transition shadow-xs cursor-pointer"
                 >
-                  <div className={`w-7 h-7 rounded-lg font-black text-xs flex items-center justify-center ${
-                    isAdmin 
-                      ? 'bg-rose-100 border border-rose-200 text-rose-700' 
-                      : 'bg-amber-100 border border-amber-200 text-amber-700'
-                  }`}>
+                  <div className="w-7 h-7 rounded-lg font-black text-xs flex items-center justify-center bg-amber-100 border border-amber-200 text-amber-700">
                     {userProfile?.name ? userProfile.name.charAt(0).toUpperCase() : 'U'}
                   </div>
                   <div className="hidden sm:flex flex-col">
                     <span className="text-xs font-bold text-slate-900 max-w-25 truncate">
                       {userProfile?.name || activeUser || 'User'}
                     </span>
-                    <span className={`text-[9px] font-bold uppercase ${isAdmin ? 'text-rose-600' : 'text-slate-500'}`}>
+                    <span className={`text-[9px] font-bold uppercase ${isAdmin ? 'text-amber-600' : 'text-slate-500'}`}>
                       {isAdmin ? '👑 Admin' : 'Clinician'}
                     </span>
                   </div>
@@ -163,9 +158,9 @@ export default function Navbar({
                           setCurrentTab('admin_portal');
                           setProfileDropdownOpen(false);
                         }}
-                        className="w-full px-3 py-2 rounded-xl text-left text-xs font-bold text-rose-700 hover:bg-rose-50 flex items-center gap-2 transition cursor-pointer"
+                        className="w-full px-3 py-2 rounded-xl text-left text-xs font-bold text-slate-700 hover:bg-slate-50 hover:text-slate-900 flex items-center gap-2 transition cursor-pointer"
                       >
-                        <ShieldAlert className="w-4 h-4 text-rose-500" />
+                        <ShieldAlert className="w-4 h-4 text-amber-600" />
                         <span>Admin Console</span>
                       </button>
                     )}
@@ -227,13 +222,11 @@ export default function Navbar({
                 onClick={() => handleNavClick(link)}
                 className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                   isActive
-                    ? link.isAdmin
-                      ? 'bg-rose-500 text-white'
-                      : 'bg-amber-500 text-white font-black shadow-xs'
+                    ? 'bg-amber-500 text-white font-black shadow-xs'
                     : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-white' : (link.isAdmin ? 'text-rose-500' : 'text-amber-500')}`} />
+                <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-amber-500'}`} />
                 <span>{link.label}</span>
               </button>
             );

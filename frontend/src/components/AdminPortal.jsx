@@ -16,7 +16,9 @@ export default function AdminPortal({
   showToast,
   setCurrentTab,
   API_BASE_URL,
-  authToken
+  authToken,
+  resetWizard,
+  setShowSimulatorModal
 }) {
   const [systemStatus, setSystemStatus] = useState(null);
   const [statusLoading, setStatusLoading] = useState(false);
@@ -279,22 +281,75 @@ export default function AdminPortal({
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {[
-            { label: 'Risk Wizard', tab: 'wizard', icon: HeartPulse, color: 'text-amber-600 bg-amber-50/50 hover:bg-amber-50 border-amber-200/60' },
-            { label: 'Cardio Telemetry', tab: 'dashboard', icon: Activity, color: 'text-rose-600 bg-rose-50/50 hover:bg-rose-50 border-rose-200/60' },
-            { label: 'Symptom Triage', tab: 'symptom_checker', icon: Stethoscope, color: 'text-yellow-600 bg-yellow-50/50 hover:bg-yellow-50 border-yellow-200/60' },
-            { label: 'Cardio AI Bot', tab: 'chatbot', icon: Bot, color: 'text-emerald-600 bg-emerald-50/50 hover:bg-emerald-50 border-emerald-200/60' },
-            { label: 'Audit History', tab: 'history', icon: ClipboardList, color: 'text-cyan-600 bg-cyan-50/50 hover:bg-cyan-50 border-cyan-200/60' },
-            { label: 'Patient Trends', tab: 'insights', icon: TrendingUp, color: 'text-purple-600 bg-purple-50/50 hover:bg-purple-50 border-purple-200/60' }
+            { 
+              label: 'Risk Wizard', 
+              tab: 'wizard', 
+              icon: HeartPulse, 
+              color: 'text-amber-600 bg-amber-50/50 hover:bg-amber-50 border-amber-200/60',
+              onClick: () => {
+                soundFX.play('switch');
+                if (resetWizard) resetWizard();
+                if (setCurrentTab) setCurrentTab('wizard');
+              }
+            },
+            { 
+              label: 'Cardio Telemetry', 
+              tab: 'dashboard', 
+              icon: Activity, 
+              color: 'text-rose-600 bg-rose-50/50 hover:bg-rose-50 border-rose-200/60',
+              onClick: () => {
+                soundFX.play('switch');
+                if (setCurrentTab) setCurrentTab('dashboard');
+              }
+            },
+            { 
+              label: 'Symptom Triage', 
+              tab: 'symptom_checker', 
+              icon: Stethoscope, 
+              color: 'text-yellow-600 bg-yellow-50/50 hover:bg-yellow-50 border-yellow-200/60',
+              onClick: () => {
+                soundFX.play('switch');
+                if (setCurrentTab) setCurrentTab('symptom_checker');
+              }
+            },
+            { 
+              label: 'Cardio AI Bot', 
+              tab: 'chatbot', 
+              icon: Bot, 
+              color: 'text-emerald-600 bg-emerald-50/50 hover:bg-emerald-50 border-emerald-200/60',
+              onClick: () => {
+                soundFX.play('switch');
+                if (setCurrentTab) setCurrentTab('chatbot');
+              }
+            },
+            { 
+              label: 'Audit History', 
+              tab: 'history', 
+              icon: ClipboardList, 
+              color: 'text-cyan-600 bg-cyan-50/50 hover:bg-cyan-50 border-cyan-200/60',
+              onClick: () => {
+                soundFX.play('switch');
+                if (setCurrentTab) setCurrentTab('history');
+              }
+            },
+            { 
+              label: 'Patient Trends', 
+              tab: 'insights', 
+              icon: TrendingUp, 
+              color: 'text-purple-600 bg-purple-50/50 hover:bg-purple-50 border-purple-200/60',
+              onClick: () => {
+                soundFX.play('switch');
+                if (setCurrentTab) setCurrentTab('insights');
+              }
+            }
           ].map((action, idx) => {
             const Icon = action.icon;
             return (
               <button
                 key={idx}
-                onClick={() => {
-                  soundFX.play('switch');
-                  if (setCurrentTab) setCurrentTab(action.tab);
-                }}
+                onClick={action.onClick}
                 className={`p-3.5 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all duration-200 hover:scale-105 cursor-pointer shadow-2xs ${action.color} group`}
+                title={`Open ${action.label}`}
               >
                 <Icon className="w-5 h-5 transition-transform group-hover:scale-110" />
                 <span className="text-xs font-bold text-slate-800 group-hover:text-slate-900 truncate">{action.label}</span>

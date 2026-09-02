@@ -24,6 +24,7 @@ import { API_BASE_URL } from './config';
 
 
 import { ClipboardList, AlertCircle, ArrowRight } from 'lucide-react';
+import { soundFX } from './utils/audioFX';
 
 ChartJS.register(
   CategoryScale, LinearScale, PointElement, LineElement, BarElement, 
@@ -420,11 +421,7 @@ export default function App() {
 
 
   useEffect(() => {
-    if (userProfile?.role === 'admin') {
-      if (currentTab !== 'admin_portal' && currentTab !== 'account') {
-        setCurrentTab('admin_portal');
-      }
-    } else if (currentTab === 'admin_portal') {
+    if (currentTab === 'admin_portal') {
       if (!authToken || (userProfile && userProfile.role !== 'admin')) {
         setCurrentTab('dashboard');
         showToast('Access Denied: Administrator privileges required to view Admin Management Portal.', 'danger');
@@ -1211,11 +1208,11 @@ export default function App() {
 
         {/* Admin Superuser Active Banner (Visible to Admin in User Views) */}
         {userProfile?.role === 'admin' && currentTab !== 'admin_portal' && (
-          <div className="mb-6 p-3 sm:p-4 rounded-2xl bg-rose-50 border border-rose-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs shadow-xs animate-fade-in no-print">
+          <div className="mb-6 p-3 sm:p-4 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs shadow-xs animate-fade-in no-print">
             <div className="flex items-center gap-2.5">
-              <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse shrink-0" />
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
               <span className="font-bold text-slate-800">
-                <strong className="text-rose-600 font-black uppercase tracking-wider mr-1.5">👑 Admin Superuser Mode:</strong>
+                <strong className="text-amber-600 font-black uppercase tracking-wider mr-1.5">👑 Admin Superuser Mode:</strong>
                 You have full access to test all patient clinical tools and manage the system.
               </span>
             </div>
@@ -1224,7 +1221,7 @@ export default function App() {
                 soundFX.play('switch');
                 setCurrentTab('admin_portal');
               }}
-              className="w-full sm:w-auto px-3.5 py-1.5 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-700 border border-rose-300 font-bold text-[11px] transition cursor-pointer shrink-0 text-center"
+              className="w-full sm:w-auto px-3.5 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-800 border border-amber-300 font-bold text-[11px] transition cursor-pointer shrink-0 text-center"
             >
               Open Admin Console &rarr;
             </button>
@@ -1396,6 +1393,8 @@ export default function App() {
             setCurrentTab={setCurrentTab}
             API_BASE_URL={API_BASE_URL}
             authToken={authToken}
+            resetWizard={resetWizard}
+            setShowSimulatorModal={setShowSimulatorModal}
           />
         )}
 
