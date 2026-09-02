@@ -588,11 +588,17 @@ export default function App() {
     setChatLoading(true);
 
     try {
+      const historyPayload = chatMessages.slice(-6).map(m => ({
+        role: m.sender === 'user' ? 'user' : 'assistant',
+        content: m.text
+      }));
+
       const res = await fetch(`${API_BASE_URL}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: textToSend,
+          history: historyPayload,
           patient_context: activeUser ? { name: activeUser } : null
         })
       });
@@ -608,6 +614,7 @@ export default function App() {
             specialist: data.specialist_recommendation,
             suggested_prompts: data.suggested_prompts,
             disclaimer: data.disclaimer,
+            model: data.model,
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
           }
         ]);

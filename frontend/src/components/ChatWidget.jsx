@@ -1,5 +1,6 @@
 import React from 'react';
 import { Bot, MessageSquare, Send, User } from 'lucide-react';
+import FormattedMarkdown from './FormattedMarkdown';
 
 export default function ChatWidget({
   isChatWidgetOpen,
@@ -48,10 +49,10 @@ export default function ChatWidget({
                 </div>
                 <div className={`max-w-[82%] p-3 rounded-xl font-semibold leading-normal shadow-2xs ${
                   msg.sender === 'user' 
-                    ? 'bg-amber-500/20 border border-amber-500/30 text-amber-100 rounded-tr-none' 
-                    : 'bg-slate-900/90 border border-slate-800 text-slate-100 rounded-tl-none whitespace-pre-line shadow-md'
+                    ? 'bg-amber-500/20 border border-amber-500/30 text-amber-100 rounded-tr-none whitespace-pre-line' 
+                    : 'bg-slate-900/90 border border-slate-800 text-slate-100 rounded-tl-none shadow-md'
                 }`}>
-                  {msg.text}
+                  {msg.sender === 'user' ? msg.text : <FormattedMarkdown content={msg.text} isCompact={true} />}
                 </div>
               </div>
             ))}

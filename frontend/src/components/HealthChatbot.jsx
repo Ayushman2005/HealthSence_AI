@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { 
   Bot, RefreshCw, User, Stethoscope, Send, Sparkles, Mic, MicOff, 
-  Volume2, Copy, Check, Heart, Droplets, ShieldAlert, Activity
+  Volume2, Copy, Check, Heart, Droplets, ShieldAlert, Activity, Zap
 } from 'lucide-react';
 import { soundFX } from '../utils/audioFX';
+import FormattedMarkdown from './FormattedMarkdown';
 
 
 export default function HealthChatbot({
@@ -146,13 +147,16 @@ export default function HealthChatbot({
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">24/7 Clinical Assistant</span>
+                <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1">
+                  <Zap className="w-3 h-3 text-amber-400" /> Powered by Groq AI
+                </span>
                 <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Voice-Enabled AI Stream
                 </span>
               </div>
               <h2 className="text-2xl font-black text-white mt-1">HealthBot AI Clinical Assistant</h2>
               <p className="text-xs text-slate-300 font-medium mt-1 max-w-2xl leading-relaxed">
-                Ask questions regarding disease prevention, fasting blood sugar, blood pressure targets, cholesterol, symptoms, or dietary and lifestyle guidelines. Supports voice input & audio readouts.
+                Powered by Groq high-speed AI inference for cardiology and clinical guidance. Ask questions regarding disease prevention, fasting blood sugar, blood pressure targets, cholesterol, symptoms, or dietary and lifestyle guidelines. Supports voice input & audio readouts.
               </p>
             </div>
           </div>
@@ -256,13 +260,19 @@ export default function HealthChatbot({
 
                 {/* Message Bubble Content */}
                 <div className={`max-w-[88%] sm:max-w-[80%] space-y-2 ${msg.sender === 'user' ? 'text-right' : ''}`}>
-                  <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 px-1">
+                  <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 px-1 flex-wrap">
                     <span>{msg.sender === 'user' ? (userProfile?.name || 'Patient') : 'HealthBot AI'}</span>
                     <span>•</span>
                     <span>{msg.time}</span>
                     {msg.category && (
                       <span className="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 font-black">
                         {msg.category}
+                      </span>
+                    )}
+                    {msg.model && (
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-bold flex items-center gap-1 border border-emerald-500/30">
+                        <Zap className="w-2.5 h-2.5 text-emerald-400" />
+                        {msg.model}
                       </span>
                     )}
                   </div>
@@ -272,9 +282,15 @@ export default function HealthChatbot({
                       ? 'bg-amber-600 text-white rounded-tr-none'
                       : 'bg-slate-900/90 border border-slate-800 text-slate-200 rounded-tl-none space-y-2'
                   }`}>
-                    <div className="whitespace-pre-line text-slate-100">
-                      {msg.text}
-                    </div>
+                    {msg.sender === 'user' ? (
+                      <div className="whitespace-pre-line text-white font-medium">
+                        {msg.text}
+                      </div>
+                    ) : (
+                      <div className="text-slate-100">
+                        <FormattedMarkdown content={msg.text} />
+                      </div>
+                    )}
 
                     {msg.specialist && (
                       <div className="pt-2 border-t border-slate-800 flex items-center gap-1.5 text-amber-400 font-extrabold">

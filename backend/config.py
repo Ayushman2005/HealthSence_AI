@@ -75,3 +75,7 @@ try:
     HAS_PSYCOPG2 = True
 except ImportError:
     HAS_PSYCOPG2 = False
+
+# Groq AI LLM Configuration for Cardio AI
+GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '').strip()
+GROQ_MODEL = os.environ.get('GROQ_MODEL', 'llama-3.3-70b-versatile').strip()

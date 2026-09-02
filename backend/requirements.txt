@@ -18,5 +18,9 @@ PyMySQL>=1.1.0
 supabase>=2.0.0
 psycopg2-binary>=2.9.0
 
+# AI & LLM Providers
+groq>=0.4.0
+python-dotenv>=1.0.0
+
 # Server Deployment
 gunicorn>=21.2.0
