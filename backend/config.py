@@ -29,8 +29,8 @@ ENVIRONMENT = os.environ.get('ENVIRONMENT', 'development').lower()
 IS_PRODUCTION = ENVIRONMENT in ['production', 'prod'] or os.environ.get('RENDER', '') == 'true'
 
 # Admin credentials & security configuration
-ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'Ayushman24')
-ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'Ayushman@#2005')
+ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', '')
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', '')
 
 # JWT Secret Key Validation & Algorithm
 JWT_ALGORITHM = "HS256"
