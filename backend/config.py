@@ -46,19 +46,22 @@ if not JWT_SECRET:
 
 # Allowed CORS Origins Whitelist
 raw_origins = os.environ.get('ALLOWED_ORIGINS', '').strip()
+default_origins = [
+    "https://healthsence-ai.vercel.app",
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "http://localhost:5000",
+    "http://localhost:8000",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5000",
+    "http://127.0.0.1:8000"
+]
 if raw_origins:
-    ALLOWED_ORIGINS = [orig.strip() for orig in raw_origins.split(',') if orig.strip()]
+    custom_origins = [orig.strip() for orig in raw_origins.split(',') if orig.strip()]
+    ALLOWED_ORIGINS = list(set(default_origins + custom_origins))
 else:
-    ALLOWED_ORIGINS = [
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "http://localhost:5000",
-        "http://localhost:8000",
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:5000",
-        "http://127.0.0.1:8000"
-    ]
+    ALLOWED_ORIGINS = default_origins
 
 # Supabase Configurations
 SUPABASE_URL = os.environ.get('SUPABASE_URL', '').strip()
