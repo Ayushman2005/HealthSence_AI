@@ -58,6 +58,10 @@ async def root_health_check():
         "database_mode": DB_MODE
     }
 
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
 app.include_router(routes_auth.router)
 app.include_router(routes_predict.router)
 app.include_router(routes_symptom.router)
