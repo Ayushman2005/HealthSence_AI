@@ -1189,11 +1189,11 @@ export default function App() {
         loadingProgress={loadingProgress} 
       />
 
-      {/* Ambient background glow mesh (Clean subtle light tint) */}
+      {/* Ambient high-tech background glow orbs */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none">
-        <div className="absolute -top-20 -left-20 w-2xl h-2xl rounded-full bg-linear-to-tr from-amber-100/50 via-yellow-100/30 to-amber-50/20 blur-[120px] animate-float-blob" />
-        <div className="absolute top-[35%] -right-20 w-180 h-180 rounded-full bg-linear-to-tr from-sky-100/40 via-blue-50/30 to-amber-50/20 blur-[130px] animate-float-blob-reverse" />
-        <div className="absolute -bottom-20 left-[20%] w-160 h-160 rounded-full bg-linear-to-tr from-emerald-50/30 via-amber-50/20 to-yellow-50/20 blur-[110px] animate-float-blob-slow" />
+        <div className="absolute -top-32 -left-32 w-[600px] h-[600px] rounded-full bg-radial from-amber-500/10 via-yellow-500/5 to-transparent blur-[140px] animate-float-blob" />
+        <div className="absolute top-[30%] -right-32 w-[550px] h-[550px] rounded-full bg-radial from-cyan-500/10 via-blue-500/5 to-transparent blur-[150px] animate-float-blob-reverse" />
+        <div className="absolute -bottom-32 left-[25%] w-[500px] h-[500px] rounded-full bg-radial from-emerald-500/10 via-teal-500/5 to-transparent blur-[130px] animate-float-blob" />
       </div>
 
       {/* Top Navbar Header */}
@@ -1215,11 +1215,11 @@ export default function App() {
 
         {/* Admin Superuser Active Banner (Visible to Admin in User Views) */}
         {userProfile?.role === 'admin' && currentTab !== 'admin_portal' && (
-          <div className="mb-6 p-3 sm:p-4 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs shadow-xs animate-fade-in no-print">
+          <div className="mb-6 p-3 sm:p-4 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs shadow-lg shadow-amber-500/10 animate-tab-fade no-print">
             <div className="flex items-center gap-2.5">
-              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
-              <span className="font-bold text-slate-800">
-                <strong className="text-amber-600 font-black uppercase tracking-wider mr-1.5">👑 Admin Superuser Mode:</strong>
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse shrink-0" />
+              <span className="font-bold text-slate-200">
+                <strong className="text-amber-400 font-black uppercase tracking-wider mr-1.5">👑 Admin Superuser Mode:</strong>
                 You have full access to test all patient clinical tools and manage the system.
               </span>
             </div>
@@ -1228,7 +1228,7 @@ export default function App() {
                 soundFX.play('switch');
                 setCurrentTab('admin_portal');
               }}
-              className="w-full sm:w-auto px-3.5 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-800 border border-amber-300 font-bold text-[11px] transition cursor-pointer shrink-0 text-center"
+              className="w-full sm:w-auto px-4 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs transition cursor-pointer shrink-0 text-center shadow-md shadow-amber-500/20"
             >
               Open Admin Console &rarr;
             </button>
@@ -1238,7 +1238,7 @@ export default function App() {
         {/* Dynamic Page Header Title & Subtitle */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 sm:mb-8 no-print">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
               {currentTab === 'dashboard' && 'AI Health Risk Dashboard'}
               {currentTab === 'wizard' && 'Clinical Diagnostics Wizard'}
               {currentTab === 'symptom_checker' && 'AI Symptom Checker & Clinical Triage'}
@@ -1249,7 +1249,7 @@ export default function App() {
               {currentTab === 'account' && 'Account Settings & Management'}
               {currentTab === 'admin_portal' && 'Admin Governance & Management Portal'}
             </h1>
-            <p className="text-sm font-semibold text-slate-500 mt-1">
+            <p className="text-sm font-semibold text-slate-400 mt-1">
               {currentTab === 'dashboard' && 'Precision predictive metrics and diagnostic profiles.'}
               {currentTab === 'wizard' && 'Record biomarkers to calculate diagnostic health risk evaluations.'}
               {currentTab === 'symptom_checker' && 'Analyze physical symptoms (stomach ache, headache, fever, chest pain) to receive instant clinical triage & specialist advice.'}

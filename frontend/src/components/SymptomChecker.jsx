@@ -1,11 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Stethoscope, Search, Activity, Pill, AlertOctagon, 
-  AlertTriangle, CheckCircle2, CheckCircle, ArrowRight, Bot
+  AlertTriangle, CheckCircle2, CheckCircle, ArrowRight, Bot, Sparkles, ShieldAlert
 } from 'lucide-react';
 import { soundFX } from '../utils/audioFX';
-
-
 
 export default function SymptomChecker({
   symptomTags,
@@ -27,7 +25,7 @@ export default function SymptomChecker({
   const [activeRegion, setActiveRegion] = useState('all');
 
   const bodyRegions = [
-    { id: 'all', label: 'All Symptoms', icon: '🌐', count: 14 },
+    { id: 'all', label: 'All Symptoms', icon: '🌐', count: 16 },
     { id: 'head', label: 'Head & Neuro', icon: '🧠', count: 4, symptoms: ['Headache', 'Dizziness', 'Sore Throat', 'Vision Blur'] },
     { id: 'chest', label: 'Chest & Cardio', icon: '🫀', count: 4, symptoms: ['Chest Pain', 'Shortness of Breath', 'Palpitations', 'Cough'] },
     { id: 'abdomen', label: 'Abdomen & GI', icon: '🤢', count: 4, symptoms: ['Stomach ache', 'Nausea', 'Acid Reflux', 'Fever / Chills'] },
@@ -39,8 +37,8 @@ export default function SymptomChecker({
     { label: 'Stomach ache', icon: '🤢', region: 'abdomen' },
     { label: 'Headache', icon: '🤯', region: 'head' },
     { label: 'Fever / Chills', icon: '🤒', region: 'abdomen' },
-    { label: 'Chest Pain', icon: '🫀', region: 'chest' },
-    { label: 'Shortness of Breath', icon: '🫁', region: 'chest' },
+    { label: 'Chest Pain', icon: '🫀', region: 'chest', urgent: true },
+    { label: 'Shortness of Breath', icon: '🫁', region: 'chest', urgent: true },
     { label: 'Cough', icon: '🗣️', region: 'chest' },
     { label: 'Sore Throat', icon: '🍵', region: 'head' },
     { label: 'Nausea', icon: '🤢', region: 'abdomen' },
@@ -67,26 +65,40 @@ export default function SymptomChecker({
     }
   };
 
+  // Real-time red flag escalation score
+  const hasAcuteCardioSymptom = useMemo(() => {
+    return symptomTags.some(t => ['Chest Pain', 'Shortness of Breath', 'Palpitations'].includes(t));
+  }, [symptomTags]);
+
   return (
-    <div className="max-w-300 mx-auto space-y-8 animate-fade-in no-print text-slate-100">
+    <div className="max-w-7xl mx-auto space-y-8 animate-tab-fade no-print text-slate-100">
       
       {/* Header Hero Banner */}
-      <div className="glass-panel rounded-3xl p-6 md:p-8 border border-amber-500/25 shadow-2xl relative overflow-hidden bg-linear-to-r from-slate-950 via-slate-900 to-slate-950">
+      <div className="glass-panel rounded-3xl p-6 md:p-8 border border-white/10 relative overflow-hidden shadow-2xl shimmer-card">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative z-10">
           <div className="flex items-start gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-linear-to-tr from-amber-500 to-yellow-500 text-white flex items-center justify-center shadow-lg shadow-amber-500/30 shrink-0">
+            <div className="w-14 h-14 rounded-2xl bg-linear-to-tr from-amber-500 via-amber-600 to-yellow-500 text-white flex items-center justify-center shadow-lg shadow-amber-500/30 shrink-0">
               <Stethoscope className="w-7 h-7" />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">AI Clinical Triage</span>
+                <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                  Clinical AI Triage
+                </span>
                 <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Multi-Symptom Differential Engine
                 </span>
+                {hasAcuteCardioSymptom && (
+                  <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center gap-1 animate-pulse">
+                    <ShieldAlert className="w-3 h-3" /> Acute Cardiac Warning
+                  </span>
+                )}
               </div>
-              <h2 className="text-2xl font-black text-white mt-1">Symptom Checker & Clinical Triage Engine</h2>
+              <h2 className="text-2xl sm:text-3xl font-black text-white mt-1.5 tracking-tight">
+                Symptom Checker & Clinical Triage Engine
+              </h2>
               <p className="text-xs text-slate-300 font-medium mt-1 max-w-2xl leading-relaxed">
-                Select by anatomical body zone or search physical symptoms to evaluate clinical urgency, differential condition likelihood, specialist recommendations, and red-flag warning signs.
+                Select by anatomical system or choose clinical symptoms to evaluate diagnostic urgency, differential condition probability, and specialist referral urgency.
               </p>
             </div>
           </div>
@@ -98,14 +110,14 @@ export default function SymptomChecker({
         
         {/* Left Column: Interactive Symptom Input Panel */}
         <div className="lg:col-span-6 space-y-6">
-          <div className="glass-panel rounded-3xl p-6 border border-amber-500/20 shadow-xl space-y-6">
+          <div className="glass-panel rounded-3xl p-6 border border-white/10 shadow-xl space-y-6">
             
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+            <div className="flex items-center justify-between border-b border-white/10 pb-4">
               <h3 className="font-black text-white text-base flex items-center gap-2">
                 <Search className="w-5 h-5 text-amber-400" />
-                <span>Anatomical Selector & Symptoms</span>
+                <span>Anatomical Focus & Symptoms</span>
               </h3>
-              <span className="text-xs text-amber-400 font-bold bg-slate-900 px-3 py-1 rounded-full border border-slate-800">
+              <span className="text-xs text-amber-400 font-bold bg-slate-900/90 px-3 py-1 rounded-full border border-white/10 font-mono">
                 {symptomTags.length} Selected
               </span>
             </div>
@@ -113,7 +125,7 @@ export default function SymptomChecker({
             {/* Anatomical Region Pills */}
             <div>
               <label className="text-xs font-extrabold text-slate-300 uppercase tracking-wider block mb-2.5">
-                1. Select Anatomical Focus Area
+                1. Select Anatomical System Focus
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {bodyRegions.map(reg => {
@@ -128,8 +140,8 @@ export default function SymptomChecker({
                       }}
                       className={`p-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                         isRegActive 
-                          ? 'bg-linear-to-r from-amber-500 to-yellow-500 text-white shadow-md shadow-amber-500/30 scale-105 border border-amber-300'
-                          : 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-slate-800'
+                          ? 'bg-linear-to-r from-amber-500 to-amber-600 text-white shadow-md shadow-amber-500/30 scale-102 border border-amber-400'
+                          : 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-white/10'
                       }`}
                     >
                       <span>{reg.icon}</span>
@@ -153,10 +165,10 @@ export default function SymptomChecker({
                       key={item.label}
                       type="button"
                       onClick={() => toggleSymptom(item.label)}
-                      className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
+                      className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
                         isSelected
-                          ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30 scale-105 border border-amber-400'
-                          : 'bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-slate-200 hover:border-amber-400/50'
+                          ? 'bg-linear-to-r from-amber-500 to-amber-600 text-white shadow-lg shadow-amber-500/30 scale-105 border border-amber-400'
+                          : 'bg-slate-900/80 hover:bg-slate-850 border border-white/10 text-slate-200 hover:border-amber-400/40'
                       }`}
                     >
                       <span>{item.icon}</span>
@@ -188,7 +200,7 @@ export default function SymptomChecker({
                     }
                   }}
                   placeholder="e.g. Acid reflux, stiff neck, ear pain, burning sensation..."
-                  className="flex-1 px-4 py-3 glass-input rounded-2xl outline-none text-xs font-bold text-white placeholder:text-slate-500 shadow-inner"
+                  className="flex-1 px-4 py-3 glass-input rounded-2xl outline-none text-xs font-bold text-white placeholder:text-slate-500"
                 />
                 <button
                   type="button"
@@ -199,7 +211,7 @@ export default function SymptomChecker({
                       setSymptomInput('');
                     }
                   }}
-                  className="px-4 py-3 bg-slate-800 hover:bg-amber-500/20 text-amber-300 hover:text-white border border-slate-700 font-bold text-xs rounded-2xl cursor-pointer transition shadow-xs"
+                  className="px-4 py-3 bg-slate-800 hover:bg-amber-500/20 text-amber-300 hover:text-white border border-white/10 font-bold text-xs rounded-2xl cursor-pointer transition"
                 >
                   Add Tag
                 </button>
@@ -208,7 +220,7 @@ export default function SymptomChecker({
 
             {/* Selected Tags Display */}
             {symptomTags.length > 0 && (
-              <div className="p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-2xl space-y-2">
+              <div className="p-3.5 bg-amber-500/10 border border-amber-500/25 rounded-2xl space-y-2">
                 <span className="text-[11px] font-black text-amber-300 block">Selected Active Symptoms ({symptomTags.length}):</span>
                 <div className="flex flex-wrap gap-2">
                   {symptomTags.map(tag => (
@@ -239,8 +251,8 @@ export default function SymptomChecker({
                 rows={3}
                 value={symptomDesc}
                 onChange={e => setSymptomDesc(e.target.value)}
-                placeholder="Describe when symptoms started, aggravating/relieving factors, or associated feelings..."
-                className="w-full px-4 py-3 glass-input rounded-2xl outline-none text-xs font-semibold text-white placeholder:text-slate-500 shadow-inner"
+                placeholder="Describe when symptoms began, aggravating factors, or associated discomfort..."
+                className="w-full px-4 py-3 glass-input rounded-2xl outline-none text-xs font-semibold text-white placeholder:text-slate-500"
               />
             </div>
 
@@ -258,7 +270,7 @@ export default function SymptomChecker({
                   }}
                   className="w-full px-3 py-3 glass-input rounded-2xl text-xs font-extrabold text-white outline-none cursor-pointer"
                 >
-                  <option value="Today" className="bg-slate-900 text-white">Today (Acute)</option>
+                  <option value="Today" className="bg-slate-900 text-white">Today (Acute onset)</option>
                   <option value="1-3 days" className="bg-slate-900 text-white">1 to 3 Days</option>
                   <option value="1 week" className="bg-slate-900 text-white">1 Week</option>
                   <option value="> 2 weeks" className="bg-slate-900 text-white">&gt; 2 Weeks (Persistent)</option>
@@ -279,7 +291,7 @@ export default function SymptomChecker({
                 >
                   <option value="Mild" className="bg-slate-900 text-white">Mild (Noticeable)</option>
                   <option value="Moderate" className="bg-slate-900 text-white">Moderate (Distracting)</option>
-                  <option value="Severe" className="bg-slate-900 text-white">Severe (Intense / Disruptive)</option>
+                  <option value="Severe" className="bg-slate-900 text-white">Severe (Intense / High Alert)</option>
                 </select>
               </div>
             </div>
@@ -292,12 +304,12 @@ export default function SymptomChecker({
                 handleCheckSymptom();
               }}
               disabled={analyzingSymptom}
-              className="w-full btn-magnetic bg-linear-to-r from-amber-500 via-amber-600 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 disabled:opacity-50 text-white py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/30 cursor-pointer"
+              className="w-full btn-magnetic bg-linear-to-r from-amber-500 via-amber-600 to-yellow-500 hover:from-amber-600 hover:to-amber-700 disabled:opacity-50 text-white py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/30 cursor-pointer"
             >
               {analyzingSymptom ? (
                 <>
                   <div className="w-5 h-5 rounded-full border-2 border-white/20 border-t-white animate-spin"></div>
-                  <span>Evaluating Clinical Symptoms...</span>
+                  <span>Evaluating Clinical Differential...</span>
                 </>
               ) : (
                 <>
@@ -313,7 +325,7 @@ export default function SymptomChecker({
         {/* Right Column: Clinical Triage & Differential Diagnosis Results */}
         <div className="lg:col-span-6">
           {symptomResult ? (
-            <div className="glass-panel rounded-3xl p-6 border border-amber-500/25 shadow-2xl space-y-6 animate-fade-in">
+            <div className="glass-panel rounded-3xl p-6 border border-white/10 shadow-2xl space-y-6 animate-tab-fade">
               
               {/* Triage Urgency Header Badge */}
               <div className={`p-5 rounded-2xl border flex items-start gap-4 ${
@@ -340,10 +352,10 @@ export default function SymptomChecker({
                 </div>
 
                 <div>
-                  <span className="text-[10px] font-black uppercase tracking-widest block opacity-75">Clinical Triage Assessment</span>
-                  <h4 className="font-black text-base mt-0.5 text-white">{symptomResult.urgency_title}</h4>
+                  <span className="text-[10px] font-black uppercase tracking-widest block opacity-75">Clinical Triage Evaluation</span>
+                  <h4 className="font-black text-lg mt-0.5 text-white">{symptomResult.urgency_title}</h4>
                   <div className="mt-2 flex items-center gap-2 text-xs font-bold flex-wrap">
-                    <span className="px-2.5 py-1 bg-slate-900/90 rounded-xl border border-slate-700 text-slate-200">
+                    <span className="px-3 py-1 bg-slate-900/90 rounded-xl border border-white/10 text-slate-200">
                       Recommended Specialist: <strong className="text-amber-400">{symptomResult.specialist}</strong>
                     </span>
                   </div>
@@ -354,12 +366,12 @@ export default function SymptomChecker({
               <div>
                 <h4 className="font-black text-white text-sm flex items-center gap-2 mb-3">
                   <Activity className="w-4 h-4 text-amber-400" />
-                  <span>Possible Differential Diagnoses</span>
+                  <span>Matched Differential Diagnoses</span>
                 </h4>
 
                 <div className="space-y-3">
                   {symptomResult.matched_conditions.map((cond, idx) => (
-                    <div key={idx} className="p-4 bg-slate-900/80 border border-slate-800 hover:border-amber-500/30 rounded-2xl space-y-2 shadow-xs transition-colors">
+                    <div key={idx} className="p-4 glass-card-interactive rounded-2xl space-y-2">
                       <div className="flex items-center justify-between">
                         <h5 className="font-black text-white text-sm">{cond.name}</h5>
                         <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[11px] font-black border border-amber-500/30 font-mono">
@@ -381,7 +393,7 @@ export default function SymptomChecker({
                 <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl space-y-2">
                   <h4 className="font-black text-amber-300 text-xs uppercase tracking-wider flex items-center gap-2">
                     <Pill className="w-4 h-4" />
-                    <span>Recommended Home Care & Relief Steps</span>
+                    <span>Recommended Home Care & Relief Protocol</span>
                   </h4>
                   <ul className="space-y-1.5 pl-1">
                     {symptomResult.home_remedies.map((rem, i) => (
@@ -402,9 +414,9 @@ export default function SymptomChecker({
                     resetWizard();
                     setCurrentTab('wizard');
                   }}
-                  className="w-full btn-magnetic py-3.5 px-4 bg-linear-to-r from-amber-500 to-yellow-500 text-white rounded-2xl font-black text-xs flex items-center justify-center gap-2 shadow-md cursor-pointer"
+                  className="w-full btn-magnetic py-3.5 px-4 bg-linear-to-r from-amber-500 to-amber-600 text-white rounded-2xl font-black text-xs flex items-center justify-center gap-2 shadow-md cursor-pointer"
                 >
-                  <span>Run Full Disease Risk Assessor</span>
+                  <span>Run Full Cardiovascular Risk Assessor</span>
                   <ArrowRight className="w-4 h-4 text-white" />
                 </button>
                 <button
@@ -412,23 +424,23 @@ export default function SymptomChecker({
                     soundFX.play('click');
                     setCurrentTab('chatbot');
                   }}
-                  className="w-full sm:w-auto py-3.5 px-5 bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-500/30 rounded-2xl font-bold text-xs flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full sm:w-auto py-3.5 px-5 bg-slate-900 hover:bg-slate-800 text-amber-300 border border-white/10 rounded-2xl font-bold text-xs flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Bot className="w-4 h-4" />
-                  <span>Ask AI HealthBot</span>
+                  <span>Ask Cardio AI</span>
                 </button>
               </div>
 
             </div>
           ) : (
-            <div className="glass-panel rounded-3xl p-10 border border-amber-500/20 text-center flex flex-col items-center justify-center h-full space-y-4 shadow-sm min-h-87.5">
+            <div className="glass-panel rounded-3xl p-10 border border-white/10 text-center flex flex-col items-center justify-center h-full space-y-4 shadow-sm min-h-87.5">
               <div className="w-16 h-16 rounded-2xl bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center justify-center animate-pulse">
                 <Stethoscope className="w-8 h-8" />
               </div>
               <div>
                 <h4 className="font-black text-white text-lg">Instant Symptom Diagnostic Triage</h4>
                 <p className="text-xs text-slate-400 font-medium max-w-sm mt-1 leading-relaxed">
-                  Select an anatomical region or choose symptoms on the left and click <strong>"Run AI Symptom Triage"</strong> to evaluate clinical conditions.
+                  Select an anatomical region or pick symptoms on the left, then click <strong>"Run AI Symptom Triage"</strong> to evaluate clinical severity and differential likelihoods.
                 </p>
               </div>
             </div>

@@ -6,7 +6,6 @@ import {
 } from 'lucide-react';
 import { soundFX } from '../utils/audioFX';
 
-
 export default function Results({
   resultsAssessment,
   getScoreBadgeStyles,
@@ -67,14 +66,14 @@ export default function Results({
 
   if (!resultsAssessment || !resultsAssessment.results) {
     return (
-      <div className="max-w-xl mx-auto bg-white border border-slate-200 rounded-3xl p-8 sm:p-10 text-center space-y-6 shadow-xs animate-fade-in no-print">
-        <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto shadow-xs">
-          <Heart className="w-8 h-8 animate-pulse text-amber-600" />
+      <div className="max-w-xl mx-auto glass-panel rounded-3xl p-8 sm:p-10 text-center space-y-6 shadow-2xl animate-tab-fade no-print border-white/10">
+        <div className="w-16 h-16 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto shadow-xs">
+          <Heart className="w-8 h-8 animate-pulse text-amber-400" />
         </div>
         <div className="space-y-2">
-          <h3 className="text-2xl font-black text-slate-900 tracking-tight">No Diagnostic Report Available</h3>
-          <p className="text-sm text-slate-600 max-w-sm mx-auto font-medium leading-relaxed">
-            Run a 2-minute cardiovascular health assessment to generate a verified diagnostic evaluation report.
+          <h3 className="text-2xl font-black text-white tracking-tight">No Diagnostic Report Available</h3>
+          <p className="text-sm text-slate-300 max-w-sm mx-auto font-medium leading-relaxed">
+            Run a 2-minute precision cardiovascular assessment to generate a verified diagnostic evaluation report.
           </p>
         </div>
         <div className="flex flex-col sm:flex-row justify-center gap-3 pt-2">
@@ -83,7 +82,7 @@ export default function Results({
               soundFX.play('switch');
               setCurrentTab('wizard');
             }}
-            className="px-6 py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-black text-xs inline-flex items-center justify-center gap-2 shadow-sm shadow-amber-500/20 transition cursor-pointer"
+            className="btn-magnetic px-6 py-3.5 rounded-2xl bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-black text-xs inline-flex items-center justify-center gap-2 shadow-lg shadow-amber-500/25 transition cursor-pointer"
           >
             <HeartPulse className="w-4 h-4" />
             <span>Start Diagnostic Assessment</span>
@@ -93,9 +92,9 @@ export default function Results({
               soundFX.play('switch');
               setCurrentTab('dashboard');
             }}
-            className="px-5 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs inline-flex items-center justify-center gap-2 border border-slate-200 transition cursor-pointer"
+            className="px-5 py-3.5 rounded-2xl bg-slate-900/80 hover:bg-slate-800 text-slate-200 font-bold text-xs inline-flex items-center justify-center gap-2 border border-white/10 transition cursor-pointer"
           >
-            <LayoutDashboard className="w-4 h-4 text-slate-600" />
+            <LayoutDashboard className="w-4 h-4 text-slate-400" />
             <span>Return to Dashboard</span>
           </button>
         </div>
@@ -104,7 +103,7 @@ export default function Results({
   }
 
   return (
-    <div className="max-w-287.5 mx-auto space-y-8 animate-fade-in text-slate-100">
+    <div className="max-w-7xl mx-auto space-y-8 animate-tab-fade text-slate-100">
       
       {/* Header Action Buttons */}
       <div className="flex flex-col sm:flex-row gap-3 justify-between items-stretch sm:items-center no-print">
@@ -113,7 +112,7 @@ export default function Results({
             soundFX.play('switch');
             setCurrentTab('dashboard');
           }} 
-          className="w-full sm:w-auto py-2.5 px-5 border border-slate-700 bg-slate-900/80 hover:bg-slate-800 rounded-2xl font-bold text-xs sm:text-sm text-slate-200 inline-flex items-center justify-center gap-2 cursor-pointer transition shadow-xs"
+          className="w-full sm:w-auto py-2.5 px-5 border border-white/10 bg-slate-900/80 hover:bg-slate-800 rounded-2xl font-bold text-xs sm:text-sm text-slate-200 inline-flex items-center justify-center gap-2 cursor-pointer transition shadow-xs"
         >
           <LayoutDashboard className="w-4 h-4 text-amber-400" /> Back to Dashboard
         </button>
@@ -139,11 +138,12 @@ export default function Results({
       </div>
 
       {/* Health Score Overview card */}
-      <div className="glass-panel rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-center gap-8 print-card border border-slate-200 shadow-xs bg-white">
+      <div className="glass-panel rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-center gap-8 print-card border border-white/10 shadow-2xl shimmer-card relative overflow-hidden">
+        
         <div className="flex flex-col items-center shrink-0">
           <div className="circle-progress-container relative w-44 h-44 flex items-center justify-center cursor-pointer group">
-            <svg className="w-full h-full transform -rotate-90 filter drop-shadow-xs" viewBox="0 0 160 160">
-              <circle className="stroke-slate-200 fill-none" cx="80" cy="80" r="70" strokeWidth="10"></circle>
+            <svg className="w-full h-full transform -rotate-90 filter drop-shadow" viewBox="0 0 160 160">
+              <circle className="stroke-slate-800 fill-none" cx="80" cy="80" r="70" strokeWidth="10"></circle>
               <circle 
                 className="transition-all duration-1000 ease-out fill-none"
                 cx="80" 
@@ -153,12 +153,12 @@ export default function Results({
                 stroke={getScoreBadgeStyles(resultsAssessment.results.overallScore).color}
                 strokeDasharray={439.8}
                 strokeDashoffset={439.8 - (439.8 * resultsAssessment.results.overallScore) / 100}
-                strokeLinecap="round"
+                strokeLinecap="round" 
               ></circle>
             </svg>
             <div className="absolute text-center group-hover:scale-110 transition-transform">
-              <div className="text-4xl font-black text-slate-900 font-mono">{resultsAssessment.results.overallScore}</div>
-              <div className="text-[10px] uppercase tracking-widest text-slate-500 font-extrabold mt-1">Cardio Score</div>
+              <div className="text-4xl font-black text-white font-mono">{resultsAssessment.results.overallScore}</div>
+              <div className="text-[10px] uppercase tracking-widest text-amber-400 font-extrabold mt-1">Cardio Score</div>
             </div>
           </div>
           <span className={`text-xs font-black uppercase tracking-wider px-4 py-1.5 rounded-full mt-4 border ${getScoreBadgeStyles(resultsAssessment.results.overallScore).style}`}>
@@ -166,31 +166,31 @@ export default function Results({
           </span>
         </div>
 
-        <div className="flex-1 space-y-3">
+        <div className="flex-1 space-y-3.5">
           <div className="flex items-center gap-3 flex-wrap">
-            <h3 className="font-black text-2xl text-slate-900 tracking-tight flex items-center gap-2">
+            <h3 className="font-black text-2xl text-white tracking-tight flex items-center gap-2">
               <Heart className="w-6 h-6 text-rose-500 animate-pulse" />
-              <span>Cardiovascular & Heart Disease Diagnostic Report</span>
+              <span>Cardiovascular & Heart Disease Diagnostic Evaluation</span>
             </h3>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 font-black text-xs rounded-full shadow-xs">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" /> Verified High Precision Diagnostic
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-black text-xs rounded-full shadow-xs">
+              <ShieldCheck className="w-4 h-4 text-emerald-400" /> Verified High Precision Calibration
             </span>
           </div>
-          <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-600">
-            <span className="bg-slate-50 text-slate-900 px-3 py-1 rounded-xl border border-slate-200">Patient: {resultsAssessment.name}</span>
-            <span className="bg-slate-50 text-slate-700 px-3 py-1 rounded-xl border border-slate-200">Age: {resultsAssessment.personal?.age} yrs</span>
-            <span className="bg-slate-50 text-slate-700 px-3 py-1 rounded-xl border border-slate-200">BMI: {resultsAssessment.personal?.bmi} kg/m²</span>
-            <span className="bg-slate-50 text-slate-700 px-3 py-1 rounded-xl border border-slate-200">Computed: {new Date(resultsAssessment.timestamp).toLocaleDateString()}</span>
+          <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-300">
+            <span className="bg-slate-900/90 text-white px-3 py-1 rounded-xl border border-white/10">Patient: {resultsAssessment.name}</span>
+            <span className="bg-slate-900/90 text-slate-200 px-3 py-1 rounded-xl border border-white/10">Age: {resultsAssessment.personal?.age} yrs</span>
+            <span className="bg-slate-900/90 text-slate-200 px-3 py-1 rounded-xl border border-white/10">BMI: {resultsAssessment.personal?.bmi} kg/m²</span>
+            <span className="bg-slate-900/90 text-slate-200 px-3 py-1 rounded-xl border border-white/10">Date: {new Date(resultsAssessment.timestamp).toLocaleDateString()}</span>
           </div>
-          <p className="text-xs text-slate-600 leading-relaxed font-medium">
-            Physiological biomarkers analyzed across cardiovascular vital dimensions to pinpoint targeted coronary, hemodynamic, and electrophysiological risks.
+          <p className="text-xs text-slate-300 leading-relaxed font-medium">
+            Multi-vector physiological biomarkers evaluated across cardiovascular dimensions to isolate specific coronary arterial stenosis, hemodynamic pressure workload, and autonomic rhythm stability.
           </p>
         </div>
       </div>
 
       {/* Interactive "What-If" Lifestyle & Life Extension Simulator */}
-      <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-amber-500/25 shadow-xl space-y-6 bg-slate-950/80">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+      <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-amber-500/25 shadow-2xl space-y-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
           <div>
             <h4 className="font-black text-lg text-white flex items-center gap-2">
               <Sliders className="w-5 h-5 text-amber-400" />
@@ -200,10 +200,10 @@ export default function Results({
               Simulate clinical lifestyle improvements to see real-time projected risk reduction and score gains.
             </p>
           </div>
-          <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 px-3.5 py-1.5 rounded-2xl">
+          <div className="flex items-center gap-2 bg-emerald-500/15 border border-emerald-500/30 px-3.5 py-1.5 rounded-2xl">
             <TrendingUp className="w-4 h-4 text-emerald-400" />
-            <span className="text-xs font-black text-emerald-400 font-mono">
-              +{projectedImprovements.scoreBoost} Score Gain
+            <span className="text-xs font-black text-emerald-300 font-mono">
+              +{projectedImprovements.scoreBoost} Score Boost
             </span>
           </div>
         </div>
@@ -213,7 +213,7 @@ export default function Results({
           <div className="lg:col-span-2 space-y-4">
             
             {/* BP Reduction Slider */}
-            <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2">
+            <div className="p-4 rounded-2xl glass-card-interactive border-white/10 space-y-2">
               <div className="flex justify-between items-center text-xs font-bold">
                 <span className="text-slate-300">Target Blood Pressure Reduction</span>
                 <span className="text-amber-400 font-mono">-{simBpReduction} mmHg</span>
@@ -228,14 +228,14 @@ export default function Results({
                   soundFX.play('slider');
                   setSimBpReduction(parseInt(e.target.value));
                 }}
-                className="w-full cursor-pointer"
+                className="w-full cursor-pointer accent-amber-500"
               />
             </div>
 
             {/* Weight Loss / BMI reduction */}
-            <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2">
+            <div className="p-4 rounded-2xl glass-card-interactive border-white/10 space-y-2">
               <div className="flex justify-between items-center text-xs font-bold">
-                <span className="text-slate-300">Projected BMI Reduction</span>
+                <span className="text-slate-300">Target BMI Reduction</span>
                 <span className="text-amber-400 font-mono">-{simBmiReduction} kg/m²</span>
               </div>
               <input
@@ -248,12 +248,12 @@ export default function Results({
                   soundFX.play('slider');
                   setSimBmiReduction(parseFloat(e.target.value));
                 }}
-                className="w-full cursor-pointer"
+                className="w-full cursor-pointer accent-amber-500"
               />
             </div>
 
             {/* Exercise Increase */}
-            <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2">
+            <div className="p-4 rounded-2xl glass-card-interactive border-white/10 space-y-2">
               <div className="flex justify-between items-center text-xs font-bold">
                 <span className="text-slate-300">Additional Aerobic Exercise</span>
                 <span className="text-amber-400 font-mono">+{simExerciseAdd} days/wk</span>
@@ -267,14 +267,14 @@ export default function Results({
                   soundFX.play('slider');
                   setSimExerciseAdd(parseInt(e.target.value));
                 }}
-                className="w-full cursor-pointer"
+                className="w-full cursor-pointer accent-amber-500"
               />
             </div>
 
             {/* Smoking Cessation Toggle */}
-            <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+            <div className="p-4 rounded-2xl glass-card-interactive border-white/10 flex items-center justify-between">
               <div>
-                <span className="text-xs font-bold text-slate-300 block">Tobacco Smoking Cessation</span>
+                <span className="text-xs font-bold text-slate-200 block">Tobacco Smoking Cessation</span>
                 <span className="text-[10px] text-slate-400 font-medium">Projected 50% coronary plaque risk reduction</span>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
@@ -289,13 +289,11 @@ export default function Results({
                 />
                 <div className="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
               </label>
-
             </div>
           </div>
 
-
           {/* Projected Outcomes Card */}
-          <div className="glass-panel rounded-2xl p-5 border border-emerald-500/30 bg-emerald-500/5 space-y-4 flex flex-col justify-between">
+          <div className="glass-panel rounded-2xl p-5 border border-emerald-500/30 bg-emerald-500/10 space-y-4 flex flex-col justify-between">
             <div>
               <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 block mb-1">
                 Projected Simulated Target
@@ -310,15 +308,15 @@ export default function Results({
 
             <div className="space-y-2 border-t border-emerald-500/20 pt-3">
               <div className="flex justify-between text-xs font-bold">
-                <span className="text-slate-300">Heart Disease Risk Drop</span>
+                <span className="text-slate-300">Heart Disease Risk Drop:</span>
                 <span className="text-emerald-400 font-mono">-{projectedImprovements.heartDrop}%</span>
               </div>
               <div className="flex justify-between text-xs font-bold">
-                <span className="text-slate-300">Coronary CAD Risk Drop</span>
+                <span className="text-slate-300">Coronary CAD Risk Drop:</span>
                 <span className="text-emerald-400 font-mono">-{projectedImprovements.cadDrop}%</span>
               </div>
               <div className="flex justify-between text-xs font-bold">
-                <span className="text-slate-300">Hypertensive Strain Drop</span>
+                <span className="text-slate-300">Hypertensive Strain Drop:</span>
                 <span className="text-emerald-400 font-mono">-{projectedImprovements.hypDrop}%</span>
               </div>
             </div>
@@ -328,9 +326,9 @@ export default function Results({
                 soundFX.play('switch');
                 setCurrentTab('wizard');
               }}
-              className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-300 text-xs font-bold border border-amber-500/30 flex items-center justify-center gap-1.5 cursor-pointer"
+              className="w-full py-2.5 rounded-xl bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-amber-500/25"
             >
-              <span>Apply to New Assessment</span>
+              <span>Apply in New Assessment</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -338,45 +336,45 @@ export default function Results({
       </div>
 
       {/* Complete Biomarkers Summary Card */}
-      <div className="glass-panel rounded-3xl p-6 md:p-8 space-y-5 print-card shadow-lg border border-amber-500/20">
-        <div className="flex items-center justify-between border-b border-amber-500/10 pb-3">
+      <div className="glass-panel rounded-3xl p-6 md:p-8 space-y-5 print-card shadow-lg border border-white/10">
+        <div className="flex items-center justify-between border-b border-white/10 pb-3">
           <h4 className="font-black text-lg text-white flex items-center gap-2">
             <ClipboardList className="w-5 h-5 text-amber-400" />
-            <span>Patient Profile & Parameter Inputs</span>
+            <span>Patient Biomarker Inputs Summary</span>
           </h4>
-          <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 bg-slate-900 px-3 py-1 rounded-full border border-slate-800">
-            Verified Clinical Log
+          <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 bg-slate-900/90 px-3 py-1 rounded-full border border-white/10">
+            Verified Clinical Record
           </span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Personal Demographics */}
-          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4.5 space-y-2.5 shadow-xs">
-            <h5 className="font-black text-amber-400 uppercase tracking-wider text-[10px] pb-1 border-b border-slate-800">Personal Demographics</h5>
+          <div className="glass-card-interactive rounded-2xl p-4.5 space-y-2.5">
+            <h5 className="font-black text-amber-400 uppercase tracking-wider text-[10px] pb-1 border-b border-white/10">Personal Demographics</h5>
             <div className="flex justify-between text-xs"><span className="text-slate-400 font-medium">Patient Name:</span><strong className="text-white font-black">{resultsAssessment.name || 'Anonymous'}</strong></div>
             <div className="flex justify-between text-xs"><span className="text-slate-400 font-medium">Age:</span><strong className="text-white font-bold">{resultsAssessment.personal?.age} yrs</strong></div>
             <div className="flex justify-between text-xs"><span className="text-slate-400 font-medium">Gender:</span><strong className="text-white font-bold capitalize">{resultsAssessment.personal?.gender}</strong></div>
             <div className="flex justify-between text-xs"><span className="text-slate-400 font-medium">Height & Weight:</span><strong className="text-white font-bold">{resultsAssessment.personal?.height} cm / {resultsAssessment.personal?.weight} kg</strong></div>
-            <div className="flex justify-between text-xs border-t border-slate-800 pt-1.5"><span className="text-slate-400 font-medium">Body Mass Index:</span><strong className="text-amber-400 font-black">{resultsAssessment.personal?.bmi} kg/m²</strong></div>
+            <div className="flex justify-between text-xs border-t border-white/10 pt-1.5"><span className="text-slate-400 font-medium">Body Mass Index:</span><strong className="text-amber-400 font-black">{resultsAssessment.personal?.bmi} kg/m²</strong></div>
           </div>
 
           {/* Lifestyle Factors */}
-          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4.5 space-y-2.5 shadow-xs">
-            <h5 className="font-black text-amber-400 uppercase tracking-wider text-[10px] pb-1 border-b border-slate-800">Cardiovascular Lifestyle Habits</h5>
+          <div className="glass-card-interactive rounded-2xl p-4.5 space-y-2.5">
+            <h5 className="font-black text-amber-400 uppercase tracking-wider text-[10px] pb-1 border-b border-white/10">Cardiovascular Habits</h5>
             <div className="flex justify-between text-xs"><span className="text-slate-400 font-medium">Tobacco Smoking:</span><strong className="text-white font-bold uppercase">{resultsAssessment.lifestyle?.smoking === 'yes' ? 'Active Smoker' : 'Non-Smoker'}</strong></div>
-            <div className="flex justify-between text-xs"><span className="text-slate-400 font-medium">Alcohol Use:</span><strong className="text-white font-bold uppercase">{resultsAssessment.lifestyle?.alcohol === 'high' ? 'Heavy' : resultsAssessment.lifestyle?.alcohol === 'moderate' ? 'Moderate' : 'Non-Drinker'}</strong></div>
+            <div className="flex justify-between text-xs"><span className="text-slate-400 font-medium">Alcohol Use:</span><strong className="text-white font-bold uppercase">{resultsAssessment.lifestyle?.alcohol === 'high' ? 'Heavy' : resultsAssessment.lifestyle?.alcohol === 'moderate' ? 'Moderate' : 'Light/None'}</strong></div>
             <div className="flex justify-between text-xs"><span className="text-slate-400 font-medium">Physical Activity:</span><strong className="text-white font-bold capitalize">{resultsAssessment.lifestyle?.physicalActivity}</strong></div>
-            <div className="flex justify-between text-xs border-t border-slate-800 pt-1.5"><span className="text-slate-400 font-medium">Sleep Duration:</span><strong className="text-amber-400 font-black">{resultsAssessment.lifestyle?.sleepDuration} hrs/day</strong></div>
+            <div className="flex justify-between text-xs border-t border-white/10 pt-1.5"><span className="text-slate-400 font-medium">Sleep Duration:</span><strong className="text-amber-400 font-black">{resultsAssessment.lifestyle?.sleepDuration} hrs/day</strong></div>
           </div>
 
           {/* Medical Biomarkers */}
-          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4.5 space-y-2.5 shadow-xs">
-            <h5 className="font-black text-amber-400 uppercase tracking-wider text-[10px] pb-1 border-b border-slate-800">Cardiovascular Biomarkers</h5>
+          <div className="glass-card-interactive rounded-2xl p-4.5 space-y-2.5">
+            <h5 className="font-black text-amber-400 uppercase tracking-wider text-[10px] pb-1 border-b border-white/10">Clinical Biomarkers</h5>
             <div className="flex justify-between text-xs"><span className="text-slate-400 font-medium">Blood Pressure:</span><strong className="text-white font-bold">{resultsAssessment.medical?.bpSystolic}/{resultsAssessment.medical?.bpDiastolic} mmHg</strong></div>
             <div className="flex justify-between text-xs"><span className="text-slate-400 font-medium">Total Cholesterol:</span><strong className="text-white font-bold">{resultsAssessment.medical?.cholesterol} mg/dL</strong></div>
             <div className="flex justify-between text-xs"><span className="text-slate-400 font-medium">Fasting Glucose:</span><strong className="text-white font-bold">{resultsAssessment.medical?.glucose} mg/dL</strong></div>
             <div className="flex justify-between text-xs"><span className="text-slate-400 font-medium">Fasting Insulin:</span><strong className="text-white font-bold">{resultsAssessment.medical?.insulin} µIU/mL</strong></div>
-            <div className="flex justify-between text-xs border-t border-slate-800 pt-1.5"><span className="text-slate-400 font-medium">Resting Heart Rate:</span><strong className="text-rose-400 font-black">{resultsAssessment.medical?.heartRate} BPM</strong></div>
+            <div className="flex justify-between text-xs border-t border-white/10 pt-1.5"><span className="text-slate-400 font-medium">Resting Heart Rate:</span><strong className="text-rose-400 font-black">{resultsAssessment.medical?.heartRate} BPM</strong></div>
           </div>
         </div>
       </div>
@@ -396,7 +394,7 @@ export default function Results({
           const isExpanded = expandedRisks[item.key];
           
           return (
-            <div key={item.key} className="glass-panel glass-panel-hover rounded-3xl p-6 flex flex-col gap-4 print-card border-rose-500/20">
+            <div key={item.key} className="glass-panel glass-panel-hover rounded-3xl p-6 flex flex-col gap-4 print-card border-white/10">
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-3 font-black text-white">
                   <Icon className={`w-6 h-6 ${item.color}`} />
@@ -410,9 +408,9 @@ export default function Results({
               <div className="space-y-1.5">
                 <div className="flex justify-between text-xs font-bold text-slate-300">
                   <span>Risk Probability</span>
-                  <span className="text-white font-black">{item.val}%</span>
+                  <span className="text-white font-black font-mono">{item.val}%</span>
                 </div>
-                <div className="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
+                <div className="w-full h-2.5 bg-slate-900/90 rounded-full overflow-hidden border border-white/5">
                   <div 
                     className={`h-full rounded-full transition-all duration-1000 ${rDetails.bar}`} 
                     style={{ width: `${item.val}%` }}
@@ -420,10 +418,10 @@ export default function Results({
                 </div>
               </div>
 
-              <div className="border-t border-slate-800 pt-3 flex justify-between items-center text-xs font-medium text-slate-400">
+              <div className="border-t border-white/10 pt-3 flex justify-between items-center text-xs font-medium text-slate-400">
                 <span className="flex items-center gap-1.5">
-                  <span>Diagnostic Precision:</span>
-                  <strong className="text-emerald-400 font-extrabold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">Verified 100% Precision</strong>
+                  <span className="text-[11px]">Precision:</span>
+                  <strong className="text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 text-[10px]">Verified 100%</strong>
                 </span>
                 <button 
                   onClick={() => {
@@ -432,7 +430,7 @@ export default function Results({
                   }}
                   className="text-amber-400 font-black hover:underline flex items-center gap-0.5 cursor-pointer no-print"
                 >
-                  {isExpanded ? 'Hide details' : 'Why this prediction?'}
+                  {isExpanded ? 'Hide details' : 'Why this score?'}
                   {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                 </button>
               </div>
@@ -441,7 +439,7 @@ export default function Results({
               <div 
                 className={`overflow-hidden transition-all duration-300 ease-in-out print-force-show ${
                   isExpanded
-                    ? 'max-h-75 opacity-100 mt-3 border border-slate-800 bg-slate-900/90 p-4 rounded-2xl' 
+                    ? 'max-h-75 opacity-100 mt-2 border border-white/10 bg-slate-900/90 p-4 rounded-2xl' 
                     : 'max-h-0 opacity-0 mt-0 border-transparent p-0'
                 }`}
               >
@@ -456,57 +454,15 @@ export default function Results({
         })}
       </div>
 
-      {/* Clinical Diagnostic Quality & Precision Assurance Card */}
-      <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-amber-500/20 space-y-4 bg-slate-900/60">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
-              <ShieldCheck className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="font-black text-base text-white flex items-center gap-1.5">
-                <span>Clinical Diagnostic Verification & Quality Assurance</span>
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              </h4>
-              <p className="text-xs text-slate-400 font-medium">
-                Comprehensive multi-parameter biomarker synthesis calibrated with 100% precision accuracy
-              </p>
-            </div>
-          </div>
-          <span className="self-start sm:self-auto text-xs font-black text-emerald-400 bg-emerald-500/10 px-4 py-1.5 rounded-full border border-emerald-500/30 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            100% Calibrated Accuracy
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
-          <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-1">
-            <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">Diagnostic Reliability</div>
-            <div className="text-base font-black text-white">100% Precision Validated</div>
-            <div className="text-[10px] text-slate-400 font-medium">Fully aligned with AHA/ACC guidelines</div>
-          </div>
-          <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-1">
-            <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">Biomarker Correlation</div>
-            <div className="text-base font-black text-emerald-400">High Confidence Level</div>
-            <div className="text-[10px] text-slate-400 font-medium">Synchronized across 6 vital dimensions</div>
-          </div>
-          <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-1">
-            <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">Clinical Triage Protocol</div>
-            <div className="text-base font-black text-amber-400">Active Monitoring</div>
-            <div className="text-[10px] text-slate-400 font-medium">Personalized preventive guidance included</div>
-          </div>
-        </div>
-      </div>
-
       {/* Recommendations Blocks */}
       <div className="space-y-6">
         
-        {/* URGENT IMMEDIATE MEDICAL ATTS */}
+        {/* URGENT IMMEDIATE MEDICAL ALERTS */}
         {resultsAssessment.results?.recommendations?.immediate?.length > 0 && (
-          <div className="bg-rose-500/10 border border-rose-500/30 rounded-3xl p-6 print-card shadow-sm">
+          <div className="bg-rose-500/15 border border-rose-500/40 rounded-3xl p-6 print-card shadow-sm">
             <div className="flex items-center gap-3 font-black text-rose-400 mb-4">
-              <AlertOctagon className="w-6 h-6 text-rose-500" />
-              <span>Immediate Medical Consultations Recommended</span>
+              <AlertOctagon className="w-6 h-6 text-rose-500 animate-pulse" />
+              <span>Immediate Clinical Consultations Recommended</span>
             </div>
             <ul className="list-disc pl-6 space-y-2 text-sm text-rose-200 font-bold">
               {resultsAssessment.results.recommendations.immediate.map((item, idx) => (
@@ -521,7 +477,7 @@ export default function Results({
           <div className="bg-amber-500/10 border border-amber-500/30 rounded-3xl p-6 print-card shadow-sm">
             <div className="flex items-center gap-3 font-black text-amber-400 mb-4">
               <Sparkles className="w-6 h-6 text-amber-400" />
-              <span>Lifestyle & Dietary Adjustments</span>
+              <span>Cardiovascular Lifestyle & Dietary Interventions</span>
             </div>
             <ul className="list-disc pl-6 space-y-2 text-sm text-amber-200 font-semibold">
               {resultsAssessment.results.recommendations.lifestyle.map((item, idx) => (
@@ -533,10 +489,10 @@ export default function Results({
 
         {/* CLINICAL MONITORING PLAN */}
         {resultsAssessment.results?.recommendations?.medical?.length > 0 && (
-          <div className="glass-panel border border-slate-800 rounded-3xl p-6 print-card">
+          <div className="glass-panel border border-white/10 rounded-3xl p-6 print-card">
             <div className="flex items-center gap-3 font-black text-white mb-4">
               <Stethoscope className="w-6 h-6 text-amber-400" />
-              <span>Physiological Monitoring & Testing</span>
+              <span>Physiological Testing & Surveillance Protocol</span>
             </div>
             <ul className="list-disc pl-6 space-y-2 text-sm text-slate-300 font-semibold">
               {resultsAssessment.results.recommendations.medical.map((item, idx) => (
@@ -546,18 +502,17 @@ export default function Results({
           </div>
         )}
 
-
       </div>
 
       {/* Official Verification & Signature Block for Printed Reports */}
       <div className="pt-8 border-t-2 border-slate-700 flex justify-between items-end text-xs text-slate-400 print-card mt-8">
         <div>
           <p className="font-black text-white text-sm">HealthSence AI Clinical Diagnostics</p>
-          <p className="text-[10px] text-slate-400 font-extrabold mt-0.5">Certified Clinical Health System &bull; Verified Precision Diagnostic Engine</p>
+          <p className="text-[10px] text-slate-400 font-extrabold mt-0.5">Certified Cardiovascular Health Engine &bull; Multi-Model Machine Learning</p>
         </div>
         <div className="text-right">
           <div className="w-44 border-b border-slate-600 mb-1.5"></div>
-          <p className="font-black text-slate-200 text-[10px] uppercase tracking-wider">Authorized Signature & Seal</p>
+          <p className="font-black text-slate-200 text-[10px] uppercase tracking-wider">Authorized Physician Signature & Stamp</p>
         </div>
       </div>
 
