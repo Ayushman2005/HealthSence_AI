@@ -1,49 +1,49 @@
 {
   "heart_disease": {
     "logistic_regression": {
-      "accuracy": 0.965,
-      "precision": 0.9639,
-      "recall": 0.9524,
-      "f1_score": 0.9581,
-      "roc_auc": 0.9958,
-      "cv_accuracy_mean": 0.9647,
-      "cv_accuracy_std": 0.008
+      "accuracy": 0.96,
+      "precision": 0.9677,
+      "recall": 0.9375,
+      "f1_score": 0.9524,
+      "roc_auc": 0.9975,
+      "cv_accuracy_mean": 0.968,
+      "cv_accuracy_std": 0.0134
     },
     "decision_tree": {
-      "accuracy": 0.8717,
-      "precision": 0.8571,
-      "recall": 0.8333,
-      "f1_score": 0.8451,
-      "roc_auc": 0.9281,
-      "cv_accuracy_mean": 0.882,
-      "cv_accuracy_std": 0.0141
+      "accuracy": 0.8667,
+      "precision": 0.8492,
+      "recall": 0.8359,
+      "f1_score": 0.8425,
+      "roc_auc": 0.9354,
+      "cv_accuracy_mean": 0.856,
+      "cv_accuracy_std": 0.0118
     },
     "random_forest": {
-      "accuracy": 0.9167,
-      "precision": 0.9208,
-      "recall": 0.877,
-      "f1_score": 0.8984,
-      "roc_auc": 0.9819,
-      "cv_accuracy_mean": 0.9257,
-      "cv_accuracy_std": 0.0103
+      "accuracy": 0.9067,
+      "precision": 0.931,
+      "recall": 0.8438,
+      "f1_score": 0.8852,
+      "roc_auc": 0.9813,
+      "cv_accuracy_mean": 0.9213,
+      "cv_accuracy_std": 0.0204
     },
     "svm": {
-      "accuracy": 0.9483,
-      "precision": 0.9623,
-      "recall": 0.9127,
-      "f1_score": 0.9369,
-      "roc_auc": 0.992,
-      "cv_accuracy_mean": 0.9497,
-      "cv_accuracy_std": 0.0087
+      "accuracy": 0.95,
+      "precision": 0.952,
+      "recall": 0.9297,
+      "f1_score": 0.9407,
+      "roc_auc": 0.9936,
+      "cv_accuracy_mean": 0.9533,
+      "cv_accuracy_std": 0.0118
     },
     "xgboost": {
-      "accuracy": 0.9433,
-      "precision": 0.9431,
-      "recall": 0.9206,
-      "f1_score": 0.9317,
-      "roc_auc": 0.9899,
-      "cv_accuracy_mean": 0.94,
-      "cv_accuracy_std": 0.0077
+      "accuracy": 0.92,
+      "precision": 0.9333,
+      "recall": 0.875,
+      "f1_score": 0.9032,
+      "roc_auc": 0.9833,
+      "cv_accuracy_mean": 0.924,
+      "cv_accuracy_std": 0.0236
     }
   }
 }

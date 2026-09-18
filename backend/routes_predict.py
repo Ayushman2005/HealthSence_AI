@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+import asyncio
 from datetime import datetime
 import numpy as np
 from typing import Optional, Dict, Any, List
@@ -419,11 +420,11 @@ async def get_metrics(token: str = Depends(get_auth_token)):
 @router.post('/api/retrain')
 async def retrain(token: str = Depends(get_admin_token)):
     try:
-        print("Received retraining request. Executing pipeline_trainer.py...")
+        print("Received retraining request. Executing pipeline_trainer.py in background thread...")
         from pipeline_trainer import run_training_pipeline
-        metrics_data = run_training_pipeline()
+        metrics_data = await asyncio.to_thread(run_training_pipeline)
         
-        ml_engine.load_ml_assets()
+        await asyncio.to_thread(ml_engine.load_ml_assets)
         log_audit_event("MODEL_RETRAIN", "ML_ENGINE", "admin", "Successfully retrained 5 cardiovascular ML models via training pipeline", status="SUCCESS")
         
         return {

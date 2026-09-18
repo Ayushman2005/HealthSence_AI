@@ -643,15 +643,27 @@ export default function App() {
         handleLogout();
         throw new Error("Session expired. Please log in again.");
       }
-      if (!res.ok) throw new Error("Retrain call failed");
+      if (!res.ok) {
+        let errDetail = `Retrain call failed (${res.status})`;
+        try {
+          const errData = await res.json();
+          errDetail = errData.detail || errData.error || errDetail;
+        } catch {
+          if (res.status === 502) errDetail = "Server gateway timeout (502). The server is busy or restarting.";
+        }
+        throw new Error(errDetail);
+      }
       const data = await res.json();
       if (data.success) {
         showToast("Model training successfully completed!", "success");
         setMetrics(data.metrics);
       }
     } catch (err) {
-      console.error(err);
-      showToast(err.message || "Model retraining failed. Check server logs.", "danger");
+      console.error("Retraining error:", err);
+      const msg = err.message === "Failed to fetch"
+        ? "Network error / Server unreachable (502 Gateway). The server may be restarting or timed out."
+        : (err.message || "Model retraining failed. Check server logs.");
+      showToast(msg, "danger");
     } finally {
       setRetraining(false);
     }

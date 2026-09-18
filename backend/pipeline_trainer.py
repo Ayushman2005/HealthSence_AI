@@ -39,7 +39,7 @@ FEATURE_NAMES = [
     "physical_activity_active"
 ]
 
-def generate_heart_disease_dataset(dataset_path: str, num_records: int = 3000) -> pd.DataFrame:
+def generate_heart_disease_dataset(dataset_path: str, num_records: int = 1500) -> pd.DataFrame:
     np.random.seed(101)
     ages = np.random.randint(20, 85, size=num_records)
     genders = np.random.choice(['male', 'female', 'other'], size=num_records, p=[0.50, 0.46, 0.04])
@@ -148,13 +148,13 @@ def run_training_pipeline() -> dict:
     models = {
         'logistic_regression': LogisticRegression(max_iter=1000, random_state=42),
         'decision_tree': DecisionTreeClassifier(max_depth=5, min_samples_split=10, random_state=42),
-        'random_forest': RandomForestClassifier(n_estimators=100, max_depth=8, min_samples_split=8, random_state=42),
-        'svm': SVC(probability=True, kernel='rbf', random_state=42),
-        'xgboost': XGBClassifier(n_estimators=100, max_depth=4, learning_rate=0.08, eval_metric='logloss', random_state=42)
+        'random_forest': RandomForestClassifier(n_estimators=50, max_depth=8, min_samples_split=8, random_state=42),
+        'svm': SVC(probability=True, kernel='rbf', random_state=42, cache_size=100, max_iter=2000),
+        'xgboost': XGBClassifier(n_estimators=50, max_depth=4, learning_rate=0.08, eval_metric='logloss', random_state=42)
     }
 
     metrics_result = {'heart_disease': {}}
-    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    skf = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
 
     for name, model in models.items():
         model.fit(X_train, y_train)
@@ -166,7 +166,7 @@ def run_training_pipeline() -> dict:
         rec = float(recall_score(y_test, y_pred, zero_division=0))
         f1 = float(f1_score(y_test, y_pred, zero_division=0))
         auc = float(roc_auc_score(y_test, y_prob)) if len(np.unique(y_test)) > 1 else 0.85
-        cv_scores = cross_val_score(model, X, y, cv=skf, scoring='accuracy')
+        cv_scores = cross_val_score(model, X, y, cv=skf, scoring='accuracy', n_jobs=1)
 
         metrics_result['heart_disease'][name] = {
             'accuracy': round(acc, 4),
