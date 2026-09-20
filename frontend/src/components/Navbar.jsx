@@ -223,7 +223,7 @@ function AdminNavbar({
                   <User className="w-4 h-4 text-white" />
                 </div>
                 <div className="flex flex-col leading-none shrink-0">
-                  <span className="text-[11px] font-black text-white max-w-[85px] truncate">
+                  <span className="text-[11px] font-black text-white max-w-21.25 truncate">
                     {userProfile?.username ? `@${userProfile.username}` : (userProfile?.name?.includes('Administrator') ? 'Admin' : (userProfile?.name || 'Admin'))}
                   </span>
                   <span className="text-[9px] font-extrabold text-rose-300 mt-0.5 flex items-center gap-1">

@@ -87,7 +87,7 @@ export default function AuthModal({
             <div className="flex items-center gap-2 mt-3">
               <div className="flex-1 h-px bg-linear-to-r from-transparent via-amber-500/30 to-transparent" />
               <HeartPulse className="w-3.5 h-3.5 text-amber-500/60 animate-heartbeat" />
-              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
+              <div className="flex-1 h-px bg-linear-to-r from-transparent via-amber-500/30 to-transparent" />
             </div>
           </div>
 
