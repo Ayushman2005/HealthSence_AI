@@ -20,18 +20,24 @@ def load_ml_assets():
     # Load Scaler
     scaler_path = os.path.join(MODELS_DIR, "scaler.pkl")
     if os.path.exists(scaler_path):
-        with open(scaler_path, "rb") as f:
-            scaler = pickle.load(f)
-        print("  Scaler loaded successfully.")
+        try:
+            with open(scaler_path, "rb") as f:
+                scaler = pickle.load(f)
+            print("  Scaler loaded successfully.")
+        except Exception as e:
+            print(f"  Notice: Could not load scaler: {e}")
     else:
         print("  WARNING: scaler.pkl not found. Please train models first.")
         
     # Load Feature Names list
     names_path = os.path.join(MODELS_DIR, "feature_names.json")
     if os.path.exists(names_path):
-        with open(names_path, "r") as f:
-            feature_names = json.load(f)
-        print("  Feature names mapping loaded successfully.")
+        try:
+            with open(names_path, "r") as f:
+                feature_names = json.load(f)
+            print("  Feature names mapping loaded successfully.")
+        except Exception as e:
+            print(f"  Notice: Could not load feature names: {e}")
         
     # Load model metrics
     metrics_path = os.path.join(MODELS_DIR, "model_metrics.json")
@@ -50,9 +56,12 @@ def load_ml_assets():
         for alg in algs:
             model_path = os.path.join(MODELS_DIR, f"{disease}_{alg}.pkl")
             if os.path.exists(model_path):
-                with open(model_path, "rb") as f:
-                    models[disease][alg] = pickle.load(f)
-                loaded_count += 1
+                try:
+                    with open(model_path, "rb") as f:
+                        models[disease][alg] = pickle.load(f)
+                    loaded_count += 1
+                except Exception as e:
+                    print(f"  Notice: Could not load {alg} model: {e}")
     print(f"  Loaded {loaded_count}/{len(diseases)*len(algs)} models successfully from {MODELS_DIR}.")
 
 ALGORITHM_METADATA = {

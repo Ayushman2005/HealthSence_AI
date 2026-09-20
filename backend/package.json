@@ -17,6 +17,6 @@
     "secret:admin-pass": "wrangler secret put ADMIN_PASSWORD"
   },
   "devDependencies": {
-    "wrangler": "^3.111.0"
+    "wrangler": "^4.135.0"
   }
 }
