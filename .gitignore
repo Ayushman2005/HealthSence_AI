@@ -6,6 +6,8 @@
 # Frontend dependencies & output
 # ------------------------------------------
 frontend/node_modules/
+backend/node_modules/
+node_modules/
 frontend/dist/
 frontend/dist-ssr/
 frontend/build/

@@ -1,0 +1,22 @@
+{
+  "name": "healthrisk-ai-backend-cloudflare",
+  "version": "1.0.0",
+  "description": "Cloudflare Worker deployment for HealthRisk AI Backend (No Docker required)",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "tail": "wrangler tail",
+    "secret:jwt": "wrangler secret put JWT_SECRET",
+    "secret:supabase-url": "wrangler secret put SUPABASE_URL",
+    "secret:supabase-key": "wrangler secret put SUPABASE_KEY",
+    "secret:supabase-db": "wrangler secret put SUPABASE_DB_URL",
+    "secret:groq": "wrangler secret put GROQ_API_KEY",
+    "secret:admin-user": "wrangler secret put ADMIN_USERNAME",
+    "secret:admin-pass": "wrangler secret put ADMIN_PASSWORD"
+  },
+  "devDependencies": {
+    "wrangler": "^3.111.0"
+  }
+}

@@ -26,7 +26,7 @@ load_dotenv()
 
 # Environment Mode
 ENVIRONMENT = os.environ.get('ENVIRONMENT', 'development').lower()
-IS_PRODUCTION = ENVIRONMENT in ['production', 'prod'] or os.environ.get('RENDER', '') == 'true'
+IS_PRODUCTION = ENVIRONMENT in ['production', 'prod'] or os.environ.get('CLOUDFLARE', '') == 'true' or os.environ.get('CF_PAGES', '') == '1' or os.environ.get('CONTAINER', '') == 'true'
 
 # Admin credentials & security configuration
 ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', '')

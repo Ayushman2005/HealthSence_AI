@@ -32,7 +32,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
-    allow_origin_regex=r"https://.*\.vercel\.app",
+    allow_origin_regex=r"https://.*(\.vercel\.app|\.pages\.dev|\.workers\.dev)",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -68,6 +68,13 @@ app.include_router(routes_predict.router)
 app.include_router(routes_symptom.router)
 app.include_router(routes_chatbot.router)
 app.include_router(routes_admin.router)
+
+# Cloudflare Workers Python ASGI entrypoint
+try:
+    from workers import asgi
+    Default = asgi.entrypoint(app)
+except ImportError:
+    pass
 
 if __name__ == '__main__':
     import uvicorn
