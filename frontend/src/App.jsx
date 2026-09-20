@@ -1203,9 +1203,9 @@ export default function App() {
 
       {/* Ambient high-tech background glow orbs */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none">
-        <div className="absolute -top-32 -left-32 w-[600px] h-[600px] rounded-full bg-radial from-amber-500/10 via-yellow-500/5 to-transparent blur-[140px] animate-float-blob" />
-        <div className="absolute top-[30%] -right-32 w-[550px] h-[550px] rounded-full bg-radial from-cyan-500/10 via-blue-500/5 to-transparent blur-[150px] animate-float-blob-reverse" />
-        <div className="absolute -bottom-32 left-[25%] w-[500px] h-[500px] rounded-full bg-radial from-emerald-500/10 via-teal-500/5 to-transparent blur-[130px] animate-float-blob" />
+        <div className="absolute -top-32 -left-32 w-150 h-150 rounded-full bg-radial from-amber-500/10 via-yellow-500/5 to-transparent blur-[140px] animate-float-blob" />
+        <div className="absolute top-[30%] -right-32 w-137.5 h-137.5 rounded-full bg-radial from-cyan-500/10 via-blue-500/5 to-transparent blur-[150px] animate-float-blob-reverse" />
+        <div className="absolute -bottom-32 left-[25%] w-125 h-125 rounded-full bg-radial from-emerald-500/10 via-teal-500/5 to-transparent blur-[130px] animate-float-blob" />
       </div>
 
       {/* Top Navbar Header */}

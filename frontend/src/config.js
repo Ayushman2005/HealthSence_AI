@@ -1,6 +1,6 @@
 /**
  * Health Risk AI - API Client Configuration
- * Dynamic backend API base URL supporting local development and production deployments (e.g. Cloudflare).
+ * Dynamic backend API base URL supporting local development and production deployments (e.g. Render).
  */
 const getDefaultApiUrl = () => {
   if (import.meta.env.VITE_API_URL) {
@@ -8,7 +8,7 @@ const getDefaultApiUrl = () => {
   }
   return import.meta.env.DEV
     ? 'http://localhost:5000'
-    : (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5000');
+    : 'https://healthrisk-ai-backend.onrender.com';
 };
 
 export const API_BASE_URL = getDefaultApiUrl().replace(/\/+$/, '');

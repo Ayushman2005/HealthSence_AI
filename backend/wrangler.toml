@@ -1,8 +1,0 @@
-name = "healthrisk-ai-backend"
-main = "main.py"
-compatibility_date = "2025-02-14"
-compatibility_flags = ["python_workers"]
-
-[vars]
-ENVIRONMENT = "production"
-CLOUDFLARE = "true"
