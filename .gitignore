@@ -16,7 +16,7 @@ frontend/.npm/
 frontend/.eslintcache
 frontend/.stylelintcache
 frontend/*.tsbuildinfo
-frontend/.env.local
+frontend/.env
 frontend/.env.*.local
 frontend/.env.production
 frontend/.env.development
