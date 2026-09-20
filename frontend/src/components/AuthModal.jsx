@@ -1,5 +1,5 @@
-import React from 'react';
-import { AlertCircle, ArrowRight, PlusCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { AlertCircle, ArrowRight, PlusCircle, Lock, User, Eye, EyeOff, HeartPulse, Shield, Sparkles } from 'lucide-react';
 
 export default function AuthModal({
   authMode,
@@ -25,174 +25,283 @@ export default function AuthModal({
   registerLoading,
   handleRegister
 }) {
+  const [showLoginPw, setShowLoginPw] = useState(false);
+  const [showRegPw, setShowRegPw] = useState(false);
+  const [showRegConfPw, setShowRegConfPw] = useState(false);
+
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-6 relative overflow-hidden text-slate-900">
+    <div className="min-h-screen w-full flex items-center justify-center p-4 sm:p-6 relative overflow-hidden">
       
-      {/* Background ambient glowing blob */}
-      <div className="absolute top-[-15%] left-[-15%] w-[45%] h-[45%] bg-amber-200/40 rounded-full blur-[140px] pointer-events-none animate-float-blob" />
-      <div className="absolute bottom-[-15%] right-[-15%] w-[45%] h-[45%] bg-yellow-100/40 rounded-full blur-[140px] pointer-events-none animate-float-blob-reverse" />
-      
-      <div className="w-full max-w-115 glass-modal-container rounded-3xl p-8 md:p-10 shadow-xl relative z-10 animate-modal-spring border border-slate-200 bg-white">
+      {/* ── Ambient Background Orbs ── */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-32 -left-32 w-130 h-130 rounded-full bg-amber-500/8 blur-[120px] animate-float-blob" />
+        <div className="absolute -bottom-40 -right-32 w-120 h-120 rounded-full bg-emerald-500/7 blur-[120px] animate-float-blob-reverse" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-90 h-90 rounded-full bg-cyan-500/5 blur-[100px] animate-float-blob-3" />
+      </div>
+
+      {/* ── Subtle grid ── */}
+      <div className="absolute inset-0 cyber-grid opacity-40 pointer-events-none" />
+
+      {/* ── Main Auth Card ── */}
+      <div className="w-full max-w-115 relative z-10 animate-modal-spring">
         
-        <div className="flex flex-col items-center text-center mb-6">
-          <div className="w-16 h-16 rounded-2xl bg-linear-to-tr from-amber-500 via-amber-600 to-yellow-400 p-0.5 shadow-sm mb-4">
-            <div className="w-full h-full bg-white rounded-[14px] flex items-center justify-center p-2">
-              <img 
-                src="/logo.png" 
-                alt="HealthSence AI Logo" 
-                className="w-full h-full object-contain" 
+        {/* Outer gradient ring */}
+        <div className="absolute -inset-px rounded-[28px] bg-linear-to-br from-amber-500/30 via-transparent to-emerald-500/20 pointer-events-none rounded-inherit" />
+
+        <div className="glass-modal-container rounded-[26px] p-7 sm:p-9 relative">
+          
+          {/* ── Brand Header ── */}
+          <div className="flex flex-col items-center text-center mb-7">
+            
+            {/* Logo ring with conic spin */}
+            <div className="relative mb-5 animate-auth-float">
+              {/* Outer spinning ring */}
+              <div className="absolute inset-0 rounded-2xl border-2 border-transparent"
+                style={{
+                  background: 'conic-gradient(from 0deg, #f59e0b, #10b981, #06b6d4, #f59e0b) border-box',
+                  WebkitMask: 'linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)',
+                  WebkitMaskComposite: 'xor',
+                  maskComposite: 'exclude',
+                  animation: 'spin-slow 6s linear infinite',
+                  borderRadius: '18px',
+                  padding: '2px'
+                }}
               />
+              <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-amber-500 via-amber-600 to-yellow-400 p-0.5 shadow-lg shadow-amber-500/30">
+                <div className="w-full h-full bg-slate-950 rounded-[13px] flex items-center justify-center p-2.5">
+                  <img src="/logo.png" alt="HealthSence AI Logo" className="w-full h-full object-contain" />
+                </div>
+              </div>
+            </div>
+
+            <h2 className="font-black text-3xl text-white tracking-tight">
+              Health<span className="text-gradient-amber">Sence</span> <span className="text-slate-300">AI</span>
+            </h2>
+            <p className="text-sm text-slate-400 mt-2 font-medium max-w-xs leading-relaxed">
+              {authMode === 'login'
+                ? 'Sign in to access your precision cardiovascular intelligence'
+                : 'Create your account to begin clinical risk assessments'}
+            </p>
+
+            {/* ECG line decoration */}
+            <div className="flex items-center gap-2 mt-3">
+              <div className="flex-1 h-px bg-linear-to-r from-transparent via-amber-500/30 to-transparent" />
+              <HeartPulse className="w-3.5 h-3.5 text-amber-500/60 animate-heartbeat" />
+              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
             </div>
           </div>
-          <h2 className="font-black text-3xl text-slate-900 tracking-tight">Health<span className="text-amber-600">Sence</span> AI</h2>
-          <p className="text-xs text-slate-600 mt-2 max-w-sm font-medium">
-            {authMode === 'login' 
-              ? 'Sign in to access your clinical risk intelligence dashboard' 
-              : 'Create an account to begin clinical assessments'}
+
+          {/* ── Tab Toggle ── */}
+          <div className="flex bg-slate-900/70 rounded-2xl p-1 mb-6 border border-white/6">
+            <button
+              type="button"
+              onClick={() => { setAuthMode('login'); setRegisterError(''); }}
+              className={`flex-1 py-2 rounded-xl text-xs font-black tracking-wide transition-all duration-250 cursor-pointer ${
+                authMode === 'login'
+                  ? 'bg-linear-to-r from-amber-500 to-amber-600 text-white shadow-md shadow-amber-500/30'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => { setAuthMode('register'); setLoginError(''); }}
+              className={`flex-1 py-2 rounded-xl text-xs font-black tracking-wide transition-all duration-250 cursor-pointer ${
+                authMode === 'register'
+                  ? 'bg-linear-to-r from-emerald-500 to-emerald-600 text-white shadow-md shadow-emerald-500/30'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              Create Account
+            </button>
+          </div>
+
+          {/* ── Login Form ── */}
+          {authMode === 'login' ? (
+            <form onSubmit={handleLogin} className="space-y-4 animate-fade-up">
+              {loginError && (
+                <div className="bg-rose-500/10 border border-rose-500/30 text-rose-300 rounded-2xl p-3.5 text-xs font-bold flex items-center gap-2.5">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+                  <span>{loginError}</span>
+                </div>
+              )}
+
+              {/* Username field */}
+              <div className="space-y-2">
+                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                  <User className="w-3 h-3" />
+                  Username
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={loginUsername}
+                    onChange={e => setLoginUsername(e.target.value)}
+                    placeholder="Enter your username"
+                    required
+                    className="w-full px-4 py-3.5 pl-11 glass-input rounded-2xl text-sm font-semibold"
+                  />
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                </div>
+              </div>
+
+              {/* Password field */}
+              <div className="space-y-2">
+                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                  <Lock className="w-3 h-3" />
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showLoginPw ? 'text' : 'password'}
+                    value={loginPassword}
+                    onChange={e => setLoginPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    className="w-full px-4 py-3.5 pl-11 pr-11 glass-input rounded-2xl text-sm font-semibold"
+                  />
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <button
+                    type="button"
+                    onClick={() => setShowLoginPw(v => !v)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-amber-400 transition-colors cursor-pointer"
+                  >
+                    {showLoginPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Submit */}
+              <button
+                type="submit"
+                disabled={loginLoading}
+                id="auth-login-submit"
+                className="btn-magnetic w-full py-4 text-white bg-linear-to-r from-amber-500 via-amber-600 to-yellow-500 hover:from-amber-400 hover:to-amber-600 rounded-2xl font-black text-sm shadow-lg shadow-amber-500/25 cursor-pointer flex items-center justify-center gap-2.5 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+              >
+                {loginLoading ? (
+                  <>
+                    <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                    <span>Authenticating...</span>
+                  </>
+                ) : (
+                  <>
+                    <Shield className="w-4 h-4" />
+                    <span>Sign In Securely</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </form>
+          ) : (
+            /* ── Register Form ── */
+            <form onSubmit={handleRegister} className="space-y-3.5 animate-fade-up">
+              {registerError && (
+                <div className="bg-rose-500/10 border border-rose-500/30 text-rose-300 rounded-2xl p-3.5 text-xs font-bold flex items-center gap-2.5">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+                  <span>{registerError}</span>
+                </div>
+              )}
+
+              {/* Full Name */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Full Name</label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={registerName}
+                    onChange={e => setRegisterName(e.target.value)}
+                    placeholder="e.g. Ayushman Kar"
+                    required
+                    className="w-full px-4 py-3 pl-11 glass-input rounded-xl text-sm font-semibold"
+                  />
+                  <Sparkles className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                </div>
+              </div>
+
+              {/* Username */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Username</label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={registerUsername}
+                    onChange={e => setRegisterUsername(e.target.value)}
+                    placeholder="Choose a unique username"
+                    required
+                    className="w-full px-4 py-3 pl-11 glass-input rounded-xl text-sm font-semibold"
+                  />
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                </div>
+              </div>
+
+              {/* Password */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Password</label>
+                <div className="relative">
+                  <input
+                    type={showRegPw ? 'text' : 'password'}
+                    value={registerPassword}
+                    onChange={e => setRegisterPassword(e.target.value)}
+                    placeholder="Min 6 characters"
+                    required
+                    className="w-full px-4 py-3 pl-11 pr-11 glass-input rounded-xl text-sm font-semibold"
+                  />
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <button type="button" onClick={() => setShowRegPw(v => !v)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-emerald-400 transition-colors cursor-pointer">
+                    {showRegPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Confirm Password */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Confirm Password</label>
+                <div className="relative">
+                  <input
+                    type={showRegConfPw ? 'text' : 'password'}
+                    value={registerConfirmPassword}
+                    onChange={e => setRegisterConfirmPassword(e.target.value)}
+                    placeholder="Re-enter your password"
+                    required
+                    className="w-full px-4 py-3 pl-11 pr-11 glass-input rounded-xl text-sm font-semibold"
+                  />
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <button type="button" onClick={() => setShowRegConfPw(v => !v)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-emerald-400 transition-colors cursor-pointer">
+                    {showRegConfPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Submit */}
+              <button
+                type="submit"
+                disabled={registerLoading}
+                id="auth-register-submit"
+                className="btn-magnetic w-full py-3.5 bg-linear-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white rounded-2xl font-black text-sm shadow-lg shadow-emerald-500/25 cursor-pointer flex items-center justify-center gap-2.5 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+              >
+                {registerLoading ? (
+                  <>
+                    <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                    <span>Creating Account...</span>
+                  </>
+                ) : (
+                  <>
+                    <PlusCircle className="w-4 h-4" />
+                    <span>Create My Account</span>
+                  </>
+                )}
+              </button>
+            </form>
+          )}
+
+          {/* ── Footer Legal ── */}
+          <p className="text-center text-[10px] text-slate-600 mt-5 font-medium">
+            Protected by clinical-grade encryption · HIPAA-ready architecture
           </p>
         </div>
-        
-        {authMode === 'login' ? (
-          
-          <form onSubmit={handleLogin} className="space-y-5">
-            {loginError && (
-              <div className="bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl p-3 text-xs font-bold flex items-center gap-2 animate-shake">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>{loginError}</span>
-              </div>
-            )}
-            
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-black text-slate-700 uppercase tracking-wider">
-                Username
-              </label>
-              <input 
-                type="text" 
-                value={loginUsername}
-                onChange={e => setLoginUsername(e.target.value)}
-                placeholder="Enter your username"
-                required
-                className="w-full px-4 py-3 glass-input rounded-2xl text-sm font-bold shadow-xs"
-              />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-black text-slate-700 uppercase tracking-wider">
-                Password
-              </label>
-              <input 
-                type="password" 
-                value={loginPassword}
-                onChange={e => setLoginPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                className="w-full px-4 py-3 glass-input rounded-2xl text-sm font-bold shadow-xs"
-              />
-            </div>
-
-            <button 
-              type="submit" 
-              disabled={loginLoading}
-              className="btn-magnetic w-full py-4 text-white bg-linear-to-r from-amber-500 via-amber-600 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 rounded-2xl font-black text-sm shadow-sm shadow-amber-500/20 cursor-pointer flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-50"
-            >
-              {loginLoading ? 'Authenticating...' : 'Sign In'}
-              <ArrowRight className="w-4 h-4" />
-            </button>
-            
-            <div className="text-center pt-2">
-              <p className="text-xs text-slate-500 font-bold">
-                Don't have an account?{' '}
-                <button 
-                  type="button"
-                  onClick={() => { setAuthMode('register'); setLoginError(''); }}
-                  className="text-amber-600 hover:underline cursor-pointer font-black"
-                >
-                  Sign Up Now
-                </button>
-              </p>
-            </div>
-          </form>
-        ) : (
-          /* Register Form */
-          <form onSubmit={handleRegister} className="space-y-4">
-            {registerError && (
-              <div className="bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl p-3 text-xs font-bold flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>{registerError}</span>
-              </div>
-            )}
-            
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-black text-slate-700 uppercase tracking-wider">Full Name</label>
-              <input 
-                type="text" 
-                value={registerName}
-                onChange={e => setRegisterName(e.target.value)}
-                placeholder="e.g. Ayushman Kar"
-                required
-                className="w-full px-4 py-3 glass-input rounded-2xl text-sm font-bold shadow-xs"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-black text-slate-700 uppercase tracking-wider">Username</label>
-              <input 
-                type="text" 
-                value={registerUsername}
-                onChange={e => setRegisterUsername(e.target.value)}
-                placeholder="Choose a username"
-                required
-                className="w-full px-4 py-3 glass-input rounded-2xl text-sm font-bold shadow-xs"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-black text-slate-700 uppercase tracking-wider">Password</label>
-              <input 
-                type="password" 
-                value={registerPassword}
-                onChange={e => setRegisterPassword(e.target.value)}
-                placeholder="Min 6 characters"
-                required
-                className="w-full px-4 py-3 glass-input rounded-2xl text-sm font-bold shadow-xs"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-black text-slate-700 uppercase tracking-wider">Confirm Password</label>
-              <input 
-                type="password" 
-                value={registerConfirmPassword}
-                onChange={e => setRegisterConfirmPassword(e.target.value)}
-                placeholder="Re-enter your password"
-                required
-                className="w-full px-4 py-3 glass-input rounded-2xl text-sm font-bold shadow-xs"
-              />
-            </div>
-
-            <button 
-              type="submit" 
-              disabled={registerLoading}
-              className="btn-magnetic w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-black text-sm shadow-xs cursor-pointer flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-50"
-            >
-              {registerLoading ? 'Creating account...' : 'Create Account'}
-              <PlusCircle className="w-4 h-4" />
-            </button>
-            
-            <div className="text-center pt-2">
-              <p className="text-xs text-slate-500 font-bold">
-                Already have an account?{' '}
-                <button 
-                  type="button"
-                  onClick={() => { setAuthMode('login'); setRegisterError(''); }}
-                  className="text-amber-600 hover:underline cursor-pointer font-black"
-                >
-                  Sign In
-                </button>
-              </p>
-            </div>
-          </form>
-        )}
       </div>
     </div>
   );

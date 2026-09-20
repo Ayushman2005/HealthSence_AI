@@ -41,6 +41,7 @@ export default function App() {
 
   // Navigation & Authentication state
   const [currentTab, setCurrentTab] = useState('dashboard');
+  const [adminSection, setAdminSection] = useState('portal');
   const [authToken, setAuthToken] = useState(() => sessionStorage.getItem('healthrisk_auth_token') || '');
   const [authMode, setAuthMode] = useState('login'); 
   const [loginUsername, setLoginUsername] = useState('');
@@ -1220,6 +1221,10 @@ export default function App() {
         handleLogout={handleLogout}
         setShowSimulatorModal={setShowSimulatorModal}
         setIsCommandPaletteOpen={setIsCommandPaletteOpen}
+        handleRetrain={handleRetrain}
+        retraining={retraining}
+        adminSection={adminSection}
+        setAdminSection={setAdminSection}
       />
 
       {/* Main Container */}
@@ -1408,12 +1413,15 @@ export default function App() {
             retraining={retraining}
             assessments={assessments}
             adminUsersList={adminUsersList}
+            fetchAdminUsersList={fetchAdminUsersList}
             showToast={showToast}
             setCurrentTab={setCurrentTab}
             API_BASE_URL={API_BASE_URL}
             authToken={authToken}
             resetWizard={resetWizard}
             setShowSimulatorModal={setShowSimulatorModal}
+            adminSection={adminSection}
+            setAdminSection={setAdminSection}
           />
         )}
 

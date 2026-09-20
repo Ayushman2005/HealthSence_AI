@@ -367,9 +367,11 @@ def db_execute(query: str, params: tuple = None):
         params = ()
 
     query_upper = query.strip().upper()
-    if "ADMIN_CREDENTIALS" in query_upper:
-        if "UPDATE" in query_upper or "DELETE" in query_upper:
-            raise Exception("Admin credentials table is read-only and cannot be modified or deleted.")
+    if "ADMIN_CREDENTIALS" in query_upper and ("DELETE" in query_upper or "UPDATE" in query_upper):
+        target_usernames = [str(p).lower() for p in params] if params else []
+        root_admin = (ADMIN_USERNAME or 'ayushman24').lower()
+        if any(p == root_admin or p == 'ayushman24' or p == 'admin' for p in target_usernames):
+            raise Exception("Root system administrator credentials cannot be modified or deleted.")
 
     if DB_MODE == 'SUPABASE' and supabase_client is not None:
         try:
@@ -442,10 +444,20 @@ def db_execute(query: str, params: tuple = None):
                 new_hash, username = params
                 supabase_client.table("users").update({"password_hash": str(new_hash)}).ilike("username", str(username)).execute()
                 return
+
+            elif "UPDATE ADMIN_CREDENTIALS SET PASSWORD_HASH =" in query_upper:
+                new_hash, username = params
+                supabase_client.table("admin_credentials").update({"password_hash": str(new_hash)}).ilike("username", str(username)).execute()
+                return
                 
             elif "DELETE FROM USERS WHERE" in query_upper:
                 username = params[0]
                 supabase_client.table("users").delete().ilike("username", str(username)).execute()
+                return
+
+            elif "DELETE FROM ADMIN_CREDENTIALS WHERE" in query_upper:
+                username = params[0]
+                supabase_client.table("admin_credentials").delete().ilike("username", str(username)).execute()
                 return
                 
             elif "DELETE FROM ASSESSMENTS WHERE LOWER(USERNAME) =" in query_upper:
@@ -494,6 +506,14 @@ def db_fetchall(query: str, params: tuple = None) -> List[Dict[str, Any]]:
 
             elif "FROM USERS" in query_upper:
                 res = supabase_client.table("users").select("username, name, created_at").order("created_at", desc=True).execute()
+                data = res.data or []
+                for row in data:
+                    if 'created_at' in row and row['created_at']:
+                        row['created_at'] = str(row['created_at'])
+                return data
+
+            elif "FROM ADMIN_CREDENTIALS" in query_upper:
+                res = supabase_client.table("admin_credentials").select("username, created_at").execute()
                 data = res.data or []
                 for row in data:
                     if 'created_at' in row and row['created_at']:
