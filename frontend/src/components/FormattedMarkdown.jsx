@@ -3,7 +3,7 @@ import React from 'react';
 /**
  * Formats inline Markdown patterns: **bold**, *italic*, `code`
  */
-export function formatInlineText(text) {
+function formatInlineText(text) {
   if (!text) return null;
   const tokens = [];
   const regex = /(\*\*.*?\*\*|`.*?`|\*.*?\*)/g;

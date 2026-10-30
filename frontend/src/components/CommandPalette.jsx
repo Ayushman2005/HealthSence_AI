@@ -32,8 +32,8 @@ export default function CommandPalette({
     ] : []),
     {
       id: 'wizard',
-      title: 'Start Cardiovascular Risk Assessment',
-      subtitle: 'Evaluate Heart Disease, CAD, & hemodynamic risk dimensions',
+      title: 'Start Multi-Condition Risk Assessment',
+      subtitle: 'Evaluate Heart Disease, Type 2 Diabetes, & metabolic risk dimensions',
       icon: HeartPulse,
       category: 'Diagnostic Engine',
       action: () => {

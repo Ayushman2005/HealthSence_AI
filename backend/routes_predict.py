@@ -26,6 +26,7 @@ class PersonalData(BaseModel):
     gender: str = Field('male')
     height: float = Field(170.0, gt=0, le=300)
     weight: float = Field(70.0, gt=0, le=500)
+    bmi: Optional[float] = None
 
 class LifestyleData(BaseModel):
     smoking: str = Field('no')
@@ -121,12 +122,17 @@ async def predict(
         X_scaled = X.copy()
         X_scaled[:, :11] = X_num_scaled
         
-        # Execute ALL 5 ML algorithms simultaneously and compute calibrated ensemble consensus
-        consensus_data = ml_engine.predict_all_algorithms('heart_disease', X_scaled)
-        heart_risk_val = consensus_data['master_risk']
-        model_consensus = consensus_data['models']
-        consensus_agreement = consensus_data['consensus_agreement']
-        
+        # Execute ALL 5 ML algorithms simultaneously for both Heart Disease & Type 2 Diabetes
+        heart_consensus = ml_engine.predict_all_algorithms('heart_disease', X_scaled)
+        heart_risk_val = heart_consensus['master_risk']
+        model_consensus = heart_consensus['models']
+        consensus_agreement = heart_consensus['consensus_agreement']
+
+        diabetes_consensus = ml_engine.predict_all_algorithms('diabetes', X_scaled)
+        diabetes_risk_val = diabetes_consensus['master_risk']
+        diabetes_model_consensus = diabetes_consensus['models']
+        diabetes_consensus_agreement = diabetes_consensus['consensus_agreement']
+
         # Calculate Cardiovascular Sub-Risk Dimensions
         # 1. Coronary Artery Disease (CAD) Risk
         cad_z = -4.8 + 0.038*(bp_systolic - 120) + 0.030*(cholesterol - 180) + 0.032*(age - 40) + (1.2 if smoking == 'yes' else 0) + 0.04*(bmi - 24)
@@ -148,20 +154,46 @@ async def predict(
         met_z = -4.7 + 0.035*(glucose - 90) + 0.030*(insulin - 8) + 0.05*(bmi - 24) + (0.5 if activity == 'sedentary' else 0)
         met_risk = int(np.clip(round(100 / (1 + np.exp(-met_z))), 4, 98))
 
-        # Overall Cardiovascular Health Score
+        # 6. Type 2 Diabetes / Metabolic Sub-Risk Dimensions
+        homa_ir = round((glucose * insulin) / 405.0, 2)
+        ins_z = -4.2 + 0.045 * (glucose - 95) + 0.055 * (insulin - 10) + 0.050 * (bmi - 24) + (0.5 if activity == 'sedentary' else 0)
+        ins_risk = int(np.clip(round(100 / (1 + np.exp(-ins_z))), 4, 98))
+
+        glyc_z = -4.6 + 0.060 * (glucose - 95) + 0.025 * (age - 45) + (0.5 if smoking == 'yes' else 0)
+        glyc_risk = int(np.clip(round(100 / (1 + np.exp(-glyc_z))), 4, 98))
+
+        met_criteria = sum([
+            1 if glucose >= 100 else 0,
+            1 if (bp_systolic >= 130 or bp_diastolic >= 85) else 0,
+            1 if cholesterol >= 200 else 0,
+            1 if bmi >= 26.5 else 0,
+            1 if activity == 'sedentary' else 0
+        ])
+        met_syn_risk = int(np.clip(round(12 + met_criteria * 16.5), 5, 96))
+
+        # Overall Multi-Condition Composite Health Score
         cardio_risk_avg = (heart_risk_val * 0.4) + (cad_risk * 0.2) + (hyp_risk * 0.15) + (ath_risk * 0.15) + (arr_risk * 0.1)
-        health_score = 100 - (cardio_risk_avg * 0.75)
+        metabolic_risk_avg = (diabetes_risk_val * 0.45) + (ins_risk * 0.25) + (glyc_risk * 0.20) + (met_syn_risk * 0.10)
+        composite_risk_avg = (cardio_risk_avg * 0.55) + (metabolic_risk_avg * 0.45)
+
+        health_score = 100 - (composite_risk_avg * 0.75)
         if heart_risk_val >= 70 or bp_systolic >= 150:
-            health_score -= 10
+            health_score -= 8
+        if diabetes_risk_val >= 70 or glucose >= 140:
+            health_score -= 8
         health_score = int(max(15, min(100, round(health_score))))
         
         explanations = {
             'heartDisease': [],
+            'diabetes': [],
             'coronaryArtery': [],
             'hypertensiveHeart': [],
             'atherosclerosis': [],
             'arrhythmia': [],
-            'cardioMetabolic': []
+            'cardioMetabolic': [],
+            'insulinResistance': [],
+            'glycemicStrain': [],
+            'metabolicSyndrome': []
         }
         
         if bp_systolic >= 130 or bp_diastolic >= 85:
@@ -177,6 +209,20 @@ async def predict(
         if bmi >= 25:
             explanations['heartDisease'].append(f"Elevated BMI ({bmi} kg/m²) increases systemic circulatory demands and cardiac output strain.")
             
+        # Diabetes Explanations
+        if glucose >= 126:
+            explanations['diabetes'].append(f"Fasting blood glucose ({glucose} mg/dL) exceeds the ADA diagnostic threshold for Type 2 Diabetes (≥126 mg/dL).")
+        elif glucose >= 100:
+            explanations['diabetes'].append(f"Fasting blood glucose ({glucose} mg/dL) indicates Impaired Fasting Glucose / Pre-diabetes (100–125 mg/dL).")
+        if insulin >= 15:
+            explanations['diabetes'].append(f"Elevated fasting insulin ({insulin} µIU/mL) with HOMA-IR of {homa_ir} indicates peripheral insulin resistance.")
+        if bmi >= 25:
+            explanations['diabetes'].append(f"Elevated adiposity (BMI {bmi} kg/m²) releases free fatty acids that inhibit insulin signaling.")
+        if activity == 'sedentary':
+            explanations['diabetes'].append("Sedentary lifestyle reduces skeletal muscle GLUT4 translocation, diminishing glucose uptake.")
+        if age >= 45:
+            explanations['diabetes'].append(f"Age {age} increases likelihood of progressive pancreatic beta-cell workload stress.")
+
         if cholesterol >= 220:
             explanations['coronaryArtery'].append(f"Elevated serum lipids ({cholesterol} mg/dL) accelerate coronary atheroma formation.")
         if smoking == 'yes':
@@ -208,9 +254,16 @@ async def predict(
         if activity == 'sedentary':
             explanations['cardioMetabolic'].append("Sedentary physical profile reduces coronary capillary density and muscular oxygen uptake.")
 
+        if insulin >= 12 or homa_ir >= 2.0:
+            explanations['insulinResistance'].append(f"Calculated HOMA-IR score of {homa_ir} indicates compensatory hyperinsulinemia.")
+        if glucose >= 110:
+            explanations['glycemicStrain'].append(f"Persistent fasting hyperglycemia ({glucose} mg/dL) increases advanced glycation end-products (AGEs).")
+        if met_criteria >= 3:
+            explanations['metabolicSyndrome'].append(f"Patient exhibits {met_criteria}/5 metabolic syndrome criteria (hyperglycemia, hypertension, adiposity, dyslipidemia).")
+
         for k in explanations:
             if not explanations[k]:
-                explanations[k].append("All cardiovascular biomarkers within standard AHA/ACC reference limits.")
+                explanations[k].append("All evaluated biomarkers in this category are within standard ADA/AHA reference limits.")
                 
         recs = {
             "immediate": [],
@@ -225,56 +278,74 @@ async def predict(
             
         if heart_risk_val >= 65:
             recs["immediate"].append("Consult a cardiologist for comprehensive diagnostic cardiovascular evaluation and 12-lead ECG.")
+        if diabetes_risk_val >= 65 or glucose >= 140:
+            recs["immediate"].append("Consult an endocrinologist or primary physician for formal diabetes diagnostic evaluation and glucose tolerance testing.")
         if cholesterol >= 240:
             recs["immediate"].append("Discuss targeted lipid-lowering therapy and atherogenic risk reduction with your physician.")
             
         if smoking == 'yes':
             recs["lifestyle"].append("Enroll in an evidence-based tobacco cessation program. Quitting reduces cardiac risk by 50% within 1 year.")
         if activity == 'sedentary':
-            recs["lifestyle"].append("Incorporate 150 minutes of moderate-intensity aerobic cardio (brisk walking, swimming) weekly per AHA guidelines.")
+            recs["lifestyle"].append("Incorporate 150 minutes of moderate-intensity aerobic cardio weekly per AHA/ADA guidelines.")
+        if glucose >= 100 or diabetes_risk_val >= 35:
+            recs["lifestyle"].append("Adopt a low-glycemic Mediterranean dietary pattern: emphasize complex fiber and reduce refined carbohydrates.")
+            recs["lifestyle"].append("Take a 10-15 minute walk following major meals to stimulate insulin-independent muscle glucose disposal.")
         if bp_systolic >= 130 or cholesterol >= 200:
             recs["lifestyle"].append("Adopt the DASH dietary pattern: limit sodium to <2,000 mg/day and increase potassium, magnesium, and dietary fiber.")
         if bmi >= 25:
-            recs["lifestyle"].append("Target a 5-10% sustained body weight reduction to substantially relieve myocardial workload.")
+            recs["lifestyle"].append("Target a 5-10% sustained body weight reduction to substantially relieve myocardial workload and reverse insulin resistance.")
         if sleep < 7:
-            recs["lifestyle"].append("Prioritize 7-8 hours of restful sleep nightly to optimize parasympathetic cardiac recovery.")
+            recs["lifestyle"].append("Prioritize 7-8 hours of restful sleep nightly to optimize parasympathetic cardiac recovery and cortisol balance.")
             
         if bp_systolic >= 130 or bp_diastolic >= 80:
             recs["medical"].append("Perform daily calibrated blood pressure logs (morning and evening at rest).")
         if cholesterol >= 200:
             recs["medical"].append("Order a comprehensive fasting Lipid Panel (LDL-C, HDL-C, Triglycerides, Non-HDL).")
+        if glucose >= 100 or diabetes_risk_val >= 30:
+            recs["medical"].append("Order a diagnostic HbA1c (Glycated Hemoglobin) test to monitor 90-day mean glycemic control (target < 5.7%).")
         if age >= 45 or heart_risk_val >= 40:
             recs["medical"].append("Discuss a Coronary Artery Calcium (CAC) CT scan or Echocardiogram with your doctor.")
             
         if not recs["immediate"] and not recs["lifestyle"]:
-            recs["lifestyle"].append("Maintain your excellent cardiovascular conditioning and healthy lifestyle habits!")
+            recs["lifestyle"].append("Maintain your excellent cardiovascular conditioning and healthy metabolic habits!")
         if not recs["medical"]:
-            recs["medical"].append("Continue with annual preventive cardiac and biometric screenings.")
+            recs["medical"].append("Continue with annual preventive cardiac and metabolic screenings.")
             
         confidence = 100
         
         results = {
             'risks': {
                 'heartDisease': heart_risk_val,
+                'diabetes': diabetes_risk_val,
                 'coronaryArtery': cad_risk,
                 'hypertensiveHeart': hyp_risk,
                 'atherosclerosis': ath_risk,
                 'arrhythmia': arr_risk,
-                'cardioMetabolic': met_risk
+                'cardioMetabolic': met_risk,
+                'insulinResistance': ins_risk,
+                'glycemicStrain': glyc_risk,
+                'metabolicSyndrome': met_syn_risk
             },
             'overallScore': health_score,
             'confidence': confidence,
+            'homaIR': homa_ir,
             'consensusAgreement': consensus_agreement,
             'modelConsensus': model_consensus,
+            'diabetesConsensusAgreement': diabetes_consensus_agreement,
+            'diabetesModelConsensus': diabetes_model_consensus,
             'recommendations': recs,
             'explanations': {
                 'heart': explanations['heartDisease'],
                 'heartDisease': explanations['heartDisease'],
+                'diabetes': explanations['diabetes'],
                 'coronaryArtery': explanations['coronaryArtery'],
                 'hypertensiveHeart': explanations['hypertensiveHeart'],
                 'atherosclerosis': explanations['atherosclerosis'],
                 'arrhythmia': explanations['arrhythmia'],
-                'cardioMetabolic': explanations['cardioMetabolic']
+                'cardioMetabolic': explanations['cardioMetabolic'],
+                'insulinResistance': explanations['insulinResistance'],
+                'glycemicStrain': explanations['glycemicStrain'],
+                'metabolicSyndrome': explanations['metabolicSyndrome']
             }
         }
         
@@ -425,7 +496,7 @@ async def retrain(token: str = Depends(get_admin_token)):
         metrics_data = await asyncio.to_thread(run_training_pipeline)
         
         await asyncio.to_thread(ml_engine.load_ml_assets)
-        log_audit_event("MODEL_RETRAIN", "ML_ENGINE", "admin", "Successfully retrained 5 cardiovascular ML models via training pipeline", status="SUCCESS")
+        log_audit_event("MODEL_RETRAIN", "ML_ENGINE", "admin", "Successfully retrained 10 multi-disease ML models (Heart Disease & Type 2 Diabetes) via training pipeline", status="SUCCESS")
         
         return {
             'success': True,

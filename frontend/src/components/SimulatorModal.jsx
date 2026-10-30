@@ -91,6 +91,9 @@ export default function SimulatorModal({
   const heartRisk = Number.isFinite(liveSimResults?.risks?.heartDisease)
     ? liveSimResults.risks.heartDisease
     : (liveSimResults?.risks?.heart ?? 15);
+  const diabetesRisk = Number.isFinite(liveSimResults?.risks?.diabetes)
+    ? liveSimResults.risks.diabetes
+    : 12;
   const cadRisk = Number.isFinite(liveSimResults?.risks?.coronaryArtery)
     ? liveSimResults.risks.coronaryArtery
     : 12;
@@ -420,6 +423,36 @@ export default function SimulatorModal({
                         heartRisk > 65
                           ? "#f43f5e"
                           : heartRisk > 35
+                            ? "#f59e0b"
+                            : "#10b981",
+                    }}
+                  ></div>
+                </div>
+              </div>
+
+              {/* Type 2 Diabetes Overall */}
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs font-bold">
+                  <span className="text-slate-300">Type 2 Diabetes Risk</span>
+                  <span
+                    className={
+                      diabetesRisk > 65
+                        ? "text-rose-400 font-mono font-black"
+                        : "text-emerald-400 font-mono font-black"
+                    }
+                  >
+                    {diabetesRisk}%
+                  </span>
+                </div>
+                <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-300"
+                    style={{
+                      width: `${diabetesRisk}%`,
+                      backgroundColor:
+                        diabetesRisk > 65
+                          ? "#f43f5e"
+                          : diabetesRisk > 35
                             ? "#f59e0b"
                             : "#10b981",
                     }}

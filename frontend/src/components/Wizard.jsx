@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { 
   ArrowLeft, ArrowRight, Activity, Check, HeartPulse, Sparkles, 
-  Flame, ShieldCheck, Heart, Moon, Zap, User, Droplet, Dumbbell, Wine, Ban
+  Flame, Moon, User, Droplet, Dumbbell, Wine, Ban
 } from 'lucide-react';
 import { soundFX } from '../utils/audioFX';
 
@@ -500,7 +500,7 @@ export default function Wizard({
                   </>
                 ) : wizardStep === 3 ? (
                   <>
-                    <span>Generate Precision Heart Forecast</span>
+                    <span>Generate Multi-Condition Health Forecast</span>
                     <Activity className="w-4 h-4 animate-pulse" />
                   </>
                 ) : (

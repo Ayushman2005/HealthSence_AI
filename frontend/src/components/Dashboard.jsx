@@ -147,11 +147,12 @@ export default function Dashboard({
 
   const risks = [
     { label: 'Heart Disease Likelihood', value: latestAssessment?.results?.risks?.heartDisease ?? 12, desc: 'Composite probability of cardiovascular events', color: '#f43f5e' },
+    { label: 'Type 2 Diabetes Risk', value: latestAssessment?.results?.risks?.diabetes ?? 10, desc: 'Fasting glucose, insulin resistance & metabolic likelihood', color: '#10b981' },
     { label: 'Coronary Artery Disease', value: latestAssessment?.results?.risks?.coronaryArtery ?? 9, desc: 'Arterial stenosis & myocardial perfusion', color: '#f59e0b' },
     { label: 'Hypertensive Heart Strain', value: latestAssessment?.results?.risks?.hypertensiveHeart ?? 14, desc: 'Left ventricular workload & vascular resistance', color: '#f97316' },
     { label: 'Atherosclerosis Index', value: latestAssessment?.results?.risks?.atherosclerosis ?? 8, desc: 'Vascular wall compliance & oxidized LDL', color: '#8b5cf6' },
     { label: 'Cardiac Rhythm Stability', value: latestAssessment?.results?.risks?.arrhythmia ?? 6, desc: 'Autonomic & sinoatrial conduction health', color: '#06b6d4' },
-    { label: 'Cardio-Metabolic Score', value: latestAssessment?.results?.risks?.cardioMetabolic ?? 11, desc: 'Microvascular glycemic & insulin resilience', color: '#10b981' },
+    { label: 'Cardio-Metabolic Score', value: latestAssessment?.results?.risks?.cardioMetabolic ?? 11, desc: 'Microvascular glycemic & insulin resilience', color: '#38bdf8' },
   ];
 
   return (

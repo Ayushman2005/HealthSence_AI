@@ -3,7 +3,7 @@ import {
   LayoutDashboard, HeartPulse, Stethoscope, Bot,
   ClipboardList, Settings, ShieldAlert, LogOut,
   Menu, X, ChevronDown, Zap, Volume2, VolumeX, Search,
-  Database, Cpu, Users, BarChart3, RefreshCw, Terminal, User
+  Database, Cpu, Users, BarChart3, Terminal, User
 } from 'lucide-react';
 import { soundFX } from '../utils/audioFX';
 
@@ -11,7 +11,7 @@ import { soundFX } from '../utils/audioFX';
    ADMIN NAVBAR — Rose-themed, admin-only controls
 ───────────────────────────────────────────────────────────── */
 function AdminNavbar({
-  currentTab, setCurrentTab, userProfile, authToken,
+  currentTab, setCurrentTab, userProfile,
   handleLogout, setIsCommandPaletteOpen, handleRetrain, retraining,
   adminSection, setAdminSection
 }) {
@@ -35,7 +35,7 @@ function AdminNavbar({
   const adminActions = [
     { id: 'portal',  label: 'Control Suite',   shortLabel: 'Suite',     desc: 'Main admin dashboard',          targetId: 'admin-section-portal',  icon: ShieldAlert },
     { id: 'users',   label: 'User Management', shortLabel: 'User Mgmt', desc: 'Registered user directory',     targetId: 'admin-section-users',   icon: Users },
-    { id: 'models',  label: 'ML Models',       shortLabel: 'ML Models', desc: 'Active Heart ML classifiers',   targetId: 'admin-section-models',  icon: Cpu },
+    { id: 'models',  label: 'ML Models',       shortLabel: 'ML Models', desc: 'Active Multi-Disease ML Classifiers', targetId: 'admin-section-models',  icon: Cpu },
     { id: 'logs',    label: 'Audit Logs',      shortLabel: 'Audit Logs',desc: 'Live security & audit stream',  targetId: 'admin-section-logs',    icon: Terminal },
     { id: 'db',      label: 'Database',        shortLabel: 'Database',  desc: 'Multi-tier database & storage', targetId: 'admin-section-db',      icon: Database },
     { id: 'metrics', label: 'Telemetry',       shortLabel: 'Telemetry', desc: 'Real-time telemetry & counters',targetId: 'admin-section-metrics', icon: BarChart3 },
@@ -185,7 +185,7 @@ function AdminNavbar({
                   borderColor: 'rgba(245,158,11,0.3)',
                   color: '#fbbf24'
                 }}
-                title="Retrain Heart ML Models"
+                title="Retrain Multi-Disease ML Models"
               >
                 <Cpu className={`w-3.5 h-3.5 ${retraining ? 'animate-spin' : ''}`} />
                 <span className="hidden xl:inline">{retraining ? 'Training...' : 'Retrain ML'}</span>
@@ -373,7 +373,7 @@ function UserNavbar({
 
   const navLinks = [
     { id: 'dashboard',       label: 'Dashboard',  icon: LayoutDashboard },
-    { id: 'wizard',          label: 'Heart Risk',  icon: HeartPulse, onClick: resetWizard },
+    { id: 'wizard',          label: 'Health Risk', icon: HeartPulse, onClick: resetWizard },
     { id: 'symptom_checker', label: 'Symptoms',   icon: Stethoscope },
     { id: 'chatbot',         label: 'Cardio AI',  icon: Bot },
     { id: 'history',         label: 'History',    icon: ClipboardList },

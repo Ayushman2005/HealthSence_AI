@@ -47,7 +47,7 @@ class MySQLConnectionPool:
         try:
             conn = self._pool.get_nowait()
             try:
-                conn.ping(reconnect=True)
+                conn.ping()
                 return conn
             except Exception:
                 return self._create_new_connection()

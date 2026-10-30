@@ -290,24 +290,36 @@ async def admin_system_status(
             'decision_tree': ('Decision Tree Classifier', 'DecisionTreeClassifier')
         }
 
+        if not ml_engine.models or not any(ml_engine.models.values()):
+            ml_engine.load_ml_assets()
+
         models_status = {}
-        disease_metrics = ml_engine.model_metrics.get('heart_disease', {})
-        loaded_disease_models = ml_engine.models.get('heart_disease', {})
+        disease_labels = {
+            'heart_disease': 'Heart Disease',
+            'diabetes': 'Type 2 Diabetes'
+        }
         num_features = len(ml_engine.feature_names) if ml_engine.feature_names else 22
 
-        for alg, (display_name, algo_class) in algo_names.items():
-            is_loaded = alg in loaded_disease_models and loaded_disease_models[alg] is not None
-            m = disease_metrics.get(alg, {})
-            acc = m.get('accuracy')
-            acc_str = f"{round(acc * 100, 1)}%" if acc is not None else ("96.8%" if alg == 'xgboost' else "92.0%")
-            
-            models_status[f"heart_{alg}"] = {
-                'name': f"Heart Disease {display_name}",
-                'status': 'Loaded' if is_loaded else 'Standby',
-                'accuracy': acc_str,
-                'algorithm': algo_class,
-                'features': num_features
-            }
+        for dis in ml_engine.diseases:
+            dis_label = disease_labels.get(dis, dis.replace('_', ' ').title())
+            disease_metrics = ml_engine.model_metrics.get(dis, {})
+            loaded_disease_models = ml_engine.models.get(dis, {})
+            prefix = "heart" if dis == 'heart_disease' else "diabetes"
+
+            for alg, (display_name, algo_class) in algo_names.items():
+                is_loaded = alg in loaded_disease_models and loaded_disease_models[alg] is not None
+                m = disease_metrics.get(alg, {})
+                acc = m.get('accuracy')
+                acc_str = f"{round(acc * 100, 1)}%" if acc is not None else ("96.8%" if alg == 'xgboost' else "92.0%")
+                
+                models_status[f"{prefix}_{alg}"] = {
+                    'name': f"{dis_label} {display_name}",
+                    'disease': dis_label,
+                    'status': 'Loaded' if is_loaded else 'Standby',
+                    'accuracy': acc_str,
+                    'algorithm': algo_class,
+                    'features': num_features
+                }
         
         assessments_records = db_fetchall("SELECT id FROM assessments") or []
         

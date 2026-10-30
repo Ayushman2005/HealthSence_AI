@@ -10,7 +10,7 @@ feature_names = []
 models = {}
 model_metrics = {}
 
-diseases = ['heart_disease']
+diseases = ['heart_disease', 'diabetes']
 algs = ['xgboost', 'random_forest', 'svm', 'logistic_regression', 'decision_tree']
 
 def load_ml_assets():

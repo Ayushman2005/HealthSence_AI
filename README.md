@@ -1,29 +1,33 @@
-# HealthSence AI 🫀🤖
+# HealthSence AI 🫀🩺🤖
 
-**HealthSence AI** is an advanced, full-stack cardiovascular health risk assessment and clinical intelligence platform. Utilizing machine learning models trained on physiological and cardiac biomarker datasets, HealthSence AI analyzes patient vitals, lifestyle habits, and hemodynamic indicators to predict **Heart Disease Likelihood** alongside comprehensive cardiovascular risk sub-dimensions.
+**HealthSence AI** is an advanced, full-stack multi-disease health risk assessment and clinical intelligence platform. Utilizing machine learning models trained on physiological, cardiac, and metabolic biomarker datasets, HealthSence AI analyzes patient vitals, lifestyle habits, and hemodynamic indicators to predict **Heart Disease Likelihood** and **Type 2 Diabetes Risk** alongside comprehensive sub-dimensions and insulin resistance (HOMA-IR) metrics.
 
-HealthSence AI features a **6-Pillar Cardiovascular Diagnostic Matrix**, interactive **"What-If" Life Extension Cardiac Simulation**, an **AI Symptom Checker & Clinical Triage Engine**, a **24/7 Cardiology Assistant Chatbot**, a **Resilient 3-Tier Database System** (Supabase PostgreSQL / MySQL / SQLite), and an **Admin Portal** with live telemetry and on-demand model retraining.
+HealthSence AI features a **Multi-Disease Machine Learning Ensemble** (10 active models across XGBoost, Random Forest, SVM, Logistic Regression, and Decision Tree), an interactive **"What-If" Life Extension Multi-Risk Simulator**, an **AI Symptom Checker & Clinical Triage Engine**, a **24/7 Cardiology & Metabolic Assistant Chatbot**, a **Resilient 3-Tier Database System** (Supabase PostgreSQL / MySQL / SQLite), and an **Admin Portal** with live telemetry and on-demand model retraining.
 
 ---
 
 ## 🌟 Key Features
 
-- **Heart Disease Machine Learning Ensemble**:
-  - Predicts core Heart Disease risk probabilities with a calibrated ensemble of 5 machine learning algorithms:
+- **Multi-Disease Machine Learning Ensemble (10 Models)**:
+  - Predicts core **Heart Disease** and **Type 2 Diabetes** risk probabilities with calibrated ensembles across 5 machine learning algorithms per disease:
     - **XGBoost Classifier**
     - **Random Forest Multi-Tree**
     - **Support Vector Machine (SVM)**
     - **Calibrated Logistic Regression**
     - **Decision Tree Classifier**
-  - Dynamically selects the optimal algorithm based on F1-Score, Accuracy, and ROC-AUC metrics, while supporting manual algorithm overrides (`xgboost`, `random_forest`, `svm`, `logistic_regression`, `decision_tree`, or `auto`).
+  - Dynamically computes multi-algorithm consensus agreement and precision weights for both conditions.
 
-- **6 Cardiovascular Sub-Dimensions & Risk Profiles**:
+- **Comprehensive Multi-Condition Diagnostic Matrix & Risk Profiles**:
   1. **Heart Disease Likelihood**: Core ML model output reflecting comprehensive cardiac risk.
-  2. **Coronary Artery Disease (CAD) Risk**: Assesses atheroma formation, lipid deposition, and arterial stenosis.
-  3. **Hypertensive Heart Strain**: Evaluates left ventricular workload, pulse pressure, and systemic vascular resistance.
-  4. **Atherosclerosis & Plaque Index**: Analyzes oxidized LDL lipids, carotid intima-media thickness markers, and vascular stiffness.
-  5. **Cardiac Rhythm & Electrophysiology**: Monitors resting heart rate, ECG rhythm stability, and autonomic recovery.
-  6. **Cardio-Metabolic Endothelial Strain**: Tracks glycemic microvascular resistance and insulin-related endothelial stress.
+  2. **Type 2 Diabetes Risk**: Core ML model output evaluating fasting glucose, insulin, and adiposity.
+  3. **Insulin Resistance (HOMA-IR)**: Clinical metric and probability derived from fasting glucose & insulin levels.
+  4. **Coronary Artery Disease (CAD) Risk**: Assesses atheroma formation, lipid deposition, and arterial stenosis.
+  5. **Hypertensive Heart Strain**: Evaluates left ventricular workload, pulse pressure, and systemic vascular resistance.
+  6. **Atherosclerosis & Plaque Index**: Analyzes oxidized LDL lipids, carotid intima-media thickness markers, and vascular stiffness.
+  7. **Glycemic Dysregulation & Strain**: Fasting glucose elevation trajectory and advanced glycation risk.
+  8. **Cardiac Rhythm & Electrophysiology**: Monitors resting heart rate, ECG rhythm stability, and autonomic recovery.
+  9. **Cardio-Metabolic Endothelial Strain**: Tracks glycemic microvascular resistance and insulin-related endothelial stress.
+  10. **Metabolic Syndrome Cluster**: Multi-factorial criteria tracking (hypertension, hyperglycemia, dyslipidemia, BMI).
 
 - **6-Pillar Cardiovascular Diagnostic Matrix & ECG Telemetry**:
   - Live interactive dashboard visualizing cardiovascular pillars with real-time biometric recalibration knobs (Blood Pressure, Cholesterol, Glucose, BMI, Sleep).
@@ -91,18 +95,26 @@ HealthSence_AI/
 │   ├── routes_symptom.py      # AI Symptom Checker & Clinical Triage endpoint (/api/check-symptom)
 │   ├── routes_chatbot.py      # HealthBot AI 24/7 Cardiology Assistant chat endpoint (/api/chat)
 │   ├── routes_admin.py        # System Admin Governance endpoints (/api/admin/users, /api/admin/system-status)
-│   ├── train_models.py        # Automated Heart Disease ML model training & calibration script
+│   ├── train_models.py        # Automated Heart Disease & Diabetes ML model training & calibration
+│   ├── pipeline_trainer.py    # Multi-disease dataset generator & pipeline trainer
+│   ├── test_suite.py          # End-to-end automated integration test suite
 │   ├── supabase_schema.sql    # PostgreSQL schema setup & Row Level Security policies
 │   ├── .env                   # Environment variables (Supabase, MySQL, Admin, JWT)
 │   ├── requirements.txt       # Python dependencies
 │   ├── models/                # Trained model artifacts & SQLite storage
 │   │   ├── heart_disease_dataset.csv          # Heart Disease training dataset
-│   │   ├── heart_disease_xgboost.pkl          # Trained XGBoost model
-│   │   ├── heart_disease_random_forest.pkl    # Trained Random Forest model
-│   │   ├── heart_disease_svm.pkl              # Trained SVM model
-│   │   ├── heart_disease_logistic_regression.pkl # Trained Logistic Regression model
-│   │   ├── heart_disease_decision_tree.pkl    # Trained Decision Tree model
-│   │   ├── model_metrics.json                 # Benchmark metrics across algorithms
+│   │   ├── heart_disease_xgboost.pkl          # Trained Heart Disease XGBoost model
+│   │   ├── heart_disease_random_forest.pkl    # Trained Heart Disease Random Forest model
+│   │   ├── heart_disease_svm.pkl              # Trained Heart Disease SVM model
+│   │   ├── heart_disease_logistic_regression.pkl # Trained Heart Disease Logistic Regression model
+│   │   ├── heart_disease_decision_tree.pkl    # Trained Heart Disease Decision Tree model
+│   │   ├── diabetes_dataset.csv               # Type 2 Diabetes training dataset
+│   │   ├── diabetes_xgboost.pkl               # Trained Diabetes XGBoost model
+│   │   ├── diabetes_random_forest.pkl         # Trained Diabetes Random Forest model
+│   │   ├── diabetes_svm.pkl                   # Trained Diabetes SVM model
+│   │   ├── diabetes_logistic_regression.pkl   # Trained Diabetes Logistic Regression model
+│   │   ├── diabetes_decision_tree.pkl         # Trained Diabetes Decision Tree model
+│   │   ├── model_metrics.json                 # Benchmark metrics across all 10 models
 │   │   ├── scaler.pkl                         # Trained StandardScaler for numerical inputs
 │   │   ├── feature_names.json                 # Encoded feature names mapping
 │   │   └── local_storage.db                   # Embedded SQLite fallback database

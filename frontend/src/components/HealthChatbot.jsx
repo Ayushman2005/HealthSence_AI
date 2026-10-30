@@ -20,10 +20,11 @@ export default function HealthChatbot({
   const [copiedMsgId, setCopiedMsgId] = useState(null);
   const [activeCategoryTab, setActiveCategoryTab] = useState('all');
 
-  // Categorized Prompt Library for Cardiology & Heart Disease
+  // Categorized Prompt Library for Cardiology, Diabetes & Multi-Condition Health
   const promptCategories = [
     { id: 'all', label: '🌟 All Prompts' },
     { id: 'cardio', label: '🫀 Heart Disease & CAD', icon: Heart },
+    { id: 'diabetes', label: '🩸 Type 2 Diabetes & Glucose', icon: Droplets },
     { id: 'bp', label: '🩺 Blood Pressure & Arteries', icon: Activity },
     { id: 'lipids', label: '🧪 Cholesterol & Lipids', icon: Droplets },
     { id: 'lifestyle', label: '🏃 Cardio Fitness & Diet', icon: Sparkles },
@@ -32,6 +33,8 @@ export default function HealthChatbot({
 
   const suggestedPrompts = [
     { cat: 'cardio', label: '🫀 What are early indicators of Coronary Artery Disease?', prompt: 'What are the early clinical signs, symptoms, and diagnostic tests for coronary artery disease?' },
+    { cat: 'diabetes', label: '🩸 What is the clinical criteria for Pre-diabetes vs Type 2 Diabetes?', prompt: 'Explain the ADA fasting blood glucose and HbA1c ranges for pre-diabetes and Type 2 diabetes.' },
+    { cat: 'diabetes', label: '🧪 What is HOMA-IR and how does insulin resistance develop?', prompt: 'What is HOMA-IR, what are normal ranges, and how does cellular insulin resistance develop?' },
     { cat: 'bp', label: '🩺 What are normal blood pressure ranges by age (AHA)?', prompt: 'What are the current AHA guideline blood pressure stages for adults?' },
     { cat: 'lipids', label: '🧪 What is an ideal LDL & HDL cholesterol target for heart health?', prompt: 'What is the recommended LDL and HDL cholesterol target for cardiovascular protection?' },
     { cat: 'lifestyle', label: '🏃 How much aerobic cardio exercise is recommended weekly?', prompt: 'What is the recommended weekly duration and intensity of aerobic cardio exercise per AHA guidelines?' },

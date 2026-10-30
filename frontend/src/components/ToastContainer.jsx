@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle, AlertTriangle, AlertCircle, Info, X } from 'lucide-react';
+import { CheckCircle, AlertTriangle, AlertCircle, Info } from 'lucide-react';
 
 export default function ToastContainer({ toasts }) {
   return (
@@ -8,7 +8,6 @@ export default function ToastContainer({ toasts }) {
         const isSuccess = t.type === 'success';
         const isWarning = t.type === 'warning';
         const isDanger = t.type === 'danger';
-        const isInfo = !isSuccess && !isWarning && !isDanger;
 
         const colorCfg = isSuccess
           ? { bar: '#10b981', icon: CheckCircle, iconColor: 'text-emerald-400', glow: 'rgba(16,185,129,0.15)' }

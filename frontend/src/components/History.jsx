@@ -63,6 +63,7 @@ export default function History({
                 <th className="p-4">Assessed Date</th>
                 <th className="p-4">Cardio Score</th>
                 <th className="p-4">Heart Risk</th>
+                <th className="p-4">Diabetes Risk</th>
                 <th className="p-4">Blood Pressure</th>
                 <th className="p-4">Cholesterol</th>
                 <th className="p-4">Resting HR</th>
@@ -73,6 +74,7 @@ export default function History({
             <tbody className="divide-y divide-white/5">
               {filteredAssessments.map(item => {
                 const heartVal = item.results.risks.heartDisease ?? item.results.risks.heart ?? 15;
+                const diabetesVal = item.results.risks.diabetes ?? 12;
                 const rDetails = getRiskLevelDetails(heartVal);
                 const dateObj = new Date(item.timestamp);
                 const dateFormatted = `${dateObj.toLocaleDateString()} ${dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
@@ -88,6 +90,7 @@ export default function History({
                     <td className="p-4 font-bold text-slate-300 font-mono text-xs">{dateFormatted}</td>
                     <td className="p-4 font-black text-amber-400 font-mono">{item.results.overallScore} / 100</td>
                     <td className="p-4 font-black text-rose-400 font-mono">{heartVal}%</td>
+                    <td className="p-4 font-black text-emerald-400 font-mono">{diabetesVal}%</td>
                     <td className="p-4 font-bold text-slate-200 font-mono">{item.medical?.bpSystolic}/{item.medical?.bpDiastolic} mmHg</td>
                     <td className="p-4 font-bold text-slate-200 font-mono">{item.medical?.cholesterol} mg/dL</td>
                     <td className="p-4 font-bold text-slate-200 font-mono">{item.medical?.heartRate || 70} BPM</td>

@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { 
   Stethoscope, Search, Activity, Pill, AlertOctagon, 
-  AlertTriangle, CheckCircle2, CheckCircle, ArrowRight, Bot, Sparkles, ShieldAlert
+  AlertTriangle, CheckCircle2, CheckCircle, ArrowRight, Bot, ShieldAlert
 } from 'lucide-react';
 import { soundFX } from '../utils/audioFX';
 
