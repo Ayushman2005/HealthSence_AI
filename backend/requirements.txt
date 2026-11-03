@@ -11,5 +11,7 @@ PyMySQL>=1.1.0
 supabase>=2.0.0
 psycopg2-binary>=2.9.0
 groq>=0.4.0
+pypdf>=5.0.0
+python-multipart>=0.0.12
 python-dotenv>=1.0.0
 gunicorn>=21.2.0

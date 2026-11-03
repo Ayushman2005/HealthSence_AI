@@ -179,5 +179,96 @@ class TestHealthSenseFullStack(unittest.TestCase):
             self.assertIn(key, models)
             self.assertEqual(models[key]["status"], "Loaded")
 
+    def test_07_ascvd_and_cha2ds2_vasc(self):
+        payload = {
+            "name": "Marcus Aurelius",
+            "personal": {
+                "age": 58,
+                "gender": "male",
+                "height": 176.0,
+                "weight": 84.0,
+                "race": "white_other"
+            },
+            "lifestyle": {
+                "smoking": "yes",
+                "alcohol": "moderate",
+                "physicalActivity": "moderate",
+                "sleepDuration": 6.5
+            },
+            "medical": {
+                "bpSystolic": 146,
+                "bpDiastolic": 92,
+                "cholesterol": 232,
+                "glucose": 118,
+                "insulin": 14,
+                "heartRate": 78,
+                "hdl": 42,
+                "ldl": 150,
+                "bpTreated": True,
+                "priorStroke": False
+            }
+        }
+        res = client.post("/api/predict", json=payload, headers={"Authorization": f"Bearer {self.admin_token}"})
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        results = data.get("results", {})
+
+        # 1. Verify ASCVD 10-Year Risk Engine
+        self.assertIn("ascvd", results)
+        ascvd = results["ascvd"]
+        self.assertIn("tenYearRisk", ascvd)
+        self.assertIn("tier", ascvd)
+        self.assertIn("recommendation", ascvd)
+        self.assertGreater(ascvd["tenYearRisk"], 5.0)
+
+        # 2. Verify CHA2DS2-VASc Stroke Risk Engine
+        self.assertIn("cha2ds2Vasc", results)
+        cha2 = results["cha2ds2Vasc"]
+        self.assertIn("score", cha2)
+        self.assertIn("annualStrokeRisk", cha2)
+        self.assertIn("recommendation", cha2)
+        self.assertGreaterEqual(cha2["score"], 1)
+
+        # Verify explanations
+        exps = results.get("explanations", {})
+        self.assertIn("ascvd", exps)
+        self.assertIn("cha2ds2Vasc", exps)
+
+        # Clean up created record
+        assess_id = data.get("id")
+        if assess_id:
+            client.delete(f"/api/assessments/{assess_id}", headers={"Authorization": f"Bearer {self.admin_token}"})
+
+    def test_08_lab_report_parser(self):
+        sample_lab_text = (
+            "DIAGNOSTIC PATHOLOGY LABORATORY REPORT\n"
+            "Patient Name: Alexander Wright | Age: 49 Years | Gender: Male\n"
+            "Physical Vitals:\n"
+            "Resting Blood Pressure: 136/84 mmHg\n"
+            "Resting Pulse: 72 bpm\n"
+            "Height: 177 cm | Weight: 79 kg\n"
+            "Comprehensive Lipid Profile:\n"
+            "Total Cholesterol: 218 mg/dL\n"
+            "HDL Cholesterol: 46 mg/dL\n"
+            "LDL Cholesterol: 140 mg/dL\n"
+            "Metabolic Assessment:\n"
+            "Fasting Plasma Glucose: 104 mg/dL\n"
+            "Fasting Serum Insulin: 11.5 uIU/mL\n"
+            "HbA1c: 5.8 %\n"
+        )
+
+        res = client.post("/api/parse-lab-text", json={"raw_text": sample_lab_text})
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertTrue(data.get("success"))
+        extracted = data.get("extracted", {})
+
+        # Ensure major vitals were extracted
+        self.assertEqual(extracted.get("bpSystolic"), 136)
+        self.assertEqual(extracted.get("bpDiastolic"), 84)
+        self.assertEqual(extracted.get("cholesterol"), 218)
+        self.assertEqual(extracted.get("glucose"), 104)
+        self.assertGreaterEqual(data.get("totalBiomarkers", 0), 6)
+
 if __name__ == "__main__":
     unittest.main()

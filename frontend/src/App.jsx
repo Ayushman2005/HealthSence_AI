@@ -82,6 +82,7 @@ export default function App() {
     name: '', age: '', gender: 'male', height: '', weight: '',
     smoking: 'no', alcohol: 'low', physicalActivity: 'moderate', sleepDuration: '',
     bpSystolic: '', bpDiastolic: '', cholesterol: '', glucose: '', insulin: '', heartRate: '',
+    hdl: '', ldl: '', hba1c: '',
     algorithm: 'auto'
   });
   const [errors, setErrors] = useState({});
@@ -732,6 +733,7 @@ export default function App() {
       name: '', age: '', gender: 'male', height: '', weight: '',
       smoking: 'no', alcohol: 'low', physicalActivity: 'moderate', sleepDuration: '',
       bpSystolic: '', bpDiastolic: '', cholesterol: '', glucose: '', insulin: '', heartRate: '',
+      hdl: '', ldl: '', hba1c: '',
       algorithm: 'auto'
     });
     setErrors({});
@@ -909,7 +911,10 @@ export default function App() {
         cholesterol: parseInt(formData.cholesterol) || 180,
         glucose: parseInt(formData.glucose) || 95,
         insulin: parseInt(formData.insulin) || 10,
-        heartRate: parseInt(formData.heartRate) || 72
+        heartRate: parseInt(formData.heartRate) || 72,
+        hdl: formData.hdl ? parseInt(formData.hdl) : undefined,
+        ldl: formData.ldl ? parseInt(formData.ldl) : undefined,
+        hba1c: formData.hba1c ? parseFloat(formData.hba1c) : undefined
       },
       algorithm: formData.algorithm
     };
@@ -1210,6 +1215,18 @@ export default function App() {
         if (val >= 60 && val <= 90) return { label: 'Optimal Resting', color: 'badge-optimal' };
         if ((val >= 50 && val < 60) || (val > 90 && val <= 100)) return { label: 'Borderline Range', color: 'badge-elevated' };
         return { label: 'Clinical Alert', color: 'badge-high' };
+      case 'hdl':
+        if (val >= 60) return { label: 'Protective (Optimal)', color: 'badge-optimal' };
+        if (val >= 40) return { label: 'Standard Range', color: 'badge-optimal' };
+        return { label: 'Low Protective HDL', color: 'badge-high' };
+      case 'ldl':
+        if (val < 100) return { label: 'Optimal (<100 mg/dL)', color: 'badge-optimal' };
+        if (val < 160) return { label: 'Borderline High', color: 'badge-elevated' };
+        return { label: 'Atherogenic High', color: 'badge-high' };
+      case 'hba1c':
+        if (val < 5.7) return { label: 'Normal (<5.7%)', color: 'badge-optimal' };
+        if (val < 6.5) return { label: 'Pre-Diabetes Range', color: 'badge-elevated' };
+        return { label: 'Diabetic Benchmark', color: 'badge-high' };
       default:
         return { label: 'Normal Range', color: 'badge-neutral' };
     }
@@ -1367,6 +1384,7 @@ export default function App() {
             bmiDetails={bmiDetails}
             getBiomarkerStatus={getBiomarkerStatus}
             handleNextStep={handleNextStep}
+            showToast={showToast}
           />
         )}
 

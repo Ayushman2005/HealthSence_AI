@@ -1,9 +1,10 @@
-import React, { useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   ArrowLeft, ArrowRight, Activity, Check, HeartPulse, Sparkles, 
-  Flame, Moon, User, Droplet, Dumbbell, Wine, Ban
+  Flame, Moon, User, Droplet, Dumbbell, Wine, Ban, FileText, UploadCloud
 } from 'lucide-react';
 import { soundFX } from '../utils/audioFX';
+import LabReportModal from './LabReportModal';
 
 export default function Wizard({
   wizardStep,
@@ -15,8 +16,22 @@ export default function Wizard({
   calculatedBMI,
   bmiDetails,
   getBiomarkerStatus,
-  handleNextStep
+  handleNextStep,
+  showToast
 }) {
+  const [showLabModal, setShowLabModal] = useState(false);
+
+  const handleApplyBiomarkers = (extracted) => {
+    setFormData(prev => {
+      const next = { ...prev };
+      for (const [k, v] of Object.entries(extracted)) {
+        if (v !== null && v !== undefined && v !== '') {
+          next[k] = v;
+        }
+      }
+      return next;
+    });
+  };
 
   // Preset Patient Profiles for 1-click clinical testing
   const presets = [
@@ -95,23 +110,35 @@ export default function Wizard({
   return (
     <div className="max-w-7xl mx-auto animate-tab-fade no-print space-y-8 text-slate-100">
       
-      {/* Quick Test Presets Bar */}
-      <div className="glass-panel rounded-2xl p-4 border border-amber-500/25 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
+      {/* Quick Test Presets & AI Lab OCR Bar */}
+      <div className="glass-panel rounded-2xl p-4 border border-amber-500/25 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-lg">
         <div className="flex items-center gap-2 text-xs font-black text-amber-400 uppercase tracking-wider">
           <Flame className="w-4 h-4 text-amber-400 animate-pulse" />
           <span>Quick Patient Presets:</span>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {presets.map((p, i) => (
             <button
               key={i}
               type="button"
               onClick={() => applyPreset(p)}
-              className="px-3.5 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-amber-500/30 hover:border-amber-400 text-slate-200 hover:text-white text-xs font-bold transition cursor-pointer shadow-xs hover:scale-105"
+              className="px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-amber-500/30 hover:border-amber-400 text-slate-200 hover:text-white text-xs font-bold transition cursor-pointer shadow-xs hover:scale-105"
             >
               {p.name}
             </button>
           ))}
+          <div className="h-5 w-px bg-white/10 hidden sm:block mx-1" />
+          <button
+            type="button"
+            onClick={() => {
+              soundFX.play('click');
+              setShowLabModal(true);
+            }}
+            className="px-3.5 py-1.5 rounded-xl bg-linear-to-r from-amber-500 via-amber-600 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-950 text-xs font-black transition cursor-pointer shadow-md shadow-amber-500/25 flex items-center gap-1.5 hover:scale-105"
+          >
+            <FileText className="w-3.5 h-3.5 text-slate-950" />
+            <span>Auto-Fill from Lab Report (PDF / OCR)</span>
+          </button>
         </div>
       </div>
 
@@ -463,6 +490,83 @@ export default function Wizard({
                   })}
                 </div>
 
+                {/* Advanced Lipid & Glycemic Markers (For Precise ASCVD 10-Year Score) */}
+                <div className="pt-5 border-t border-white/10 space-y-3">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1">
+                    <span className="text-xs font-black uppercase text-amber-400 tracking-wider flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Optional Advanced Lipid Markers (Calculates ASCVD & CHA₂DS₂-VASc)</span>
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-medium">Standard clinical defaults applied if left empty</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {/* HDL */}
+                    <div className="glass-card-interactive rounded-2xl p-4 flex flex-col gap-2 border-white/10">
+                      <div className="flex justify-between items-center text-xs font-extrabold text-slate-300">
+                        <span>HDL-C (mg/dL)</span>
+                        {formData.hdl && (
+                          <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md border ${getBiomarkerStatus('hdl', formData.hdl).color}`}>
+                            {getBiomarkerStatus('hdl', formData.hdl).label}
+                          </span>
+                        )}
+                      </div>
+                      <input
+                        type="number"
+                        placeholder="e.g. 45"
+                        min="15"
+                        max="120"
+                        value={formData.hdl || ''}
+                        onChange={e => setFormData(prev => ({ ...prev, hdl: e.target.value === '' ? '' : parseInt(e.target.value) }))}
+                        className="w-full px-3.5 py-2 glass-input rounded-xl text-sm font-black text-amber-400 font-mono outline-none"
+                      />
+                    </div>
+
+                    {/* LDL */}
+                    <div className="glass-card-interactive rounded-2xl p-4 flex flex-col gap-2 border-white/10">
+                      <div className="flex justify-between items-center text-xs font-extrabold text-slate-300">
+                        <span>LDL-C (mg/dL)</span>
+                        {formData.ldl && (
+                          <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md border ${getBiomarkerStatus('ldl', formData.ldl).color}`}>
+                            {getBiomarkerStatus('ldl', formData.ldl).label}
+                          </span>
+                        )}
+                      </div>
+                      <input
+                        type="number"
+                        placeholder="e.g. 130"
+                        min="30"
+                        max="300"
+                        value={formData.ldl || ''}
+                        onChange={e => setFormData(prev => ({ ...prev, ldl: e.target.value === '' ? '' : parseInt(e.target.value) }))}
+                        className="w-full px-3.5 py-2 glass-input rounded-xl text-sm font-black text-amber-400 font-mono outline-none"
+                      />
+                    </div>
+
+                    {/* HbA1c */}
+                    <div className="glass-card-interactive rounded-2xl p-4 flex flex-col gap-2 border-white/10">
+                      <div className="flex justify-between items-center text-xs font-extrabold text-slate-300">
+                        <span>HbA1c (%)</span>
+                        {formData.hba1c && (
+                          <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md border ${getBiomarkerStatus('hba1c', formData.hba1c).color}`}>
+                            {getBiomarkerStatus('hba1c', formData.hba1c).label}
+                          </span>
+                        )}
+                      </div>
+                      <input
+                        type="number"
+                        step="0.1"
+                        placeholder="e.g. 5.6"
+                        min="4.0"
+                        max="15.0"
+                        value={formData.hba1c || ''}
+                        onChange={e => setFormData(prev => ({ ...prev, hba1c: e.target.value === '' ? '' : parseFloat(e.target.value) }))}
+                        className="w-full px-3.5 py-2 glass-input rounded-xl text-sm font-black text-amber-400 font-mono outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+
               </div>
             )}
 
@@ -581,6 +685,14 @@ export default function Wizard({
         </div>
 
       </div>
+
+      {/* AI Diagnostic Lab Report OCR Modal */}
+      <LabReportModal
+        isOpen={showLabModal}
+        onClose={() => setShowLabModal(false)}
+        onApplyBiomarkers={handleApplyBiomarkers}
+        showToast={showToast}
+      />
 
     </div>
   );
