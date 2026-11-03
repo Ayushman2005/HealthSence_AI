@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { 
   FileText, UploadCloud, CheckCircle2, AlertCircle, X, Sparkles, 
-  ArrowRight, RefreshCw, FileCheck, Droplet, HeartPulse, Activity
+  ArrowRight, RefreshCw, FileCheck, HeartPulse
 } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import { soundFX } from '../utils/audioFX';

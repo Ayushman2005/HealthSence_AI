@@ -97,16 +97,16 @@ export default function Insights({
           <div className="xl:col-span-4 flex flex-col gap-6">
             <div className="glass-panel glass-panel-hover rounded-3xl p-6 flex-1 flex flex-col justify-center border border-white/10 shadow-xl">
               <h4 className="text-xs uppercase tracking-wider text-slate-400 font-extrabold mb-1">Mean Cardiovascular Score</h4>
-              <div className="text-3xl font-black text-white font-mono">{insightsAggregates.avg} / 100</div>
+              <div className="text-3xl font-black text-white font-mono">{insightsAggregates?.avg ?? 0} / 100</div>
               <p className="text-xs text-slate-400 font-medium mt-1">Average rating across patient longitudinal timeline.</p>
             </div>
             
             <div className="glass-panel glass-panel-hover rounded-3xl p-6 flex-1 flex flex-col justify-center border border-white/10 shadow-xl">
               <h4 className="text-xs uppercase tracking-wider text-slate-400 font-extrabold mb-1">Peak Cardiovascular Event Risk</h4>
-              <div className="text-3xl font-black text-rose-400 font-mono">{insightsAggregates.maxRisk}%</div>
+              <div className="text-3xl font-black text-rose-400 font-mono">{insightsAggregates?.maxRisk ?? 0}%</div>
               <p className="text-xs text-amber-400 font-black mt-1 uppercase tracking-wider flex items-center gap-1">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>{insightsAggregates.advice}</span>
+                <span>{insightsAggregates?.advice || 'Monitor vitals regularly'}</span>
               </p>
             </div>
           </div>

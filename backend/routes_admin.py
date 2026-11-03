@@ -79,7 +79,14 @@ async def admin_get_users(
         counts_map = {}
         for r in assessments_records:
             if isinstance(r, dict) and 'username' in r:
-                counts_map[str(r['username']).lower()] = r.get('count', 0)
+                uname = str(r['username']).lower()
+                if 'count' in r:
+                    try:
+                        counts_map[uname] = counts_map.get(uname, 0) + int(r['count'])
+                    except (ValueError, TypeError):
+                        counts_map[uname] = counts_map.get(uname, 0) + 1
+                else:
+                    counts_map[uname] = counts_map.get(uname, 0) + 1
 
         for lower_uname, u_obj in user_dict.items():
             u_obj['assessments_count'] = counts_map.get(lower_uname, 0)
@@ -327,6 +334,7 @@ async def admin_system_status(
         
         return {
             'success': True,
+            'status': 'healthy',
             'system_health': 'Optimal / Operational',
             'api_version': 'v2.6.0',
             'database_mode': db_label,
@@ -352,6 +360,7 @@ async def admin_get_audit_logs(
         return {
             'success': True,
             'audit_logs': logs,
+            'logs': logs,
             'total_logs': len(logs)
         }
     except Exception as e:

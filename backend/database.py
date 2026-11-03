@@ -542,6 +542,16 @@ def db_fetchall(query: str, params: tuple = None) -> List[Dict[str, Any]]:
                             ]
                             return filtered
                         raise select_err
+                elif "GROUP BY USERNAME" in query_upper or "GROUP BY LOWER(USERNAME)" in query_upper:
+                    res = supabase_client.table("assessments").select("username").execute()
+                    all_rows = res.data or []
+                    counts = {}
+                    for row in all_rows:
+                        u = row.get("username")
+                        if u:
+                            u_lower = str(u).lower()
+                            counts[u_lower] = counts.get(u_lower, 0) + 1
+                    return [{"username": k, "count": v} for k, v in counts.items()]
                 else:
                     res = supabase_client.table("assessments").select("*").order("timestamp", desc=True).execute()
                     return res.data or []

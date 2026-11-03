@@ -367,6 +367,8 @@ async def parse_lab_report(
         if file:
             source_name = file.filename or "Uploaded File"
             file_bytes = await file.read()
+            if len(file_bytes) > 10 * 1024 * 1024:
+                raise HTTPException(status_code=413, detail="File too large. Maximum supported lab report size is 10 MB.")
             
             # Check if file is PDF
             is_pdf = file.filename.lower().endswith('.pdf') or (file.content_type and 'pdf' in file.content_type.lower())
@@ -390,6 +392,8 @@ async def parse_lab_report(
                 except Exception:
                     pass
 
+        if raw_text and len(raw_text) > 500000:
+            raise HTTPException(status_code=413, detail="Text too long. Maximum allowed length is 500,000 characters.")
         if not extracted_text and raw_text:
             extracted_text = raw_text.strip()
 

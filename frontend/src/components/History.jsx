@@ -83,12 +83,12 @@ export default function History({
                   <tr key={item.id} className="hover:bg-white/5 transition-colors">
                     <td className="p-4 px-6">
                       <div className="flex flex-col">
-                        <span className="font-black text-white">{item.name}</span>
-                        <span className="text-xs text-slate-400 font-bold">{item.personal.gender.toUpperCase()}, {item.personal.age} yrs</span>
+                        <span className="font-black text-white">{item.name || 'Anonymous'}</span>
+                        <span className="text-xs text-slate-400 font-bold">{item.personal?.gender ? item.personal.gender.toUpperCase() : 'N/A'}, {item.personal?.age ?? 'N/A'} yrs</span>
                       </div>
                     </td>
                     <td className="p-4 font-bold text-slate-300 font-mono text-xs">{dateFormatted}</td>
-                    <td className="p-4 font-black text-amber-400 font-mono">{item.results.overallScore} / 100</td>
+                    <td className="p-4 font-black text-amber-400 font-mono">{item.results?.overallScore ?? 80} / 100</td>
                     <td className="p-4 font-black text-rose-400 font-mono">{heartVal}%</td>
                     <td className="p-4 font-black text-emerald-400 font-mono">{diabetesVal}%</td>
                     <td className="p-4 font-bold text-slate-200 font-mono">{item.medical?.bpSystolic}/{item.medical?.bpDiastolic} mmHg</td>

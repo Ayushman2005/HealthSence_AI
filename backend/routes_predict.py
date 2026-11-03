@@ -144,7 +144,8 @@ def compute_ascvd_pce(
             mean_sum = 86.61
             base_surv = 0.9533
 
-    exp_term = math.exp(coeff - mean_sum)
+    diff = max(-50.0, min(50.0, coeff - mean_sum))
+    exp_term = math.exp(diff)
     raw_risk = 1.0 - (base_surv ** exp_term)
     risk_pct = round(max(0.1, min(99.0, raw_risk * 100.0)), 1)
 

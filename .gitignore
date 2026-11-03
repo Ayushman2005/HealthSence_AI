@@ -76,6 +76,7 @@ backend/.hypothesis/
 backend/.pytest_cache/
 backend/cover/
 backend/test_db.py
+backend/e2e_production_audit.py
 
 # Translations
 backend/*.mo

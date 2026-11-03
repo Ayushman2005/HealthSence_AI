@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { 
   ArrowLeft, ArrowRight, Activity, Check, HeartPulse, Sparkles, 
-  Flame, Moon, User, Droplet, Dumbbell, Wine, Ban, FileText, UploadCloud
+  Flame, Moon, User, Droplet, Dumbbell, Wine, Ban, FileText
 } from 'lucide-react';
 import { soundFX } from '../utils/audioFX';
 import LabReportModal from './LabReportModal';
