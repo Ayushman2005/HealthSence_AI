@@ -3,6 +3,7 @@ import {
   Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, 
   BarElement, RadialLinearScale, Title, Tooltip, Legend, Filler
 } from 'chart.js';
+import { Analytics } from '@vercel/analytics/react';
 
 
 import Navbar from './components/Navbar';
@@ -1528,6 +1529,9 @@ export default function App() {
         setFormData={setFormData}
         setCurrentTab={setCurrentTab}
       />
+
+      {/* Vercel Web Analytics */}
+      <Analytics />
 
     </div>
   );
