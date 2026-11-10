@@ -109,7 +109,22 @@ export default function Wizard({
 
   return (
     <div className="max-w-7xl mx-auto animate-tab-fade no-print space-y-8 text-slate-100">
-      
+
+      {/* Initial Assessment Prompt */}
+      {(!formData.age && !formData.bpSystolic) && (
+        <div className="glass-panel rounded-2xl p-4 sm:p-5 border border-amber-500/30 bg-amber-500/10 flex items-center gap-3.5 shadow-lg">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0">
+            <Sparkles className="w-5 h-5 animate-pulse text-amber-400" />
+          </div>
+          <div>
+            <h4 className="font-black text-sm text-white">Initial Health Assessment Inputs</h4>
+            <p className="text-xs text-slate-300 font-medium mt-0.5">
+              Enter your clinical biomarkers across the 3 steps below (or use a Quick Preset / Lab PDF). Once submitted, your personalized Health Score will be calculated and displayed immediately.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Quick Test Presets & AI Lab OCR Bar */}
       <div className="glass-panel rounded-2xl p-4 border border-amber-500/25 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-lg">
         <div className="flex items-center gap-2 text-xs font-black text-amber-400 uppercase tracking-wider">

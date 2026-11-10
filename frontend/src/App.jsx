@@ -274,6 +274,13 @@ export default function App() {
       if (res.ok && data.success) {
         sessionStorage.setItem('healthrisk_auth_token', data.token);
         setAuthToken(data.token);
+        const loggedInName = data.name || data.username;
+        setActiveUser(loggedInName);
+        setUserProfile({ name: loggedInName, username: data.username, role: data.role || 'user' });
+        setAssessments([]);
+        setLatestAssessment(null);
+        setResultsAssessment(null);
+        setFormData(prev => ({ ...prev, name: loggedInName }));
         if (data.role === 'admin' || data.username === 'admin') {
           showToast("Welcome System Administrator!", "success");
           setCurrentTab('admin_portal');
@@ -318,7 +325,22 @@ export default function App() {
       if (res.ok && data.success) {
         sessionStorage.setItem('healthrisk_auth_token', data.token);
         setAuthToken(data.token);
-        showToast("Registration successful!", "success");
+        const registeredName = (data.name || registerName || registerUsername).trim();
+        setActiveUser(registeredName);
+        setUserProfile({ name: registeredName, username: data.username || registerUsername, role: data.role || 'user' });
+        setAssessments([]);
+        setLatestAssessment(null);
+        setResultsAssessment(null);
+        setFormData({
+          name: registeredName, age: '', gender: 'male', height: '', weight: '',
+          smoking: 'no', alcohol: 'low', physicalActivity: 'moderate', sleepDuration: '',
+          bpSystolic: '', bpDiastolic: '', cholesterol: '', glucose: '', insulin: '', heartRate: '',
+          hdl: '', ldl: '', hba1c: '',
+          algorithm: 'auto'
+        });
+        setWizardStep(1);
+        setCurrentTab('wizard');
+        showToast(`Registration successful! Please provide your health inputs to calculate your health score.`, "success");
         setRegisterName('');
         setRegisterUsername('');
         setRegisterPassword('');
@@ -341,6 +363,18 @@ export default function App() {
     sessionStorage.removeItem('healthrisk_auth_token');
     setAuthToken('');
     setUserProfile(null);
+    setActiveUser('');
+    setAssessments([]);
+    setLatestAssessment(null);
+    setResultsAssessment(null);
+    setFormData({
+      name: '', age: '', gender: 'male', height: '', weight: '',
+      smoking: 'no', alcohol: 'low', physicalActivity: 'moderate', sleepDuration: '',
+      bpSystolic: '', bpDiastolic: '', cholesterol: '', glucose: '', insulin: '', heartRate: '',
+      hdl: '', ldl: '', hba1c: '',
+      algorithm: 'auto'
+    });
+    setWizardStep(1);
     setCurrentTab('dashboard');
     showToast("Signed out successfully.", "info");
   };
@@ -364,6 +398,10 @@ export default function App() {
           setActiveUser(firstUser);
           setInsightsUser(firstUser);
           setLatestAssessment(data[0]);
+        } else {
+          setAssessments([]);
+          setLatestAssessment(null);
+          setResultsAssessment(null);
         }
       }
     } catch (err) {
@@ -421,12 +459,19 @@ export default function App() {
       if (res.ok && (data.username || data.name || data.role)) {
         setUserProfile(data);
         setProfileName(data.name || '');
+        if (!activeUser && (data.name || data.username)) {
+          setActiveUser(data.name || data.username);
+        }
+        setFormData(prev => ({
+          ...prev,
+          name: prev.name ? prev.name : (data.name || data.username || '')
+        }));
         if (data.role === 'admin') fetchAdminUsersList();
       }
     } catch (err) {
       console.warn("Could not fetch user profile.", err);
     }
-  }, [authToken, fetchAdminUsersList]);
+  }, [authToken, fetchAdminUsersList, activeUser]);
 
   useEffect(() => {
     if (authToken) {
@@ -456,6 +501,9 @@ export default function App() {
     if (activeUser && assessments.length > 0) {
       const matched = assessments.find(a => a.name === activeUser);
       if (matched) setLatestAssessment(matched);
+      else setLatestAssessment(assessments[0]);
+    } else if (assessments.length === 0) {
+      setLatestAssessment(null);
     }
   }, [activeUser, assessments]);
 
